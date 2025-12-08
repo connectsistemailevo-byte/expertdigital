@@ -123,71 +123,139 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] h-[95vh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col bg-card border-border p-0 animate-scale-in">
+      <DialogContent className="w-[95vw] max-w-[400px] sm:max-w-[500px] bg-card border-border p-0 animate-scale-in max-h-[95vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-primary p-5 text-primary-foreground sticky top-0 z-10">
+        <div className="bg-primary p-3 sm:p-4 text-primary-foreground sticky top-0 z-10">
           <DialogHeader>
-            <DialogTitle className="text-xl font-display font-bold text-center">
+            <DialogTitle className="text-base sm:text-lg font-display font-bold text-center">
               Solicitar Guincho
             </DialogTitle>
-            <DialogDescription className="text-primary-foreground/80 text-center text-sm">
-              Preencha todos os dados abaixo
+            <DialogDescription className="text-primary-foreground/80 text-center text-xs sm:text-sm">
+              Preencha os dados abaixo
             </DialogDescription>
           </DialogHeader>
         </div>
 
-        <div className="p-4 sm:p-5 space-y-4 sm:space-y-5 flex-1 overflow-y-auto scrollbar-hide">
+        <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
           {/* Map with Location */}
-          <div className="rounded-xl overflow-hidden border border-border" style={{ minHeight: '200px' }}>
-            <MiniMap className="h-[160px] w-full" />
+          <div className="rounded-lg overflow-hidden border border-border">
+            <MiniMap className="h-[120px] sm:h-[140px] w-full" />
             
-            <div className="p-4 bg-muted space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                  <Navigation className="w-5 h-5 text-secondary-foreground" />
+            <div className="p-2 sm:p-3 bg-muted">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                  <Navigation className="w-4 h-4 text-secondary-foreground" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-muted-foreground">Sua localização atual</p>
-                  <p className="text-sm font-medium">
-                    {location.loading ? 'Buscando localização...' : location.error || location.address}
+                  <p className="text-[10px] text-muted-foreground">Sua localização</p>
+                  <p className="text-xs font-medium truncate">
+                    {location.loading ? 'Buscando...' : location.error || location.address}
                   </p>
-                  {!location.loading && !location.error && (
-                    <p className="text-xs text-muted-foreground mt-0.5">{location.region}</p>
-                  )}
                 </div>
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   onClick={refreshLocation}
-                  className="shrink-0"
+                  className="shrink-0 h-7 w-7"
                   disabled={location.loading}
-                  title="Atualizar localização"
                 >
-                  <RefreshCw className={`w-4 h-4 ${location.loading ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-3 h-3 ${location.loading ? 'animate-spin' : ''}`} />
                 </Button>
               </div>
             </div>
           </div>
 
-          {/* Available Providers */}
+          {/* Personal Info - Compact */}
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-xs font-medium mb-1">Seu nome *</label>
+              <Input
+                placeholder="Nome completo"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="h-9 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">WhatsApp *</label>
+              <Input
+                placeholder="(00) 00000-0000"
+                value={phone}
+                onChange={handlePhoneChange}
+                maxLength={15}
+                className="h-9 text-sm"
+              />
+            </div>
+          </div>
+
+          {/* Vehicle Type - Compact */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium mb-3">
-              <Users className="w-4 h-4" />
-              Prestadores na sua região *
+            <label className="block text-xs font-medium mb-2">Tipo de veículo *</label>
+            <div className="flex flex-wrap gap-1.5">
+              {vehicleTypes.map((vehicle) => {
+                const Icon = vehicle.icon;
+                const isSelected = selectedVehicle === vehicle.id;
+                return (
+                  <button
+                    key={vehicle.id}
+                    onClick={() => setSelectedVehicle(vehicle.id)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border transition-all duration-200 text-xs ${
+                      isSelected
+                        ? 'border-secondary bg-secondary/10 text-secondary-foreground'
+                        : 'border-border hover:border-secondary/50 hover:bg-muted'
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    <span>{vehicle.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Vehicle Condition - Compact */}
+          <div>
+            <label className="block text-xs font-medium mb-2">Situação do veículo *</label>
+            <div className="flex flex-wrap gap-1.5">
+              {vehicleConditions.map((condition) => {
+                const Icon = condition.icon;
+                const isSelected = selectedCondition === condition.id;
+                return (
+                  <button
+                    key={condition.id}
+                    onClick={() => setSelectedCondition(condition.id)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border transition-all duration-200 text-xs ${
+                      isSelected
+                        ? 'border-secondary bg-secondary/10'
+                        : 'border-border hover:border-secondary/50 hover:bg-muted'
+                    }`}
+                  >
+                    <Icon className={`w-3.5 h-3.5 ${condition.color}`} />
+                    <span>{condition.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Available Providers - Compact */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium mb-2">
+              <Users className="w-3.5 h-3.5" />
+              Prestadores disponíveis
             </label>
             {providersLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
+              <div className="flex items-center justify-center py-4">
+                <RefreshCw className="w-5 h-5 animate-spin text-muted-foreground" />
               </div>
             ) : providers.length === 0 ? (
-              <div className="text-center py-6 px-4 bg-muted rounded-xl">
-                <Users className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  Nenhum prestador disponível na sua região no momento
+              <div className="text-center py-3 px-3 bg-muted rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  Nenhum prestador disponível
                 </p>
               </div>
             ) : (
-              <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+              <div className="space-y-1.5 max-h-[100px] overflow-y-auto">
                 {providers.map((provider) => (
                   <ProviderCard
                     key={provider.id}
@@ -200,107 +268,22 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
             )}
           </div>
 
-          {/* Personal Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Seu nome *</label>
-              <Input
-                placeholder="Nome completo"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="h-11"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">WhatsApp *</label>
-              <Input
-                placeholder="(00) 00000-0000"
-                value={phone}
-                onChange={handlePhoneChange}
-                maxLength={15}
-                className="h-11"
-              />
-            </div>
-          </div>
-
-          {/* Vehicle Type */}
-          <div>
-            <label className="block text-sm font-medium mb-3">Tipo de veículo *</label>
-            <div className="grid grid-cols-5 gap-2">
-              {vehicleTypes.map((vehicle) => {
-                const Icon = vehicle.icon;
-                const isSelected = selectedVehicle === vehicle.id;
-                return (
-                  <button
-                    key={vehicle.id}
-                    onClick={() => setSelectedVehicle(vehicle.id)}
-                    className={`relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 ${
-                      isSelected
-                        ? 'border-secondary bg-secondary/10'
-                        : 'border-border hover:border-secondary/50 hover:bg-muted'
-                    }`}
-                  >
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      isSelected ? 'bg-secondary text-secondary-foreground' : 'bg-muted'
-                    }`}>
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <span className="font-medium text-xs">{vehicle.label}</span>
-                    {isSelected && (
-                      <CheckCircle2 className="w-4 h-4 text-secondary absolute top-1 right-1" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Vehicle Condition */}
-          <div>
-            <label className="block text-sm font-medium mb-3">Situação do veículo *</label>
-            <div className="grid grid-cols-2 gap-2">
-              {vehicleConditions.map((condition) => {
-                const Icon = condition.icon;
-                const isSelected = selectedCondition === condition.id;
-                return (
-                  <button
-                    key={condition.id}
-                    onClick={() => setSelectedCondition(condition.id)}
-                    className={`relative flex items-center gap-3 p-3 rounded-xl border-2 transition-all duration-200 ${
-                      isSelected
-                        ? 'border-secondary bg-secondary/10'
-                        : 'border-border hover:border-secondary/50 hover:bg-muted'
-                    }`}
-                  >
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-muted shrink-0">
-                      <Icon className={`w-5 h-5 ${condition.color}`} />
-                    </div>
-                    <span className="font-medium text-sm">{condition.label}</span>
-                    {isSelected && (
-                      <CheckCircle2 className="w-4 h-4 text-secondary absolute top-2 right-2" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
           {/* Submit Button */}
           <Button
             variant="hero"
-            size="lg"
-            className="w-full"
+            size="default"
+            className="w-full h-10"
             disabled={!canSubmit}
             onClick={handleSubmit}
           >
-            <MessageCircle className="w-5 h-5 mr-2" />
-            Enviar pelo WhatsApp
+            <MessageCircle className="w-4 h-4 mr-2" />
+            Solicitar Guincho Agora
           </Button>
 
           {/* Footer */}
-          <div className="flex items-center justify-center gap-2 pt-2 border-t border-border">
-            <Clock className="w-4 h-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">
+          <div className="flex items-center justify-center gap-1.5 pt-2 border-t border-border">
+            <Clock className="w-3 h-3 text-muted-foreground" />
+            <span className="text-[10px] text-muted-foreground">
               Atendimento 24h em todo o Brasil
             </span>
           </div>
