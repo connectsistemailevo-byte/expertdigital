@@ -4,14 +4,16 @@ import { Input } from '@/components/ui/input';
 import { useLocation } from '@/contexts/LocationContext';
 import Map from '@/components/Map';
 import RequestModal from '@/components/RequestModal';
+import ProviderRegistrationModal from '@/components/ProviderRegistrationModal';
 import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
 import heroTruck from '@/assets/hero-truck.png';
-import { MapPin, Phone, ArrowRight, CheckCircle, Settings, X } from 'lucide-react';
+import { MapPin, Phone, ArrowRight, CheckCircle, Settings, X, Truck } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Index: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [tokenInput, setTokenInput] = useState('');
   const { location, mapboxToken, setMapboxToken } = useLocation();
@@ -40,6 +42,13 @@ const Index: React.FC = () => {
               <a href="#como-funciona" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Como Funciona
               </a>
+              <button 
+                onClick={() => setIsProviderModalOpen(true)}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
+              >
+                <Truck className="w-4 h-4" />
+                Sou Prestador
+              </button>
               <button 
                 onClick={() => setShowSettings(true)}
                 className="text-muted-foreground hover:text-foreground transition-colors"
@@ -166,8 +175,18 @@ const Index: React.FC = () => {
               </Button>
             </div>
 
+            {/* Provider CTA */}
+            <button
+              onClick={() => setIsProviderModalOpen(true)}
+              className="mt-6 text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors flex items-center gap-2 animate-fade-in"
+              style={{ animationDelay: '400ms' }}
+            >
+              <Truck className="w-4 h-4" />
+              É guincheiro? Cadastre-se aqui
+            </button>
+
             {/* Trust badges */}
-            <div className="flex flex-wrap items-center gap-6 justify-center mt-10 animate-fade-in" style={{ animationDelay: '400ms' }}>
+            <div className="flex flex-wrap items-center gap-6 justify-center mt-8 animate-fade-in" style={{ animationDelay: '500ms' }}>
               {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map((badge) => (
                 <div key={badge} className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-secondary" />
@@ -255,6 +274,9 @@ const Index: React.FC = () => {
 
       {/* Request Modal */}
       <RequestModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+      
+      {/* Provider Registration Modal */}
+      <ProviderRegistrationModal open={isProviderModalOpen} onOpenChange={setIsProviderModalOpen} />
     </div>
   );
 };

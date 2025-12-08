@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      providers: {
+        Row: {
+          address: string | null
+          created_at: string
+          has_patins: boolean
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          region: string | null
+          service_types: string[]
+          updated_at: string
+          whatsapp: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          has_patins?: boolean
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          region?: string | null
+          service_types?: string[]
+          updated_at?: string
+          whatsapp: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          has_patins?: boolean
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          region?: string | null
+          service_types?: string[]
+          updated_at?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
