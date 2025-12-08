@@ -3,9 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLocation } from '@/contexts/LocationContext';
-import { Car, Truck, Bike, MapPin, Clock, AlertTriangle, Fuel, RotateCcw, Building2, CheckCircle2, RefreshCw, MessageCircle, Navigation } from 'lucide-react';
+import { Car, Truck, Bike, Clock, AlertTriangle, Fuel, RotateCcw, Building2, CheckCircle2, RefreshCw, MessageCircle, Navigation, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import MiniMap from '@/components/MiniMap';
+import ProviderCard from '@/components/ProviderCard';
+import { useProviders, Provider } from '@/hooks/useProviders';
 
 interface RequestModalProps {
   open: boolean;
@@ -31,14 +33,14 @@ const vehicleConditions = [
   { id: 'outros' as VehicleCondition, label: 'Outros', icon: AlertTriangle, color: 'text-gray-500' },
 ];
 
-
 const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
   const { location, refreshLocation } = useLocation();
+  const { providers, loading: providersLoading } = useProviders();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleType | null>(null);
   const [selectedCondition, setSelectedCondition] = useState<VehicleCondition | null>(null);
-
+  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -62,11 +64,11 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
     });
   };
 
-  const canSubmit = name.length >= 2 && phone.length >= 14 && selectedVehicle && selectedCondition;
+  const canSubmit = name.length >= 2 && phone.length >= 14 && selectedVehicle && selectedCondition && selectedProvider;
 
   const handleSubmit = () => {
-    if (!canSubmit) {
-      toast.error('Por favor, preencha todos os campos');
+    if (!canSubmit || !selectedProvider) {
+      toast.error('Por favor, preencha todos os campos e selecione um prestador');
       return;
     }
 
@@ -79,18 +81,21 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
       `📱 *WhatsApp:* ${phone}\n\n` +
       `🚙 *Tipo de Veículo:* ${vehicleLabel}\n` +
       `⚠️ *Situação:* ${conditionLabel}\n\n` +
-      `📍 *Localização:*\n${location.address}\n` +
+      `📍 *Localização do Cliente:*\n${location.address}\n` +
       `🗺️ *Região:* ${location.region}\n` +
       `📐 *Coordenadas:* ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}\n\n` +
+      `📏 *Distância até você:* ${selectedProvider.distance?.toFixed(1)} km\n` +
+      `⏱️ *Tempo estimado:* ~${selectedProvider.estimatedTime} minutos\n\n` +
       `🕐 *Horário da Solicitação:* ${getCurrentTime()}\n\n` +
       `🔗 *Ver no Mapa:*\nhttps://www.google.com/maps?q=${location.latitude},${location.longitude}`;
     
     const message = encodeURIComponent(messageText);
 
-    const whatsappNumber = '5562991429264';
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
+    // Use provider's WhatsApp number
+    const whatsappNumber = selectedProvider.whatsapp.replace(/\D/g, '');
+    const formattedNumber = whatsappNumber.startsWith('55') ? whatsappNumber : `55${whatsappNumber}`;
+    const whatsappUrl = `https://wa.me/${formattedNumber}?text=${message}`;
     
-    // Create a temporary link and click it to bypass iframe restrictions
     const link = document.createElement('a');
     link.href = whatsappUrl;
     link.target = '_blank';
@@ -100,7 +105,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
     document.body.removeChild(link);
     
     toast.success('Abrindo WhatsApp...', {
-      description: 'Se não abrir automaticamente, clique no botão abaixo.',
+      description: `Entrando em contato com ${selectedProvider.name}`,
       action: {
         label: 'Abrir WhatsApp',
         onClick: () => window.location.href = whatsappUrl,
@@ -112,6 +117,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
     setPhone('');
     setSelectedVehicle(null);
     setSelectedCondition(null);
+    setSelectedProvider(null);
     onOpenChange(false);
   };
 
@@ -160,8 +166,38 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
                   <RefreshCw className={`w-4 h-4 ${location.loading ? 'animate-spin' : ''}`} />
                 </Button>
               </div>
-              
             </div>
+          </div>
+
+          {/* Available Providers */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium mb-3">
+              <Users className="w-4 h-4" />
+              Prestadores na sua região *
+            </label>
+            {providersLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : providers.length === 0 ? (
+              <div className="text-center py-6 px-4 bg-muted rounded-xl">
+                <Users className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">
+                  Nenhum prestador disponível na sua região no momento
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+                {providers.map((provider) => (
+                  <ProviderCard
+                    key={provider.id}
+                    provider={provider}
+                    isSelected={selectedProvider?.id === provider.id}
+                    onSelect={() => setSelectedProvider(provider)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Personal Info */}
