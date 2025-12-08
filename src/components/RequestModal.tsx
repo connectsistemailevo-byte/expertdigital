@@ -3,8 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLocation } from '@/contexts/LocationContext';
-import { Car, Truck, Bike, MapPin, Clock, AlertTriangle, Fuel, RotateCcw, Building2, CheckCircle2, RefreshCw, MessageCircle } from 'lucide-react';
+import { Car, Truck, Bike, MapPin, Clock, AlertTriangle, Fuel, RotateCcw, Building2, CheckCircle2, RefreshCw, MessageCircle, Navigation } from 'lucide-react';
 import { toast } from 'sonner';
+import MiniMap from '@/components/MiniMap';
 
 interface RequestModalProps {
   open: boolean;
@@ -171,42 +172,52 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
         </div>
 
         <div className="p-5 space-y-5">
-          {/* Location with Distance */}
-          <div className="p-4 bg-muted rounded-xl space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center shrink-0">
-                <MapPin className="w-5 h-5 text-secondary" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-muted-foreground">Sua localização</p>
-                <p className="text-sm font-medium truncate">
-                  {location.loading ? 'Buscando...' : location.error || location.region}
-                </p>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={refreshLocation}
-                className="shrink-0"
-                disabled={location.loading}
-              >
-                <RefreshCw className={`w-4 h-4 ${location.loading ? 'animate-spin' : ''}`} />
-              </Button>
-            </div>
+          {/* Map with Location */}
+          <div className="rounded-xl overflow-hidden border border-border">
+            <MiniMap className="h-40 w-full" />
             
-            {/* Distance Info */}
-            {!location.loading && !location.error && (
-              <div className="flex items-center gap-4 pt-2 border-t border-border/50">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Distância:</span>
-                  <span className="text-sm font-semibold text-secondary">{distanceKm.toFixed(1)} km</span>
+            <div className="p-4 bg-muted space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                  <Navigation className="w-5 h-5 text-secondary-foreground" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Tempo estimado:</span>
-                  <span className="text-sm font-semibold text-secondary">{estimatedTime}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-muted-foreground">Sua localização atual</p>
+                  <p className="text-sm font-medium">
+                    {location.loading ? 'Buscando localização...' : location.error || location.address}
+                  </p>
+                  {!location.loading && !location.error && (
+                    <p className="text-xs text-muted-foreground mt-0.5">{location.region}</p>
+                  )}
                 </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={refreshLocation}
+                  className="shrink-0"
+                  disabled={location.loading}
+                  title="Atualizar localização"
+                >
+                  <RefreshCw className={`w-4 h-4 ${location.loading ? 'animate-spin' : ''}`} />
+                </Button>
               </div>
-            )}
+              
+              {/* Distance Info */}
+              {!location.loading && !location.error && (
+                <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-secondary" />
+                    <span className="text-xs text-muted-foreground">Distância:</span>
+                    <span className="text-sm font-bold text-secondary">{distanceKm.toFixed(1)} km</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-secondary" />
+                    <span className="text-xs text-muted-foreground">Tempo:</span>
+                    <span className="text-sm font-bold text-secondary">{estimatedTime}</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Personal Info */}
