@@ -12,8 +12,12 @@ export interface Provider {
   longitude: number;
   address: string | null;
   region: string | null;
+  base_price: number;
+  price_per_km: number;
+  patins_extra_price: number;
   distance?: number;
   estimatedTime?: number;
+  estimatedPrice?: number;
 }
 
 // Calculate distance between two points using Haversine formula
@@ -63,7 +67,7 @@ export function useProviders(maxDistanceKm: number = 50) {
           return;
         }
 
-        // Calculate distance for each provider and filter by max distance
+        // Calculate distance and price for each provider and filter by max distance
         const providersWithDistance = data
           .map(provider => {
             const distance = calculateDistance(
@@ -72,10 +76,14 @@ export function useProviders(maxDistanceKm: number = 50) {
               provider.latitude,
               provider.longitude
             );
+            const basePrice = provider.base_price || 50;
+            const pricePerKm = provider.price_per_km || 5;
+            const estimatedPrice = basePrice + (distance * pricePerKm);
             return {
               ...provider,
               distance,
               estimatedTime: estimateArrivalTime(distance),
+              estimatedPrice,
             };
           })
           .filter(provider => provider.distance <= maxDistanceKm)
