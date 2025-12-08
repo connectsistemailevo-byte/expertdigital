@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
-import { MapPin, Loader2 } from 'lucide-react';
+import { MapPin, Loader2, Building2 } from 'lucide-react';
 import { useLocation } from '@/contexts/LocationContext';
 
 interface AddressAutocompleteProps {
@@ -14,6 +14,8 @@ interface Suggestion {
   id: string;
   place_name: string;
   text: string;
+  address: string;
+  category: string;
 }
 
 const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
@@ -46,7 +48,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   }, []);
 
   const searchAddress = async (query: string) => {
-    if (!query || query.length < 3 || !mapboxToken) {
+    if (!query || query.length < 2 || !mapboxToken) {
       setSuggestions([]);
       return;
     }
@@ -59,8 +61,9 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         ? `&proximity=${location.longitude},${location.latitude}` 
         : '';
       
+      // Include POI first for places like shopping centers, then other types
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=br&language=pt&limit=5${proximity}&types=address,poi,place,locality,neighborhood`
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=br&language=pt&limit=6${proximity}&types=poi,address,place,locality,neighborhood`
       );
       
       const data = await response.json();
@@ -70,6 +73,8 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
           id: f.id,
           place_name: f.place_name,
           text: f.text,
+          address: f.properties?.address || '',
+          category: f.properties?.category || '',
         })));
         setShowSuggestions(true);
       }
@@ -103,6 +108,10 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     setShowSuggestions(false);
   };
 
+  const isPOI = (suggestion: Suggestion) => {
+    return suggestion.id.startsWith('poi');
+  };
+
   return (
     <div ref={containerRef} className="relative">
       <div className="relative">
@@ -121,17 +130,26 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       </div>
 
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden">
+        <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden max-h-[200px] overflow-y-auto">
           {suggestions.map((suggestion) => (
             <button
               key={suggestion.id}
               onClick={() => handleSuggestionClick(suggestion)}
-              className="w-full flex items-start gap-2 px-3 py-2 hover:bg-muted transition-colors text-left"
+              className="w-full flex items-start gap-2 px-3 py-2.5 hover:bg-muted transition-colors text-left border-b border-border/50 last:border-b-0"
             >
-              <MapPin className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
-              <span className="text-xs text-foreground line-clamp-2">
-                {suggestion.place_name}
-              </span>
+              {isPOI(suggestion) ? (
+                <Building2 className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
+              ) : (
+                <MapPin className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-foreground truncate">
+                  {suggestion.text}
+                </p>
+                <p className="text-[10px] text-muted-foreground line-clamp-2">
+                  {suggestion.place_name}
+                </p>
+              </div>
             </button>
           ))}
         </div>
