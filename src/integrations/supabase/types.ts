@@ -17,12 +17,15 @@ export type Database = {
       providers: {
         Row: {
           address: string | null
+          base_price: number | null
           created_at: string
           has_patins: boolean
           id: string
           latitude: number
           longitude: number
           name: string
+          patins_extra_price: number | null
+          price_per_km: number | null
           region: string | null
           service_types: string[]
           updated_at: string
@@ -30,12 +33,15 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          base_price?: number | null
           created_at?: string
           has_patins?: boolean
           id?: string
           latitude: number
           longitude: number
           name: string
+          patins_extra_price?: number | null
+          price_per_km?: number | null
           region?: string | null
           service_types?: string[]
           updated_at?: string
@@ -43,12 +49,15 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          base_price?: number | null
           created_at?: string
           has_patins?: boolean
           id?: string
           latitude?: number
           longitude?: number
           name?: string
+          patins_extra_price?: number | null
+          price_per_km?: number | null
           region?: string | null
           service_types?: string[]
           updated_at?: string

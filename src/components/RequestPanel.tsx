@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLocation } from '@/contexts/LocationContext';
-import { Car, Truck, Bike, Clock, AlertTriangle, Fuel, RotateCcw, Building2, CheckCircle2, RefreshCw, MessageCircle, Navigation, Users } from 'lucide-react';
+import { Car, Truck, Bike, Clock, AlertTriangle, Fuel, RotateCcw, Building2, CheckCircle2, RefreshCw, MessageCircle, Navigation, Users, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import MiniMap from '@/components/MiniMap';
 import ProviderCard from '@/components/ProviderCard';
@@ -36,6 +36,9 @@ const RequestPanel: React.FC = () => {
   const [selectedCondition, setSelectedCondition] = useState<VehicleCondition | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
 
+  // Check if subsolo condition requires patins
+  const needsPatins = selectedCondition === 'subsolo';
+
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
     if (numbers.length <= 11) {
@@ -58,6 +61,14 @@ const RequestPanel: React.FC = () => {
     });
   };
 
+  const calculateTotalPrice = (provider: Provider) => {
+    let total = provider.estimatedPrice || 0;
+    if (needsPatins && provider.has_patins) {
+      total += provider.patins_extra_price || 30;
+    }
+    return total;
+  };
+
   const canSubmit = name.length >= 2 && phone.length >= 14 && selectedVehicle && selectedCondition;
 
   const handleSubmit = () => {
@@ -71,9 +82,15 @@ const RequestPanel: React.FC = () => {
     
     // Default WhatsApp number if no provider selected
     const defaultWhatsApp = '5562991429264';
-    const providerInfo = selectedProvider 
-      ? `\n📏 *Distância até você:* ${selectedProvider.distance?.toFixed(1)} km\n⏱️ *Tempo estimado:* ~${selectedProvider.estimatedTime} minutos\n`
-      : '';
+    
+    let providerInfo = '';
+    let priceInfo = '';
+    
+    if (selectedProvider) {
+      const totalPrice = calculateTotalPrice(selectedProvider);
+      providerInfo = `\n📏 *Distância até você:* ${selectedProvider.distance?.toFixed(1)} km\n⏱️ *Tempo estimado:* ~${selectedProvider.estimatedTime} minutos\n`;
+      priceInfo = `\n💰 *Valor Estimado:* R$ ${totalPrice.toFixed(2)}${needsPatins ? ' (com patins)' : ''}\n`;
+    }
     
     const messageText = 
       `🚗 *NOVA SOLICITAÇÃO - ACHEI GUINCHO*\n\n` +
@@ -85,6 +102,7 @@ const RequestPanel: React.FC = () => {
       `🗺️ *Região:* ${location.region}\n` +
       `📐 *Coordenadas:* ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}\n` +
       providerInfo +
+      priceInfo +
       `\n🕐 *Horário da Solicitação:* ${getCurrentTime()}\n\n` +
       `🔗 *Ver no Mapa:*\nhttps://www.google.com/maps?q=${location.latitude},${location.longitude}`;
     
@@ -115,183 +133,193 @@ const RequestPanel: React.FC = () => {
   return (
     <div className="bg-card rounded-2xl border border-border shadow-2xl overflow-hidden">
       {/* Header */}
-      <div className="bg-primary p-4 text-primary-foreground">
+      <div className="bg-primary p-3 text-primary-foreground">
         <div className="text-center">
-          <h2 className="text-lg font-display font-bold">
+          <h2 className="text-base font-display font-bold">
             Solicitar Guincho
           </h2>
-          <p className="text-primary-foreground/80 text-sm">
+          <p className="text-primary-foreground/80 text-xs">
             Preencha os dados abaixo
           </p>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
-          {/* Map with Location */}
-          <div className="rounded-xl overflow-hidden border border-border shadow-md" style={{ minHeight: '200px' }}>
-            <MiniMap className="h-[160px] w-full" />
-            
-            <div className="p-4 bg-muted space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                  <Navigation className="w-5 h-5 text-secondary-foreground" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs text-muted-foreground">Sua localização atual</p>
-                  <p className="text-sm font-medium">
-                    {location.loading ? 'Buscando localização...' : location.error || location.address}
-                  </p>
-                  {!location.loading && !location.error && (
-                    <p className="text-xs text-muted-foreground mt-0.5">{location.region}</p>
-                  )}
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={refreshLocation}
-                  className="shrink-0"
-                  disabled={location.loading}
-                  title="Atualizar localização"
-                >
-                  <RefreshCw className={`w-4 h-4 ${location.loading ? 'animate-spin' : ''}`} />
-                </Button>
+      {/* Content - No scroll, everything visible */}
+      <div className="p-3 space-y-3">
+        {/* Map with Location - Compact */}
+        <div className="rounded-xl overflow-hidden border border-border shadow-md">
+          <MiniMap className="h-[100px] w-full" />
+          
+          <div className="p-2 bg-muted">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                <Navigation className="w-4 h-4 text-secondary-foreground" />
               </div>
-            </div>
-          </div>
-
-          {/* Available Providers */}
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium mb-3">
-              <Users className="w-4 h-4" />
-              Prestadores na sua região *
-            </label>
-            {providersLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : providers.length === 0 ? (
-              <div className="text-center py-6 px-4 bg-muted rounded-xl">
-                <Users className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  Nenhum prestador disponível na sua região no momento
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] text-muted-foreground">Sua localização</p>
+                <p className="text-xs font-medium truncate">
+                  {location.loading ? 'Buscando...' : location.error || location.address}
                 </p>
               </div>
-            ) : (
-              <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
-                {providers.map((provider) => (
-                  <ProviderCard
-                    key={provider.id}
-                    provider={provider}
-                    isSelected={selectedProvider?.id === provider.id}
-                    onSelect={() => setSelectedProvider(provider)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Personal Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Seu nome *</label>
-              <Input
-                placeholder="Nome completo"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="h-11"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">WhatsApp *</label>
-              <Input
-                placeholder="(00) 00000-0000"
-                value={phone}
-                onChange={handlePhoneChange}
-                maxLength={15}
-                className="h-11"
-              />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={refreshLocation}
+                className="shrink-0 h-7 w-7"
+                disabled={location.loading}
+              >
+                <RefreshCw className={`w-3 h-3 ${location.loading ? 'animate-spin' : ''}`} />
+              </Button>
             </div>
           </div>
+        </div>
 
-          {/* Vehicle Type */}
+        {/* Personal Info - Compact */}
+        <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="block text-sm font-medium mb-3">Tipo de veículo *</label>
-            <div className="grid grid-cols-5 gap-2">
-              {vehicleTypes.map((vehicle) => {
-                const Icon = vehicle.icon;
-                const isSelected = selectedVehicle === vehicle.id;
-                return (
-                  <button
-                    key={vehicle.id}
-                    onClick={() => setSelectedVehicle(vehicle.id)}
-                    className={`relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 ${
-                      isSelected
-                        ? 'border-secondary bg-secondary/10'
-                        : 'border-border hover:border-secondary/50 hover:bg-muted'
-                    }`}
-                  >
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      isSelected ? 'bg-secondary text-secondary-foreground' : 'bg-muted'
-                    }`}>
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <span className="font-medium text-xs">{vehicle.label}</span>
-                    {isSelected && (
-                      <CheckCircle2 className="w-4 h-4 text-secondary absolute top-1 right-1" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            <label className="block text-xs font-medium mb-1">Seu nome *</label>
+            <Input
+              placeholder="Nome completo"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="h-9 text-sm"
+            />
           </div>
-
-          {/* Vehicle Condition */}
           <div>
-            <label className="block text-sm font-medium mb-3">Situação do veículo *</label>
-            <div className="grid grid-cols-2 gap-2">
-              {vehicleConditions.map((condition) => {
-                const Icon = condition.icon;
-                const isSelected = selectedCondition === condition.id;
-                return (
-                  <button
-                    key={condition.id}
-                    onClick={() => setSelectedCondition(condition.id)}
-                    className={`relative flex items-center gap-3 p-3 rounded-xl border-2 transition-all duration-200 ${
-                      isSelected
-                        ? 'border-secondary bg-secondary/10'
-                        : 'border-border hover:border-secondary/50 hover:bg-muted'
-                    }`}
-                  >
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-muted shrink-0">
-                      <Icon className={`w-5 h-5 ${condition.color}`} />
-                    </div>
-                    <span className="font-medium text-sm">{condition.label}</span>
-                    {isSelected && (
-                      <CheckCircle2 className="w-4 h-4 text-secondary absolute top-2 right-2" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            <label className="block text-xs font-medium mb-1">WhatsApp *</label>
+            <Input
+              placeholder="(00) 00000-0000"
+              value={phone}
+              onChange={handlePhoneChange}
+              maxLength={15}
+              className="h-9 text-sm"
+            />
           </div>
+        </div>
 
-          {/* Submit Button */}
-          <Button
-            variant="hero"
-            size="lg"
-            className="w-full"
-            disabled={!canSubmit}
-            onClick={handleSubmit}
-          >
-            <MessageCircle className="w-5 h-5 mr-2" />
-            Solicitar Guincho Agora
-          </Button>
+        {/* Vehicle Type - Compact */}
+        <div>
+          <label className="block text-xs font-medium mb-2">Tipo de veículo *</label>
+          <div className="grid grid-cols-5 gap-1">
+            {vehicleTypes.map((vehicle) => {
+              const Icon = vehicle.icon;
+              const isSelected = selectedVehicle === vehicle.id;
+              return (
+                <button
+                  key={vehicle.id}
+                  onClick={() => setSelectedVehicle(vehicle.id)}
+                  className={`relative flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all duration-200 ${
+                    isSelected
+                      ? 'border-secondary bg-secondary/10'
+                      : 'border-border hover:border-secondary/50 hover:bg-muted'
+                  }`}
+                >
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                    isSelected ? 'bg-secondary text-secondary-foreground' : 'bg-muted'
+                  }`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <span className="font-medium text-[10px]">{vehicle.label}</span>
+                  {isSelected && (
+                    <CheckCircle2 className="w-3 h-3 text-secondary absolute top-0.5 right-0.5" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Vehicle Condition - Compact */}
+        <div>
+          <label className="block text-xs font-medium mb-2">Situação do veículo *</label>
+          <div className="grid grid-cols-3 gap-1">
+            {vehicleConditions.map((condition) => {
+              const Icon = condition.icon;
+              const isSelected = selectedCondition === condition.id;
+              return (
+                <button
+                  key={condition.id}
+                  onClick={() => setSelectedCondition(condition.id)}
+                  className={`relative flex items-center gap-1.5 p-2 rounded-lg border-2 transition-all duration-200 ${
+                    isSelected
+                      ? 'border-secondary bg-secondary/10'
+                      : 'border-border hover:border-secondary/50 hover:bg-muted'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${condition.color} shrink-0`} />
+                  <span className="font-medium text-[10px] truncate">{condition.label}</span>
+                  {isSelected && (
+                    <CheckCircle2 className="w-3 h-3 text-secondary absolute top-0.5 right-0.5" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Available Providers - Compact */}
+        <div>
+          <label className="flex items-center gap-1 text-xs font-medium mb-2">
+            <Users className="w-3 h-3" />
+            Prestadores disponíveis
+          </label>
+          {providersLoading ? (
+            <div className="flex items-center justify-center py-4">
+              <RefreshCw className="w-5 h-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : providers.length === 0 ? (
+            <div className="text-center py-3 px-3 bg-muted rounded-lg">
+              <Users className="w-5 h-5 text-muted-foreground mx-auto mb-1" />
+              <p className="text-[10px] text-muted-foreground">
+                Nenhum prestador na região
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-1.5 max-h-[140px] overflow-y-auto pr-1">
+              {providers.slice(0, 3).map((provider) => (
+                <ProviderCard
+                  key={provider.id}
+                  provider={provider}
+                  isSelected={selectedProvider?.id === provider.id}
+                  onSelect={() => setSelectedProvider(provider)}
+                  needsPatins={needsPatins}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Selected Provider Price Summary */}
+        {selectedProvider && (
+          <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+            <div className="flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-green-600" />
+              <span className="text-xs font-medium text-green-700 dark:text-green-400">
+                Valor estimado:
+              </span>
+            </div>
+            <span className="text-sm font-bold text-green-700 dark:text-green-400">
+              R$ {calculateTotalPrice(selectedProvider).toFixed(2)}
+            </span>
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <Button
+          variant="hero"
+          size="lg"
+          className="w-full h-10"
+          disabled={!canSubmit}
+          onClick={handleSubmit}
+        >
+          <MessageCircle className="w-4 h-4 mr-2" />
+          Solicitar Guincho Agora
+        </Button>
 
         {/* Footer */}
-        <div className="flex items-center justify-center gap-2 pt-4 border-t border-border">
-          <Clock className="w-4 h-4 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">
+        <div className="flex items-center justify-center gap-1 pt-2 border-t border-border">
+          <Clock className="w-3 h-3 text-muted-foreground" />
+          <span className="text-[10px] text-muted-foreground">
             Atendimento 24h em todo o Brasil
           </span>
         </div>
