@@ -114,24 +114,21 @@ const RequestPanel: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="bg-card rounded-2xl border border-border shadow-2xl overflow-hidden">
       {/* Header */}
-      <header className="bg-primary p-4 text-primary-foreground sticky top-0 z-10 shadow-lg">
-        <div className="container mx-auto">
-          <div className="text-center">
-            <h1 className="text-xl font-display font-bold">
-              ACHEI<span className="text-secondary"> GUINCHO</span>
-            </h1>
-            <p className="text-primary-foreground/80 text-sm">
-              seu guincho de bolso
-            </p>
-          </div>
+      <div className="bg-primary p-4 text-primary-foreground">
+        <div className="text-center">
+          <h2 className="text-lg font-display font-bold">
+            Solicitar Guincho
+          </h2>
+          <p className="text-primary-foreground/80 text-sm">
+            Preencha os dados abaixo
+          </p>
         </div>
-      </header>
+      </div>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="container mx-auto p-4 max-w-lg space-y-5">
+      {/* Content */}
+      <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
           {/* Map with Location */}
           <div className="rounded-xl overflow-hidden border border-border shadow-md" style={{ minHeight: '200px' }}>
             <MiniMap className="h-[160px] w-full" />
@@ -292,15 +289,14 @@ const RequestPanel: React.FC = () => {
             Solicitar Guincho Agora
           </Button>
 
-          {/* Footer */}
-          <div className="flex items-center justify-center gap-2 py-4 border-t border-border">
-            <Clock className="w-4 h-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">
-              Atendimento 24h em todo o Brasil
-            </span>
-          </div>
+        {/* Footer */}
+        <div className="flex items-center justify-center gap-2 pt-4 border-t border-border">
+          <Clock className="w-4 h-4 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">
+            Atendimento 24h em todo o Brasil
+          </span>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
