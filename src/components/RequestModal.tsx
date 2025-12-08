@@ -28,12 +28,55 @@ const vehicleConditions = [
   { id: 'subsolo' as VehicleCondition, label: 'Subsolo', icon: Building2, color: 'text-blue-500' },
 ];
 
+// Localização base do prestador (centro de São Paulo)
+const PROVIDER_LOCATION = {
+  latitude: -23.5505,
+  longitude: -46.6333,
+  name: 'Centro de SP'
+};
+
+// Função para calcular distância em km usando fórmula de Haversine
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const R = 6371; // Raio da Terra em km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
+// Estimar tempo de chegada baseado na distância (média de 30km/h no trânsito)
+const estimateArrivalTime = (distanceKm: number): string => {
+  const avgSpeedKmh = 30; // velocidade média no trânsito
+  const timeInMinutes = Math.round((distanceKm / avgSpeedKmh) * 60);
+  
+  if (timeInMinutes < 60) {
+    return `${timeInMinutes} min`;
+  } else {
+    const hours = Math.floor(timeInMinutes / 60);
+    const mins = timeInMinutes % 60;
+    return `${hours}h${mins > 0 ? ` ${mins}min` : ''}`;
+  }
+};
+
 const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
   const { location, refreshLocation } = useLocation();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleType | null>(null);
   const [selectedCondition, setSelectedCondition] = useState<VehicleCondition | null>(null);
+
+  // Calcular distância do cliente até o prestador
+  const distanceKm = calculateDistance(
+    location.latitude,
+    location.longitude,
+    PROVIDER_LOCATION.latitude,
+    PROVIDER_LOCATION.longitude
+  );
+  const estimatedTime = estimateArrivalTime(distanceKm);
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -77,7 +120,9 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
       `📍 *Localização:*\n${location.address}\n` +
       `🗺️ *Região:* ${location.region}\n` +
       `📐 *Coordenadas:* ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}\n\n` +
-      `🕐 *Horário:* ${getCurrentTime()}\n\n` +
+      `📏 *Distância:* ${distanceKm.toFixed(1)} km\n` +
+      `⏱️ *Tempo estimado:* ${estimatedTime}\n\n` +
+      `🕐 *Horário da Solicitação:* ${getCurrentTime()}\n\n` +
       `🔗 *Ver no Mapa:*\nhttps://www.google.com/maps?q=${location.latitude},${location.longitude}`;
     
     const message = encodeURIComponent(messageText);
@@ -126,26 +171,42 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
         </div>
 
         <div className="p-5 space-y-5">
-          {/* Location */}
-          <div className="flex items-center gap-3 p-3 bg-muted rounded-xl">
-            <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center shrink-0">
-              <MapPin className="w-5 h-5 text-secondary" />
+          {/* Location with Distance */}
+          <div className="p-4 bg-muted rounded-xl space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center shrink-0">
+                <MapPin className="w-5 h-5 text-secondary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-muted-foreground">Sua localização</p>
+                <p className="text-sm font-medium truncate">
+                  {location.loading ? 'Buscando...' : location.error || location.region}
+                </p>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={refreshLocation}
+                className="shrink-0"
+                disabled={location.loading}
+              >
+                <RefreshCw className={`w-4 h-4 ${location.loading ? 'animate-spin' : ''}`} />
+              </Button>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs text-muted-foreground">Sua localização</p>
-              <p className="text-sm font-medium truncate">
-                {location.loading ? 'Buscando...' : location.error || location.region}
-              </p>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={refreshLocation}
-              className="shrink-0"
-              disabled={location.loading}
-            >
-              <RefreshCw className={`w-4 h-4 ${location.loading ? 'animate-spin' : ''}`} />
-            </Button>
+            
+            {/* Distance Info */}
+            {!location.loading && !location.error && (
+              <div className="flex items-center gap-4 pt-2 border-t border-border/50">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Distância:</span>
+                  <span className="text-sm font-semibold text-secondary">{distanceKm.toFixed(1)} km</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Tempo estimado:</span>
+                  <span className="text-sm font-semibold text-secondary">{estimatedTime}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Personal Info */}
