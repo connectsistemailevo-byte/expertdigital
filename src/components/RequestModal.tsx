@@ -12,14 +12,15 @@ interface RequestModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type VehicleType = 'carro' | 'moto' | 'caminhonete' | 'caminhao';
-type VehicleCondition = 'pane' | 'seca' | 'capotado' | 'subsolo';
+type VehicleType = 'carro' | 'moto' | 'caminhonete' | 'caminhao' | 'outros';
+type VehicleCondition = 'pane' | 'seca' | 'capotado' | 'subsolo' | 'outros';
 
 const vehicleTypes = [
   { id: 'carro' as VehicleType, label: 'Carro', icon: Car },
   { id: 'moto' as VehicleType, label: 'Moto', icon: Bike },
   { id: 'caminhonete' as VehicleType, label: 'Caminhonete', icon: Car },
   { id: 'caminhao' as VehicleType, label: 'Caminhão', icon: Truck },
+  { id: 'outros' as VehicleType, label: 'Outros', icon: Car },
 ];
 
 const vehicleConditions = [
@@ -27,41 +28,9 @@ const vehicleConditions = [
   { id: 'seca' as VehicleCondition, label: 'Sem Combustível', icon: Fuel, color: 'text-red-500' },
   { id: 'capotado' as VehicleCondition, label: 'Capotado', icon: RotateCcw, color: 'text-orange-500' },
   { id: 'subsolo' as VehicleCondition, label: 'Subsolo', icon: Building2, color: 'text-blue-500' },
+  { id: 'outros' as VehicleCondition, label: 'Outros', icon: AlertTriangle, color: 'text-gray-500' },
 ];
 
-// Localização base do prestador (Goiânia - base principal)
-const PROVIDER_LOCATION = {
-  latitude: -16.6869,
-  longitude: -49.2648,
-  name: 'Base Central'
-};
-
-// Função para calcular distância em km usando fórmula de Haversine
-const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-  const R = 6371; // Raio da Terra em km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-};
-
-// Estimar tempo de chegada baseado na distância (média de 30km/h no trânsito)
-const estimateArrivalTime = (distanceKm: number): string => {
-  const avgSpeedKmh = 30; // velocidade média no trânsito
-  const timeInMinutes = Math.round((distanceKm / avgSpeedKmh) * 60);
-  
-  if (timeInMinutes < 60) {
-    return `${timeInMinutes} min`;
-  } else {
-    const hours = Math.floor(timeInMinutes / 60);
-    const mins = timeInMinutes % 60;
-    return `${hours}h${mins > 0 ? ` ${mins}min` : ''}`;
-  }
-};
 
 const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
   const { location, refreshLocation } = useLocation();
@@ -70,14 +39,6 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleType | null>(null);
   const [selectedCondition, setSelectedCondition] = useState<VehicleCondition | null>(null);
 
-  // Calcular distância do cliente até o prestador
-  const distanceKm = calculateDistance(
-    location.latitude,
-    location.longitude,
-    PROVIDER_LOCATION.latitude,
-    PROVIDER_LOCATION.longitude
-  );
-  const estimatedTime = estimateArrivalTime(distanceKm);
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -121,8 +82,6 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
       `📍 *Localização:*\n${location.address}\n` +
       `🗺️ *Região:* ${location.region}\n` +
       `📐 *Coordenadas:* ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}\n\n` +
-      `📏 *Distância:* ${distanceKm.toFixed(1)} km\n` +
-      `⏱️ *Tempo estimado:* ${estimatedTime}\n\n` +
       `🕐 *Horário da Solicitação:* ${getCurrentTime()}\n\n` +
       `🔗 *Ver no Mapa:*\nhttps://www.google.com/maps?q=${location.latitude},${location.longitude}`;
     
@@ -173,8 +132,8 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
 
         <div className="p-5 space-y-5">
           {/* Map with Location */}
-          <div className="rounded-xl overflow-hidden border border-border">
-            <MiniMap className="h-40 w-full" />
+          <div className="rounded-xl overflow-hidden border border-border" style={{ minHeight: '200px' }}>
+            <MiniMap className="h-[160px] w-full" />
             
             <div className="p-4 bg-muted space-y-3">
               <div className="flex items-center gap-3">
@@ -202,21 +161,6 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
                 </Button>
               </div>
               
-              {/* Distance Info */}
-              {!location.loading && !location.error && (
-                <div className="flex items-center justify-between pt-3 border-t border-border/50">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-secondary" />
-                    <span className="text-xs text-muted-foreground">Distância:</span>
-                    <span className="text-sm font-bold text-secondary">{distanceKm.toFixed(1)} km</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-secondary" />
-                    <span className="text-xs text-muted-foreground">Tempo:</span>
-                    <span className="text-sm font-bold text-secondary">{estimatedTime}</span>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
@@ -245,8 +189,8 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
 
           {/* Vehicle Type */}
           <div>
-            <label className="block text-sm font-medium mb-3">Que tipo de veículo é o seu? *</label>
-            <div className="grid grid-cols-4 gap-2">
+            <label className="block text-sm font-medium mb-3">Tipo de veículo *</label>
+            <div className="grid grid-cols-5 gap-2">
               {vehicleTypes.map((vehicle) => {
                 const Icon = vehicle.icon;
                 const isSelected = selectedVehicle === vehicle.id;
@@ -277,7 +221,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
 
           {/* Vehicle Condition */}
           <div>
-            <label className="block text-sm font-medium mb-3">O veículo está como? *</label>
+            <label className="block text-sm font-medium mb-3">Situação do veículo *</label>
             <div className="grid grid-cols-2 gap-2">
               {vehicleConditions.map((condition) => {
                 const Icon = condition.icon;

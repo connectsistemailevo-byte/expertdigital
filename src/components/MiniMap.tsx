@@ -159,8 +159,8 @@ const MiniMap: React.FC<MiniMapProps> = ({ className }) => {
   }
 
   return (
-    <div className={className}>
-      <div ref={mapContainer} className="w-full h-full" />
+    <div className={`${className} relative min-h-[160px]`} style={{ minHeight: '160px' }}>
+      <div ref={mapContainer} className="absolute inset-0 w-full h-full" style={{ minHeight: '160px' }} />
     </div>
   );
 };
