@@ -132,13 +132,13 @@ const Index: React.FC = () => {
               </div>
               
               {/* Title */}
-              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground leading-tight mb-6 animate-slide-up">
+              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-primary-foreground leading-tight mb-6 animate-slide-up drop-shadow-lg">
                 Seu Guincho de
                 <span className="text-secondary block">Bolso</span>
               </h1>
               
               {/* Subtitle */}
-              <p className="text-lg md:text-xl text-primary-foreground/80 max-w-xl mb-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
+              <p className="text-xl md:text-2xl text-primary-foreground/90 max-w-xl mb-8 animate-slide-up font-medium drop-shadow-md" style={{ animationDelay: '100ms' }}>
                 Conectamos você ao guincheiro mais próximo em poucos minutos. Sem complicação, com total transparência.
               </p>
 
