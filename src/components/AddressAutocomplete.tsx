@@ -19,11 +19,11 @@ interface Suggestion {
 
 // Palavras que indicam busca por POI/estabelecimento
 const POI_KEYWORDS = [
-  'shopping', 'shop', 'mall', 'mercado', 'supermercado', 'hospital', 
+  'shopping', 'mall', 'mercado', 'supermercado', 'hospital', 
   'hotel', 'restaurante', 'farmacia', 'farmácia', 'posto', 'banco',
   'escola', 'faculdade', 'universidade', 'igreja', 'academia',
   'oficina', 'concessionaria', 'concessionária', 'loja', 'centro comercial',
-  'aeroporto', 'rodoviária', 'rodoviaria', 'terminal', 'estação', 'estacao'
+  'aeroporto', 'rodoviária', 'rodoviaria', 'terminal'
 ];
 
 const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
@@ -73,16 +73,17 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     try {
       const isSearchingPOI = isPOISearch(query);
       
-      // Proximity baseado na localização do usuário (formato: lon,lat)
-      const proximityParam = location.latitude && location.longitude 
-        ? `&proximity=${location.longitude},${location.latitude}` 
-        : '';
+      // Bounding box centrado na localização do usuário (raio de ~50km)
+      // Isso força os resultados a serem da região
+      let bboxParam = '';
+      let proximityParam = '';
       
-      // Bbox para limitar resultados à região de Goiás/Centro-Oeste
-      // Isso ajuda a priorizar resultados locais
-      const bboxParam = location.latitude && location.longitude
-        ? `&bbox=${location.longitude - 1},${location.latitude - 1},${location.longitude + 1},${location.latitude + 1}`
-        : '';
+      if (location.latitude && location.longitude) {
+        // Bbox de aproximadamente 100km ao redor do usuário
+        const delta = 0.9; // ~100km
+        bboxParam = `&bbox=${location.longitude - delta},${location.latitude - delta},${location.longitude + delta},${location.latitude + delta}`;
+        proximityParam = `&proximity=${location.longitude},${location.latitude}`;
+      }
 
       if (isSearchingPOI) {
         // Usar Search Box API para POIs (shoppings, empresas, etc)
@@ -101,12 +102,10 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
           })));
           setShowSuggestions(true);
         } else {
-          // Fallback para geocoding se não encontrar POI
-          await searchWithGeocoding(query, proximityParam);
+          await searchWithGeocoding(query, bboxParam, proximityParam);
         }
       } else {
-        // Usar Geocoding API para endereços normais
-        await searchWithGeocoding(query, proximityParam);
+        await searchWithGeocoding(query, bboxParam, proximityParam);
       }
     } catch (error) {
       console.error('Error fetching address suggestions:', error);
@@ -116,10 +115,11 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     }
   };
 
-  const searchWithGeocoding = async (query: string, proximityParam: string) => {
+  const searchWithGeocoding = async (query: string, bboxParam: string, proximityParam: string) => {
     try {
+      // Usar bbox para restringir resultados à região + proximity para ordenar
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=br&language=pt&limit=5${proximityParam}&types=address,neighborhood,locality,place&autocomplete=true`
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=br&language=pt&limit=5${bboxParam}${proximityParam}&types=address,neighborhood,locality,place&autocomplete=true`
       );
       
       const data = await response.json();
@@ -133,7 +133,24 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         })));
         setShowSuggestions(true);
       } else {
-        setSuggestions([]);
+        // Se não encontrar com bbox, tenta sem bbox mas com proximity
+        const fallbackResponse = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=br&language=pt&limit=5${proximityParam}&types=address,neighborhood,locality,place&autocomplete=true`
+        );
+        
+        const fallbackData = await fallbackResponse.json();
+        
+        if (fallbackData.features && fallbackData.features.length > 0) {
+          setSuggestions(fallbackData.features.map((f: any) => ({
+            id: f.id,
+            name: f.text + (f.address ? `, ${f.address}` : ''),
+            full_address: f.place_name,
+            isPOI: false,
+          })));
+          setShowSuggestions(true);
+        } else {
+          setSuggestions([]);
+        }
       }
     } catch (error) {
       console.error('Geocoding error:', error);
