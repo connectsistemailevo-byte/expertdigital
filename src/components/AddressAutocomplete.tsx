@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
-import { MapPin, Loader2, Building2 } from 'lucide-react';
+import { MapPin, Loader2 } from 'lucide-react';
 import { useLocation } from '@/contexts/LocationContext';
 
 interface AddressAutocompleteProps {
@@ -30,7 +30,6 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const [inputValue, setInputValue] = useState(value);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
-  const sessionTokenRef = useRef<string>(crypto.randomUUID());
 
   useEffect(() => {
     setInputValue(value);
@@ -48,7 +47,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   }, []);
 
   const searchAddress = async (query: string) => {
-    if (!query || query.length < 2 || !mapboxToken) {
+    if (!query || query.length < 3 || !mapboxToken) {
       setSuggestions([]);
       return;
     }
@@ -56,55 +55,32 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     setIsLoading(true);
 
     try {
-      // Use proximity to user's location for better results
+      // Use proximity to user's location for better local results
       const proximity = location.latitude && location.longitude 
         ? `&proximity=${location.longitude},${location.latitude}` 
         : '';
       
-      // Use Search Box API for better POI results (shoppings, etc)
+      // Prioritize addresses and streets over POIs for better address matching
       const response = await fetch(
-        `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(query)}&access_token=${mapboxToken}&session_token=${sessionTokenRef.current}&language=pt&country=br&limit=6${proximity}&types=poi,address,street,place`
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=br&language=pt&limit=5${proximity}&types=address,poi,place,neighborhood,locality&autocomplete=true`
       );
       
       const data = await response.json();
       
-      if (data.suggestions) {
-        setSuggestions(data.suggestions.map((s: any) => ({
-          id: s.mapbox_id,
-          name: s.name,
-          full_address: s.full_address || s.place_formatted || s.name,
-          feature_type: s.feature_type || 'address',
+      if (data.features && data.features.length > 0) {
+        setSuggestions(data.features.map((f: any) => ({
+          id: f.id,
+          name: f.text + (f.address ? ` ${f.address}` : ''),
+          full_address: f.place_name,
+          feature_type: f.place_type?.[0] || 'address',
         })));
         setShowSuggestions(true);
+      } else {
+        setSuggestions([]);
       }
     } catch (error) {
       console.error('Error fetching address suggestions:', error);
-      
-      // Fallback to geocoding API
-      try {
-        const proximity = location.latitude && location.longitude 
-          ? `&proximity=${location.longitude},${location.latitude}` 
-          : '';
-        
-        const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=br&language=pt&limit=6${proximity}&types=poi,address,place,locality,neighborhood`
-        );
-        
-        const data = await response.json();
-        
-        if (data.features) {
-          setSuggestions(data.features.map((f: any) => ({
-            id: f.id,
-            name: f.text,
-            full_address: f.place_name,
-            feature_type: f.place_type?.[0] || 'address',
-          })));
-          setShowSuggestions(true);
-        }
-      } catch (fallbackError) {
-        console.error('Fallback geocoding error:', fallbackError);
-        setSuggestions([]);
-      }
+      setSuggestions([]);
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +89,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
-    onChange(newValue);
+    onChange(newValue); // Sempre atualiza o valor, permitindo digitação livre
 
     // Debounce search
     if (debounceRef.current) {
@@ -122,7 +98,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
     debounceRef.current = setTimeout(() => {
       searchAddress(newValue);
-    }, 300);
+    }, 400);
   };
 
   const handleSuggestionClick = (suggestion: Suggestion) => {
@@ -131,12 +107,13 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     onChange(displayValue);
     setSuggestions([]);
     setShowSuggestions(false);
-    // Generate new session token for next search
-    sessionTokenRef.current = crypto.randomUUID();
   };
 
-  const isPOI = (suggestion: Suggestion) => {
-    return suggestion.feature_type === 'poi';
+  const handleBlur = () => {
+    // Delay para permitir clique nas sugestões
+    setTimeout(() => {
+      setShowSuggestions(false);
+    }, 200);
   };
 
   return (
@@ -146,6 +123,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
           value={inputValue}
           onChange={handleInputChange}
           onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+          onBlur={handleBlur}
           placeholder={placeholder}
           className={`h-9 text-sm pr-8 ${className}`}
         />
@@ -157,18 +135,19 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       </div>
 
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden max-h-[220px] overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden max-h-[200px] overflow-y-auto">
+          <div className="px-3 py-1.5 bg-muted/50 border-b border-border">
+            <p className="text-[10px] text-muted-foreground">
+              Sugestões (ou continue digitando)
+            </p>
+          </div>
           {suggestions.map((suggestion) => (
             <button
               key={suggestion.id}
               onClick={() => handleSuggestionClick(suggestion)}
-              className="w-full flex items-start gap-2 px-3 py-2.5 hover:bg-muted transition-colors text-left border-b border-border/50 last:border-b-0"
+              className="w-full flex items-start gap-2 px-3 py-2 hover:bg-muted transition-colors text-left border-b border-border/30 last:border-b-0"
             >
-              {isPOI(suggestion) ? (
-                <Building2 className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
-              ) : (
-                <MapPin className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
-              )}
+              <MapPin className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium text-foreground truncate">
                   {suggestion.name}
