@@ -38,10 +38,10 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
   });
 
   const [location, setLocation] = useState<LocationData>({
-    latitude: -23.5505,
-    longitude: -46.6333,
+    latitude: -16.6869,
+    longitude: -49.2648,
     address: 'Aguardando localização...',
-    region: 'São Paulo, SP',
+    region: 'Brasil',
     loading: true,
     error: null,
   });
@@ -77,10 +77,10 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
         
         return { address, region };
       }
-      return { address: `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`, region: 'Localização capturada' };
+      return { address: `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`, region: 'Brasil' };
     } catch (error) {
       console.error('Error getting address:', error);
-      return { address: `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`, region: 'Localização capturada' };
+      return { address: `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`, region: 'Brasil' };
     }
   };
 

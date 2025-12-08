@@ -36,7 +36,7 @@ const Footer: React.FC = () => {
               </a>
               <div className="flex items-center gap-3 text-sm">
                 <MapPin className="w-4 h-4" />
-                Atendimento em toda região de SP
+                Atendimento em todo o Brasil
               </div>
             </div>
           </div>
