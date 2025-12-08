@@ -68,7 +68,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
     const vehicleLabel = vehicleTypes.find(v => v.id === selectedVehicle)?.label;
     const conditionLabel = vehicleConditions.find(c => c.id === selectedCondition)?.label;
     
-    const message = encodeURIComponent(
+    const messageText = 
       `🚗 *NOVA SOLICITAÇÃO - ACHEI GUINCHO*\n\n` +
       `👤 *Cliente:* ${name}\n` +
       `📱 *WhatsApp:* ${phone}\n\n` +
@@ -78,15 +78,30 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
       `🗺️ *Região:* ${location.region}\n` +
       `📐 *Coordenadas:* ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}\n\n` +
       `🕐 *Horário:* ${getCurrentTime()}\n\n` +
-      `🔗 *Ver no Mapa:*\nhttps://www.google.com/maps?q=${location.latitude},${location.longitude}`
-    );
+      `🔗 *Ver no Mapa:*\nhttps://www.google.com/maps?q=${location.latitude},${location.longitude}`;
+    
+    const message = encodeURIComponent(messageText);
 
     const whatsappNumber = '5562991429264';
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
     
-    window.open(whatsappUrl, '_blank');
+    // Create a temporary link and click it to bypass iframe restrictions
+    const link = document.createElement('a');
+    link.href = whatsappUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     
-    toast.success('Redirecionando para o WhatsApp...');
+    toast.success('Abrindo WhatsApp...', {
+      description: 'Se não abrir automaticamente, clique no botão abaixo.',
+      action: {
+        label: 'Abrir WhatsApp',
+        onClick: () => window.location.href = whatsappUrl,
+      },
+      duration: 10000,
+    });
     
     setName('');
     setPhone('');
