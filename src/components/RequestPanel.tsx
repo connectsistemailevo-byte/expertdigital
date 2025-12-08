@@ -58,16 +58,22 @@ const RequestPanel: React.FC = () => {
     });
   };
 
-  const canSubmit = name.length >= 2 && phone.length >= 14 && selectedVehicle && selectedCondition && selectedProvider;
+  const canSubmit = name.length >= 2 && phone.length >= 14 && selectedVehicle && selectedCondition;
 
   const handleSubmit = () => {
-    if (!canSubmit || !selectedProvider) {
-      toast.error('Por favor, preencha todos os campos e selecione um prestador');
+    if (!canSubmit) {
+      toast.error('Por favor, preencha todos os campos obrigatórios');
       return;
     }
 
     const vehicleLabel = vehicleTypes.find(v => v.id === selectedVehicle)?.label;
     const conditionLabel = vehicleConditions.find(c => c.id === selectedCondition)?.label;
+    
+    // Default WhatsApp number if no provider selected
+    const defaultWhatsApp = '5562991429264';
+    const providerInfo = selectedProvider 
+      ? `\n📏 *Distância até você:* ${selectedProvider.distance?.toFixed(1)} km\n⏱️ *Tempo estimado:* ~${selectedProvider.estimatedTime} minutos\n`
+      : '';
     
     const messageText = 
       `🚗 *NOVA SOLICITAÇÃO - ACHEI GUINCHO*\n\n` +
@@ -77,33 +83,26 @@ const RequestPanel: React.FC = () => {
       `⚠️ *Situação:* ${conditionLabel}\n\n` +
       `📍 *Localização do Cliente:*\n${location.address}\n` +
       `🗺️ *Região:* ${location.region}\n` +
-      `📐 *Coordenadas:* ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}\n\n` +
-      `📏 *Distância até você:* ${selectedProvider.distance?.toFixed(1)} km\n` +
-      `⏱️ *Tempo estimado:* ~${selectedProvider.estimatedTime} minutos\n\n` +
-      `🕐 *Horário da Solicitação:* ${getCurrentTime()}\n\n` +
+      `📐 *Coordenadas:* ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}\n` +
+      providerInfo +
+      `\n🕐 *Horário da Solicitação:* ${getCurrentTime()}\n\n` +
       `🔗 *Ver no Mapa:*\nhttps://www.google.com/maps?q=${location.latitude},${location.longitude}`;
     
     const message = encodeURIComponent(messageText);
 
-    const whatsappNumber = selectedProvider.whatsapp.replace(/\D/g, '');
+    const whatsappNumber = selectedProvider 
+      ? selectedProvider.whatsapp.replace(/\D/g, '') 
+      : defaultWhatsApp;
     const formattedNumber = whatsappNumber.startsWith('55') ? whatsappNumber : `55${whatsappNumber}`;
     const whatsappUrl = `https://wa.me/${formattedNumber}?text=${message}`;
     
-    const link = document.createElement('a');
-    link.href = whatsappUrl;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
     
     toast.success('Abrindo WhatsApp...', {
-      description: `Entrando em contato com ${selectedProvider.name}`,
-      action: {
-        label: 'Abrir WhatsApp',
-        onClick: () => window.location.href = whatsappUrl,
-      },
-      duration: 10000,
+      description: selectedProvider 
+        ? `Entrando em contato com ${selectedProvider.name}` 
+        : 'Entrando em contato com a central',
+      duration: 5000,
     });
     
     setName('');
