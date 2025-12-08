@@ -1,9 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useLocation } from '@/contexts/LocationContext';
-
-mapboxgl.accessToken = 'pk.eyJ1IjoibG92YWJsZWFpIiwiYSI6ImNtYXk3d3Q2djA1aWUya3B5ZG9pNnRwc2YifQ.ra-Gthd7huNGyGv9t3fWPQ';
 
 interface MapProps {
   className?: string;
@@ -13,72 +11,84 @@ const Map: React.FC<MapProps> = ({ className }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const marker = useRef<mapboxgl.Marker | null>(null);
-  const { location } = useLocation();
+  const { location, mapboxToken } = useLocation();
+  const [mapError, setMapError] = useState(false);
 
   useEffect(() => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || !mapboxToken) {
+      setMapError(true);
+      return;
+    }
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
-      center: [location.longitude, location.latitude],
-      zoom: 13,
-      pitch: 45,
-      bearing: -17.6,
-      antialias: true,
-    });
+    setMapError(false);
+    mapboxgl.accessToken = mapboxToken;
 
-    map.current.addControl(
-      new mapboxgl.NavigationControl({
-        visualizePitch: true,
-      }),
-      'top-right'
-    );
+    try {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/dark-v11',
+        center: [location.longitude, location.latitude],
+        zoom: 13,
+        pitch: 45,
+        bearing: -17.6,
+        antialias: true,
+      });
 
-    map.current.scrollZoom.disable();
-
-    // Add 3D building layer
-    map.current.on('style.load', () => {
-      const layers = map.current?.getStyle()?.layers;
-      if (!layers) return;
-      
-      const labelLayerId = layers.find(
-        (layer) => layer.type === 'symbol' && layer.layout?.['text-field']
-      )?.id;
-
-      map.current?.addLayer(
-        {
-          id: 'add-3d-buildings',
-          source: 'composite',
-          'source-layer': 'building',
-          filter: ['==', 'extrude', 'true'],
-          type: 'fill-extrusion',
-          minzoom: 15,
-          paint: {
-            'fill-extrusion-color': '#1a365d',
-            'fill-extrusion-height': ['get', 'height'],
-            'fill-extrusion-base': ['get', 'min_height'],
-            'fill-extrusion-opacity': 0.6,
-          },
-        },
-        labelLayerId
+      map.current.addControl(
+        new mapboxgl.NavigationControl({
+          visualizePitch: true,
+        }),
+        'top-right'
       );
-    });
+
+      map.current.scrollZoom.disable();
+
+      map.current.on('error', () => {
+        setMapError(true);
+      });
+
+      map.current.on('style.load', () => {
+        const layers = map.current?.getStyle()?.layers;
+        if (!layers) return;
+        
+        const labelLayerId = layers.find(
+          (layer) => layer.type === 'symbol' && layer.layout?.['text-field']
+        )?.id;
+
+        map.current?.addLayer(
+          {
+            id: 'add-3d-buildings',
+            source: 'composite',
+            'source-layer': 'building',
+            filter: ['==', 'extrude', 'true'],
+            type: 'fill-extrusion',
+            minzoom: 15,
+            paint: {
+              'fill-extrusion-color': '#1a365d',
+              'fill-extrusion-height': ['get', 'height'],
+              'fill-extrusion-base': ['get', 'min_height'],
+              'fill-extrusion-opacity': 0.6,
+            },
+          },
+          labelLayerId
+        );
+      });
+    } catch (error) {
+      setMapError(true);
+    }
 
     return () => {
       map.current?.remove();
     };
-  }, []);
+  }, [mapboxToken]);
 
   useEffect(() => {
-    if (!map.current || location.loading) return;
+    if (!map.current || location.loading || mapError) return;
 
-    // Remove existing marker
     if (marker.current) {
       marker.current.remove();
     }
 
-    // Create custom marker element
     const el = document.createElement('div');
     el.className = 'custom-marker';
     el.innerHTML = `
@@ -111,7 +121,17 @@ const Map: React.FC<MapProps> = ({ className }) => {
       duration: 2000,
       essential: true,
     });
-  }, [location.latitude, location.longitude, location.loading]);
+  }, [location.latitude, location.longitude, location.loading, mapError]);
+
+  if (mapError || !mapboxToken) {
+    return (
+      <div className={`${className} bg-primary/20 flex items-center justify-center`}>
+        <div className="text-center p-4">
+          <p className="text-muted-foreground text-sm">Configure sua API Mapbox para ver o mapa</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={className}>

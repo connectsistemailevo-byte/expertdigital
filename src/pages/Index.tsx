@@ -1,21 +1,33 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useLocation } from '@/contexts/LocationContext';
 import Map from '@/components/Map';
 import RequestModal from '@/components/RequestModal';
 import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
 import heroTruck from '@/assets/hero-truck.png';
-import { MapPin, Phone, ArrowRight, CheckCircle } from 'lucide-react';
+import { MapPin, Phone, ArrowRight, CheckCircle, Settings, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Index: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { location } = useLocation();
+  const [showSettings, setShowSettings] = useState(false);
+  const [tokenInput, setTokenInput] = useState('');
+  const { location, mapboxToken, setMapboxToken } = useLocation();
+
+  const handleSaveToken = () => {
+    if (tokenInput.trim()) {
+      setMapboxToken(tokenInput.trim());
+      toast.success('Token Mapbox salvo com sucesso!');
+      setShowSettings(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-lg border-b border-border">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16 md:h-20">
             <div className="font-display text-xl md:text-2xl font-bold text-foreground">
@@ -28,6 +40,12 @@ const Index: React.FC = () => {
               <a href="#como-funciona" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Como Funciona
               </a>
+              <button 
+                onClick={() => setShowSettings(true)}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
             </nav>
             <Button 
               variant="hero" 
@@ -40,94 +58,130 @@ const Index: React.FC = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative min-h-screen pt-20 overflow-hidden">
-        {/* Background Map */}
-        <div className="absolute inset-0 z-0">
-          <Map className="w-full h-full opacity-30" />
-          <div className="absolute inset-0 bg-gradient-to-b from-background via-background/80 to-background" />
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card rounded-2xl border border-border shadow-xl w-full max-w-md p-6 animate-scale-in">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold text-lg">Configurações</h3>
+              <button onClick={() => setShowSettings(false)}>
+                <X className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Mapbox Access Token</label>
+                <Input
+                  placeholder="pk.eyJ1IjoiLi4uIiwiYSI6Ii4uLiJ9..."
+                  value={tokenInput || mapboxToken}
+                  onChange={(e) => setTokenInput(e.target.value)}
+                  className="h-11"
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Obtenha seu token em{' '}
+                  <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer" className="text-secondary hover:underline">
+                    mapbox.com
+                  </a>
+                </p>
+              </div>
+              <Button variant="hero" className="w-full" onClick={handleSaveToken}>
+                Salvar Token
+              </Button>
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* Hero Section with Background Image */}
+      <section className="relative min-h-screen pt-20 overflow-hidden">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+          style={{ 
+            backgroundImage: `url(${heroTruck})`,
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/85 to-primary/70" />
+        </div>
+
+        {/* Optional Map Overlay */}
+        {mapboxToken && (
+          <div className="absolute inset-0 z-0 opacity-20">
+            <Map className="w-full h-full" />
+          </div>
+        )}
 
         {/* Content */}
         <div className="relative z-10 container mx-auto px-4 pt-12 md:pt-24">
-          <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[calc(100vh-8rem)]">
-            {/* Left Content */}
-            <div className="text-center lg:text-left animate-slide-up">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/10 rounded-full mb-6">
-                <span className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
-                <span className="text-sm font-medium text-secondary">Atendimento 24h em toda SP</span>
-              </div>
-              
-              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
-                Seu Guincho de
-                <span className="text-gradient block">Bolso</span>
-              </h1>
-              
-              <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8">
-                Conectamos você ao guincheiro mais próximo em poucos minutos. Sem complicação, com transparência.
-              </p>
+          <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] text-center">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/20 backdrop-blur-sm rounded-full mb-6 animate-fade-in">
+              <span className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
+              <span className="text-sm font-medium text-primary-foreground">Atendimento 24h em toda SP</span>
+            </div>
+            
+            {/* Title */}
+            <h1 className="font-display text-4xl md:text-5xl lg:text-7xl font-bold text-primary-foreground leading-tight mb-6 animate-slide-up">
+              Seu Guincho de
+              <span className="text-secondary block">Bolso</span>
+            </h1>
+            
+            {/* Subtitle */}
+            <p className="text-lg md:text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
+              Conectamos você ao guincheiro mais próximo em poucos minutos. Sem complicação, com total transparência.
+            </p>
 
-              {/* Location Card */}
-              {!location.loading && !location.error && (
-                <div className="inline-flex items-center gap-3 px-4 py-3 bg-card rounded-xl border border-border shadow-sm mb-8">
-                  <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
-                    <MapPin className="w-5 h-5 text-secondary" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-xs text-muted-foreground">Sua localização</p>
-                    <p className="text-sm font-medium text-foreground">{location.region}</p>
-                  </div>
+            {/* Location Card */}
+            {!location.loading && !location.error && (
+              <div className="inline-flex items-center gap-3 px-5 py-3 bg-primary-foreground/10 backdrop-blur-md rounded-xl border border-primary-foreground/20 mb-8 animate-fade-in" style={{ animationDelay: '200ms' }}>
+                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-secondary-foreground" />
                 </div>
-              )}
-
-              {/* CTAs */}
-              <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-                <Button 
-                  variant="hero" 
-                  size="xl"
-                  onClick={() => setIsModalOpen(true)}
-                  className="w-full sm:w-auto"
-                >
-                  Solicitar Guincho Agora
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-                <Button 
-                  variant="heroOutline" 
-                  size="xl"
-                  className="w-full sm:w-auto bg-primary text-primary-foreground border-primary-foreground/20 hover:bg-primary/90"
-                  onClick={() => window.open('https://wa.me/5562991429264', '_blank')}
-                >
-                  <Phone className="w-5 h-5 mr-2" />
-                  Falar no WhatsApp
-                </Button>
+                <div className="text-left">
+                  <p className="text-xs text-primary-foreground/70">Sua localização</p>
+                  <p className="text-sm font-medium text-primary-foreground">{location.region}</p>
+                </div>
               </div>
+            )}
 
-              {/* Trust badges */}
-              <div className="flex flex-wrap items-center gap-6 justify-center lg:justify-start mt-10">
-                {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map((badge) => (
-                  <div key={badge} className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-secondary" />
-                    <span className="text-sm text-muted-foreground">{badge}</span>
-                  </div>
-                ))}
-              </div>
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row items-center gap-4 justify-center animate-slide-up" style={{ animationDelay: '300ms' }}>
+              <Button 
+                variant="hero" 
+                size="xl"
+                onClick={() => setIsModalOpen(true)}
+                className="w-full sm:w-auto"
+              >
+                Solicitar Guincho Agora
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+              <Button 
+                variant="heroOutline" 
+                size="xl"
+                className="w-full sm:w-auto"
+                onClick={() => window.open('https://wa.me/5562991429264', '_blank')}
+              >
+                <Phone className="w-5 h-5 mr-2" />
+                Falar no WhatsApp
+              </Button>
             </div>
 
-            {/* Right Content - Image */}
-            <div className="hidden lg:flex justify-center items-center animate-float">
-              <img 
-                src={heroTruck} 
-                alt="Guincho Achei Guincho" 
-                className="max-w-full h-auto drop-shadow-2xl"
-              />
+            {/* Trust badges */}
+            <div className="flex flex-wrap items-center gap-6 justify-center mt-10 animate-fade-in" style={{ animationDelay: '400ms' }}>
+              {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map((badge) => (
+                <div key={badge} className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-secondary" />
+                  <span className="text-sm text-primary-foreground/80">{badge}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <div className="w-8 h-12 rounded-full border-2 border-muted-foreground/30 flex items-start justify-center p-2">
-            <div className="w-1.5 h-3 bg-muted-foreground/50 rounded-full animate-pulse" />
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce z-10">
+          <div className="w-8 h-12 rounded-full border-2 border-primary-foreground/30 flex items-start justify-center p-2">
+            <div className="w-1.5 h-3 bg-primary-foreground/50 rounded-full animate-pulse" />
           </div>
         </div>
       </section>
@@ -173,10 +227,11 @@ const Index: React.FC = () => {
       <FeaturesSection />
 
       {/* CTA Section */}
-      <section className="py-20 bg-hero relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <Map className="w-full h-full" />
-        </div>
+      <section className="py-20 bg-primary relative overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-10"
+          style={{ backgroundImage: `url(${heroTruck})` }}
+        />
         <div className="container mx-auto px-4 relative z-10 text-center">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground mb-6">
             Precisa de um guincho agora?

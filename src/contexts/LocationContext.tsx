@@ -5,7 +5,6 @@ interface LocationData {
   longitude: number;
   address: string;
   region: string;
-  distance: number | null;
   loading: boolean;
   error: string | null;
 }
@@ -13,6 +12,8 @@ interface LocationData {
 interface LocationContextType {
   location: LocationData;
   refreshLocation: () => void;
+  mapboxToken: string;
+  setMapboxToken: (token: string) => void;
 }
 
 const LocationContext = createContext<LocationContextType | null>(null);
@@ -29,21 +30,35 @@ interface LocationProviderProps {
   children: ReactNode;
 }
 
+const STORAGE_KEY = 'achei_guincho_mapbox_token';
+
 export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) => {
+  const [mapboxToken, setMapboxTokenState] = useState(() => {
+    return localStorage.getItem(STORAGE_KEY) || '';
+  });
+
   const [location, setLocation] = useState<LocationData>({
     latitude: -23.5505,
     longitude: -46.6333,
-    address: 'Carregando localização...',
+    address: 'Aguardando localização...',
     region: 'São Paulo, SP',
-    distance: null,
     loading: true,
     error: null,
   });
 
-  const getAddressFromCoordinates = async (lat: number, lng: number) => {
+  const setMapboxToken = (token: string) => {
+    setMapboxTokenState(token);
+    localStorage.setItem(STORAGE_KEY, token);
+  };
+
+  const getAddressFromCoordinates = async (lat: number, lng: number, token: string) => {
+    if (!token) {
+      return { address: `${lat.toFixed(4)}, ${lng.toFixed(4)}`, region: 'Localização capturada' };
+    }
+    
     try {
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=pk.eyJ1IjoibG92YWJsZWFpIiwiYSI6ImNtYXk3d3Q2djA1aWUya3B5ZG9pNnRwc2YifQ.ra-Gthd7huNGyGv9t3fWPQ&language=pt`
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&language=pt&country=BR`
       );
       const data = await response.json();
       
@@ -53,18 +68,19 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
         
         const neighborhood = context.find((c: any) => c.id.includes('neighborhood'))?.text || '';
         const locality = context.find((c: any) => c.id.includes('locality'))?.text || '';
-        const city = context.find((c: any) => c.id.includes('place'))?.text || 'São Paulo';
-        const state = context.find((c: any) => c.id.includes('region'))?.short_code?.replace('BR-', '') || 'SP';
+        const city = context.find((c: any) => c.id.includes('place'))?.text || '';
+        const state = context.find((c: any) => c.id.includes('region'))?.short_code?.replace('BR-', '') || '';
         
-        const address = place.place_name || `${neighborhood}, ${city}`;
-        const region = `${locality || neighborhood || city}, ${state}`;
+        const addressParts = [neighborhood, locality, city].filter(Boolean);
+        const address = place.place_name || addressParts.join(', ');
+        const region = city && state ? `${city}, ${state}` : 'São Paulo, SP';
         
         return { address, region };
       }
-      return { address: 'Localização encontrada', region: 'São Paulo, SP' };
+      return { address: `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`, region: 'Localização capturada' };
     } catch (error) {
       console.error('Error getting address:', error);
-      return { address: 'Localização encontrada', region: 'São Paulo, SP' };
+      return { address: `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`, region: 'Localização capturada' };
     }
   };
 
@@ -83,40 +99,47 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        const { address, region } = await getAddressFromCoordinates(latitude, longitude);
+        const { address, region } = await getAddressFromCoordinates(latitude, longitude, mapboxToken);
         
         setLocation({
           latitude,
           longitude,
           address,
           region,
-          distance: null,
           loading: false,
           error: null,
         });
       },
       (error) => {
         console.error('Geolocation error:', error);
+        let errorMsg = 'Não foi possível obter sua localização.';
+        if (error.code === 1) {
+          errorMsg = 'Permita o acesso à localização no navegador.';
+        } else if (error.code === 2) {
+          errorMsg = 'Localização indisponível no momento.';
+        } else if (error.code === 3) {
+          errorMsg = 'Tempo esgotado ao buscar localização.';
+        }
         setLocation(prev => ({
           ...prev,
           loading: false,
-          error: 'Não foi possível obter sua localização. Por favor, permita o acesso.',
+          error: errorMsg,
         }));
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000,
+        timeout: 15000,
+        maximumAge: 0,
       }
     );
   };
 
   useEffect(() => {
     fetchLocation();
-  }, []);
+  }, [mapboxToken]);
 
   return (
-    <LocationContext.Provider value={{ location, refreshLocation: fetchLocation }}>
+    <LocationContext.Provider value={{ location, refreshLocation: fetchLocation, mapboxToken, setMapboxToken }}>
       {children}
     </LocationContext.Provider>
   );
