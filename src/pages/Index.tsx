@@ -12,7 +12,7 @@ import { MapPin, Phone, ArrowRight, CheckCircle, Settings, X, Truck } from 'luci
 import { toast } from 'sonner';
 
 const Index: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(true);
   const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [tokenInput, setTokenInput] = useState('');
