@@ -135,33 +135,33 @@ const RequestPanel: React.FC = () => {
   };
 
   return (
-    <div className="bg-card rounded-2xl border border-border shadow-2xl overflow-hidden">
+    <div className="bg-card rounded-xl sm:rounded-2xl border border-border shadow-2xl overflow-hidden max-h-[85vh] sm:max-h-none overflow-y-auto">
       {/* Header */}
-      <div className="bg-primary p-3 text-primary-foreground">
+      <div className="bg-primary p-2 sm:p-3 text-primary-foreground sticky top-0 z-10">
         <div className="text-center">
-          <h2 className="text-base font-display font-bold">
+          <h2 className="text-sm sm:text-base font-display font-bold">
             Solicitar Guincho
           </h2>
-          <p className="text-primary-foreground/80 text-xs">
+          <p className="text-primary-foreground/80 text-[10px] sm:text-xs">
             Preencha os dados abaixo
           </p>
         </div>
       </div>
 
-      {/* Content - No scroll, everything visible */}
-      <div className="p-3 space-y-3">
+      {/* Content */}
+      <div className="p-2 sm:p-3 space-y-2 sm:space-y-3">
         {/* Map with Location - Compact */}
-        <div className="rounded-xl overflow-hidden border border-border shadow-md">
-          <MiniMap className="h-[100px] w-full" />
+        <div className="rounded-lg sm:rounded-xl overflow-hidden border border-border shadow-md">
+          <MiniMap className="h-[80px] sm:h-[100px] w-full" />
           
-          <div className="p-2 bg-muted">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                <Navigation className="w-4 h-4 text-secondary-foreground" />
+          <div className="p-1.5 sm:p-2 bg-muted">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                <Navigation className="w-3 h-3 sm:w-4 sm:h-4 text-secondary-foreground" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] text-muted-foreground">Sua localização</p>
-                <p className="text-xs font-medium truncate">
+                <p className="text-[9px] sm:text-[10px] text-muted-foreground">Sua localização</p>
+                <p className="text-[10px] sm:text-xs font-medium truncate">
                   {location.loading ? 'Buscando...' : location.error || location.address}
                 </p>
               </div>
@@ -169,10 +169,10 @@ const RequestPanel: React.FC = () => {
                 variant="ghost" 
                 size="icon" 
                 onClick={refreshLocation}
-                className="shrink-0 h-7 w-7"
+                className="shrink-0 h-6 w-6 sm:h-7 sm:w-7"
                 disabled={location.loading}
               >
-                <RefreshCw className={`w-3 h-3 ${location.loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${location.loading ? 'animate-spin' : ''}`} />
               </Button>
             </div>
           </div>
@@ -180,44 +180,44 @@ const RequestPanel: React.FC = () => {
 
         {/* Destination Input */}
         <div>
-          <label className="flex items-center gap-1 text-xs font-medium mb-1">
-            <MapPin className="w-3 h-3 text-secondary" />
+          <label className="flex items-center gap-1 text-[10px] sm:text-xs font-medium mb-1">
+            <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-secondary" />
             Para onde levar o veículo? *
           </label>
           <AddressAutocomplete
             value={destination}
             onChange={setDestination}
-            placeholder="Ex: Oficina do João, Rua das Flores, 123 - Centro"
+            placeholder="Ex: Oficina do João, Rua das Flores, 123"
           />
         </div>
 
         {/* Personal Info - Compact */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
           <div>
-            <label className="block text-xs font-medium mb-1">Seu nome *</label>
+            <label className="block text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1">Seu nome *</label>
             <Input
               placeholder="Nome completo"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="h-9 text-sm"
+              className="h-8 sm:h-9 text-xs sm:text-sm"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium mb-1">WhatsApp *</label>
+            <label className="block text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1">WhatsApp *</label>
             <Input
               placeholder="(00) 00000-0000"
               value={phone}
               onChange={handlePhoneChange}
               maxLength={15}
-              className="h-9 text-sm"
+              className="h-8 sm:h-9 text-xs sm:text-sm"
             />
           </div>
         </div>
 
         {/* Vehicle Type - Compact */}
         <div>
-          <label className="block text-xs font-medium mb-2">Tipo de veículo *</label>
-          <div className="grid grid-cols-5 gap-1">
+          <label className="block text-[10px] sm:text-xs font-medium mb-1 sm:mb-2">Tipo de veículo *</label>
+          <div className="grid grid-cols-5 gap-0.5 sm:gap-1">
             {vehicleTypes.map((vehicle) => {
               const Icon = vehicle.icon;
               const isSelected = selectedVehicle === vehicle.id;
@@ -225,20 +225,20 @@ const RequestPanel: React.FC = () => {
                 <button
                   key={vehicle.id}
                   onClick={() => setSelectedVehicle(vehicle.id)}
-                  className={`relative flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all duration-200 ${
+                  className={`relative flex flex-col items-center gap-0.5 sm:gap-1 p-1 sm:p-2 rounded-md sm:rounded-lg border-2 transition-all duration-200 ${
                     isSelected
                       ? 'border-secondary bg-secondary/10'
                       : 'border-border hover:border-secondary/50 hover:bg-muted'
                   }`}
                 >
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                  <div className={`w-5 h-5 sm:w-7 sm:h-7 rounded-full flex items-center justify-center ${
                     isSelected ? 'bg-secondary text-secondary-foreground' : 'bg-muted'
                   }`}>
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-3 h-3 sm:w-4 sm:h-4" />
                   </div>
-                  <span className="font-medium text-[10px]">{vehicle.label}</span>
+                  <span className="font-medium text-[8px] sm:text-[10px] text-center leading-tight">{vehicle.label}</span>
                   {isSelected && (
-                    <CheckCircle2 className="w-3 h-3 text-secondary absolute top-0.5 right-0.5" />
+                    <CheckCircle2 className="w-2 h-2 sm:w-3 sm:h-3 text-secondary absolute top-0 right-0" />
                   )}
                 </button>
               );
@@ -248,8 +248,8 @@ const RequestPanel: React.FC = () => {
 
         {/* Vehicle Condition - Compact */}
         <div>
-          <label className="block text-xs font-medium mb-2">Situação do veículo *</label>
-          <div className="grid grid-cols-3 gap-1">
+          <label className="block text-[10px] sm:text-xs font-medium mb-1 sm:mb-2">Situação do veículo *</label>
+          <div className="grid grid-cols-3 gap-0.5 sm:gap-1">
             {vehicleConditions.map((condition) => {
               const Icon = condition.icon;
               const isSelected = selectedCondition === condition.id;
@@ -257,16 +257,16 @@ const RequestPanel: React.FC = () => {
                 <button
                   key={condition.id}
                   onClick={() => setSelectedCondition(condition.id)}
-                  className={`relative flex items-center gap-1.5 p-2 rounded-lg border-2 transition-all duration-200 ${
+                  className={`relative flex items-center gap-1 p-1.5 sm:p-2 rounded-md sm:rounded-lg border-2 transition-all duration-200 ${
                     isSelected
                       ? 'border-secondary bg-secondary/10'
                       : 'border-border hover:border-secondary/50 hover:bg-muted'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${condition.color} shrink-0`} />
-                  <span className="font-medium text-[10px] truncate">{condition.label}</span>
+                  <Icon className={`w-3 h-3 sm:w-4 sm:h-4 ${condition.color} shrink-0`} />
+                  <span className="font-medium text-[8px] sm:text-[10px] truncate">{condition.label}</span>
                   {isSelected && (
-                    <CheckCircle2 className="w-3 h-3 text-secondary absolute top-0.5 right-0.5" />
+                    <CheckCircle2 className="w-2 h-2 sm:w-3 sm:h-3 text-secondary absolute top-0 right-0" />
                   )}
                 </button>
               );
@@ -276,23 +276,23 @@ const RequestPanel: React.FC = () => {
 
         {/* Available Providers - Compact */}
         <div>
-          <label className="flex items-center gap-1 text-xs font-medium mb-2">
-            <Users className="w-3 h-3" />
+          <label className="flex items-center gap-1 text-[10px] sm:text-xs font-medium mb-1 sm:mb-2">
+            <Users className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
             Prestadores disponíveis
           </label>
           {providersLoading ? (
-            <div className="flex items-center justify-center py-4">
-              <RefreshCw className="w-5 h-5 animate-spin text-muted-foreground" />
+            <div className="flex items-center justify-center py-3 sm:py-4">
+              <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin text-muted-foreground" />
             </div>
           ) : providers.length === 0 ? (
-            <div className="text-center py-3 px-3 bg-muted rounded-lg">
-              <Users className="w-5 h-5 text-muted-foreground mx-auto mb-1" />
-              <p className="text-[10px] text-muted-foreground">
+            <div className="text-center py-2 sm:py-3 px-2 sm:px-3 bg-muted rounded-lg">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground mx-auto mb-1" />
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground">
                 Nenhum prestador na região
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-1.5 max-h-[140px] overflow-y-auto pr-1">
+            <div className="grid grid-cols-1 gap-1 sm:gap-1.5 max-h-[100px] sm:max-h-[140px] overflow-y-auto pr-1">
               {providers.slice(0, 3).map((provider) => (
                 <ProviderCard
                   key={provider.id}
@@ -308,14 +308,14 @@ const RequestPanel: React.FC = () => {
 
         {/* Selected Provider Price Summary */}
         {selectedProvider && (
-          <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
-            <div className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-green-600" />
-              <span className="text-xs font-medium text-green-700 dark:text-green-400">
+          <div className="flex items-center justify-between p-1.5 sm:p-2 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
+              <span className="text-[10px] sm:text-xs font-medium text-green-700 dark:text-green-400">
                 Valor estimado:
               </span>
             </div>
-            <span className="text-sm font-bold text-green-700 dark:text-green-400">
+            <span className="text-xs sm:text-sm font-bold text-green-700 dark:text-green-400">
               R$ {calculateTotalPrice(selectedProvider).toFixed(2)}
             </span>
           </div>
@@ -325,18 +325,18 @@ const RequestPanel: React.FC = () => {
         <Button
           variant="hero"
           size="lg"
-          className="w-full h-10"
+          className="w-full h-9 sm:h-10 text-xs sm:text-sm"
           disabled={!canSubmit}
           onClick={handleSubmit}
         >
-          <MessageCircle className="w-4 h-4 mr-2" />
+          <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
           Solicitar Guincho Agora
         </Button>
 
         {/* Footer */}
-        <div className="flex items-center justify-center gap-1 pt-2 border-t border-border">
-          <Clock className="w-3 h-3 text-muted-foreground" />
-          <span className="text-[10px] text-muted-foreground">
+        <div className="flex items-center justify-center gap-1 pt-1.5 sm:pt-2 border-t border-border">
+          <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground" />
+          <span className="text-[9px] sm:text-[10px] text-muted-foreground">
             Atendimento 24h em todo o Brasil
           </span>
         </div>
