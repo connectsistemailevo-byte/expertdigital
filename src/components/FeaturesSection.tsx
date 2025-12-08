@@ -60,7 +60,7 @@ const FeaturesSection: React.FC = () => {
             Todos os recursos que você precisa
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Pensamos em cada detalhe para oferecer a melhor experiência quando você mais precisa
+            Pensamos em cada detalhe para oferecer a melhor experiência em todo o Brasil
           </p>
         </div>
 

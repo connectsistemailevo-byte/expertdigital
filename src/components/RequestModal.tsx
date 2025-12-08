@@ -28,11 +28,11 @@ const vehicleConditions = [
   { id: 'subsolo' as VehicleCondition, label: 'Subsolo', icon: Building2, color: 'text-blue-500' },
 ];
 
-// Localização base do prestador (centro de São Paulo)
+// Localização base do prestador (Goiânia - base principal)
 const PROVIDER_LOCATION = {
-  latitude: -23.5505,
-  longitude: -46.6333,
-  name: 'Centro de SP'
+  latitude: -16.6869,
+  longitude: -49.2648,
+  name: 'Base Central'
 };
 
 // Função para calcular distância em km usando fórmula de Haversine
@@ -310,7 +310,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
           <div className="flex items-center justify-center gap-2 pt-2 border-t border-border">
             <Clock className="w-4 h-4 text-muted-foreground" />
             <span className="text-xs text-muted-foreground">
-              Atendimento 24h em toda região de SP
+              Atendimento 24h em todo o Brasil
             </span>
           </div>
         </div>

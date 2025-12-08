@@ -117,7 +117,7 @@ const Index: React.FC = () => {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/20 backdrop-blur-sm rounded-full mb-6 animate-fade-in">
               <span className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
-              <span className="text-sm font-medium text-primary-foreground">Atendimento 24h em toda SP</span>
+              <span className="text-sm font-medium text-primary-foreground">Atendimento 24h em todo o Brasil</span>
             </div>
             
             {/* Title */}
