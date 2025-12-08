@@ -123,7 +123,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto bg-card border-border p-0 animate-scale-in">
+      <DialogContent className="sm:max-w-[550px] h-[95vh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col bg-card border-border p-0 animate-scale-in">
         {/* Header */}
         <div className="bg-primary p-5 text-primary-foreground sticky top-0 z-10">
           <DialogHeader>
@@ -136,7 +136,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
           </DialogHeader>
         </div>
 
-        <div className="p-5 space-y-5">
+        <div className="p-4 sm:p-5 space-y-4 sm:space-y-5 flex-1 overflow-y-auto scrollbar-hide">
           {/* Map with Location */}
           <div className="rounded-xl overflow-hidden border border-border" style={{ minHeight: '200px' }}>
             <MiniMap className="h-[160px] w-full" />
