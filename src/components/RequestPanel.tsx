@@ -6,6 +6,7 @@ import { Car, Truck, Bike, Clock, AlertTriangle, Fuel, RotateCcw, Building2, Che
 import { toast } from 'sonner';
 import MiniMap from '@/components/MiniMap';
 import ProviderCard from '@/components/ProviderCard';
+import AddressAutocomplete from '@/components/AddressAutocomplete';
 import { useProviders, Provider } from '@/hooks/useProviders';
 
 type VehicleType = 'carro' | 'moto' | 'caminhonete' | 'caminhao' | 'outros';
@@ -183,11 +184,10 @@ const RequestPanel: React.FC = () => {
             <MapPin className="w-3 h-3 text-secondary" />
             Para onde levar o veículo? *
           </label>
-          <Input
-            placeholder="Ex: Oficina do João, Rua das Flores, 123 - Centro"
+          <AddressAutocomplete
             value={destination}
-            onChange={(e) => setDestination(e.target.value)}
-            className="h-9 text-sm"
+            onChange={setDestination}
+            placeholder="Ex: Oficina do João, Rua das Flores, 123 - Centro"
           />
         </div>
 
