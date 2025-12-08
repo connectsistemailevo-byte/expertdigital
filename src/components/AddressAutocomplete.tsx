@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
-import { MapPin, Loader2 } from 'lucide-react';
+import { MapPin, Loader2, Building2 } from 'lucide-react';
 import { useLocation } from '@/contexts/LocationContext';
 
 interface AddressAutocompleteProps {
@@ -14,8 +14,17 @@ interface Suggestion {
   id: string;
   name: string;
   full_address: string;
-  feature_type: string;
+  isPOI: boolean;
 }
+
+// Palavras que indicam busca por POI/estabelecimento
+const POI_KEYWORDS = [
+  'shopping', 'shop', 'mall', 'mercado', 'supermercado', 'hospital', 
+  'hotel', 'restaurante', 'farmacia', 'farmácia', 'posto', 'banco',
+  'escola', 'faculdade', 'universidade', 'igreja', 'academia',
+  'oficina', 'concessionaria', 'concessionária', 'loja', 'centro comercial',
+  'aeroporto', 'rodoviária', 'rodoviaria', 'terminal', 'estação', 'estacao'
+];
 
 const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   value,
@@ -30,6 +39,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const [inputValue, setInputValue] = useState(value);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
+  const sessionTokenRef = useRef<string>(crypto.randomUUID());
 
   useEffect(() => {
     setInputValue(value);
@@ -46,6 +56,12 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Detecta se a busca é por POI
+  const isPOISearch = (query: string): boolean => {
+    const lowerQuery = query.toLowerCase();
+    return POI_KEYWORDS.some(keyword => lowerQuery.includes(keyword));
+  };
+
   const searchAddress = async (query: string) => {
     if (!query || query.length < 3 || !mapboxToken) {
       setSuggestions([]);
@@ -55,28 +71,42 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     setIsLoading(true);
 
     try {
-      // Use proximity to user's location for better local results
-      const proximity = location.latitude && location.longitude 
+      const isSearchingPOI = isPOISearch(query);
+      
+      // Proximity baseado na localização do usuário (formato: lon,lat)
+      const proximityParam = location.latitude && location.longitude 
         ? `&proximity=${location.longitude},${location.latitude}` 
         : '';
       
-      // Prioritize addresses and streets over POIs for better address matching
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=br&language=pt&limit=5${proximity}&types=address,poi,place,neighborhood,locality&autocomplete=true`
-      );
-      
-      const data = await response.json();
-      
-      if (data.features && data.features.length > 0) {
-        setSuggestions(data.features.map((f: any) => ({
-          id: f.id,
-          name: f.text + (f.address ? ` ${f.address}` : ''),
-          full_address: f.place_name,
-          feature_type: f.place_type?.[0] || 'address',
-        })));
-        setShowSuggestions(true);
+      // Bbox para limitar resultados à região de Goiás/Centro-Oeste
+      // Isso ajuda a priorizar resultados locais
+      const bboxParam = location.latitude && location.longitude
+        ? `&bbox=${location.longitude - 1},${location.latitude - 1},${location.longitude + 1},${location.latitude + 1}`
+        : '';
+
+      if (isSearchingPOI) {
+        // Usar Search Box API para POIs (shoppings, empresas, etc)
+        const response = await fetch(
+          `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(query)}&access_token=${mapboxToken}&session_token=${sessionTokenRef.current}&language=pt&country=br&limit=5${proximityParam}&types=poi`
+        );
+        
+        const data = await response.json();
+        
+        if (data.suggestions && data.suggestions.length > 0) {
+          setSuggestions(data.suggestions.map((s: any) => ({
+            id: s.mapbox_id,
+            name: s.name,
+            full_address: s.full_address || s.place_formatted || s.name,
+            isPOI: true,
+          })));
+          setShowSuggestions(true);
+        } else {
+          // Fallback para geocoding se não encontrar POI
+          await searchWithGeocoding(query, proximityParam);
+        }
       } else {
-        setSuggestions([]);
+        // Usar Geocoding API para endereços normais
+        await searchWithGeocoding(query, proximityParam);
       }
     } catch (error) {
       console.error('Error fetching address suggestions:', error);
@@ -86,12 +116,36 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     }
   };
 
+  const searchWithGeocoding = async (query: string, proximityParam: string) => {
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=br&language=pt&limit=5${proximityParam}&types=address,neighborhood,locality,place&autocomplete=true`
+      );
+      
+      const data = await response.json();
+      
+      if (data.features && data.features.length > 0) {
+        setSuggestions(data.features.map((f: any) => ({
+          id: f.id,
+          name: f.text + (f.address ? `, ${f.address}` : ''),
+          full_address: f.place_name,
+          isPOI: false,
+        })));
+        setShowSuggestions(true);
+      } else {
+        setSuggestions([]);
+      }
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      setSuggestions([]);
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
-    onChange(newValue); // Sempre atualiza o valor, permitindo digitação livre
+    onChange(newValue);
 
-    // Debounce search
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
@@ -107,10 +161,10 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     onChange(displayValue);
     setSuggestions([]);
     setShowSuggestions(false);
+    sessionTokenRef.current = crypto.randomUUID();
   };
 
   const handleBlur = () => {
-    // Delay para permitir clique nas sugestões
     setTimeout(() => {
       setShowSuggestions(false);
     }, 200);
@@ -138,16 +192,20 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden max-h-[200px] overflow-y-auto">
           <div className="px-3 py-1.5 bg-muted/50 border-b border-border">
             <p className="text-[10px] text-muted-foreground">
-              Sugestões (ou continue digitando)
+              Selecione ou continue digitando
             </p>
           </div>
-          {suggestions.map((suggestion) => (
+          {suggestions.map((suggestion, index) => (
             <button
-              key={suggestion.id}
+              key={suggestion.id || index}
               onClick={() => handleSuggestionClick(suggestion)}
               className="w-full flex items-start gap-2 px-3 py-2 hover:bg-muted transition-colors text-left border-b border-border/30 last:border-b-0"
             >
-              <MapPin className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
+              {suggestion.isPOI ? (
+                <Building2 className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
+              ) : (
+                <MapPin className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
+              )}
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium text-foreground truncate">
                   {suggestion.name}
