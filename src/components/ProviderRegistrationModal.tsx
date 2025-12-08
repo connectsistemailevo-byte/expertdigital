@@ -213,40 +213,40 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
   };
 
   const renderSearchMode = () => (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       <div className="text-center space-y-2">
-        <div className="w-16 h-16 rounded-full bg-secondary/20 flex items-center justify-center mx-auto mb-4">
-          <Truck className="w-8 h-8 text-secondary" />
+        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-secondary/20 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+          <Truck className="w-6 h-6 sm:w-8 sm:h-8 text-secondary" />
         </div>
-        <h3 className="font-display font-bold text-lg">Área do Prestador</h3>
-        <p className="text-sm text-muted-foreground">
+        <h3 className="font-display font-bold text-base sm:text-lg">Área do Prestador</h3>
+        <p className="text-xs sm:text-sm text-muted-foreground">
           Digite seu WhatsApp para acessar ou criar seu cadastro
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-2">Seu WhatsApp</label>
+          <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Seu WhatsApp</label>
           <Input
             placeholder="(00) 00000-0000"
             value={searchPhone}
             onChange={(e) => handlePhoneChange(e, true)}
             maxLength={15}
-            className="h-12 text-center text-lg"
+            className="h-10 sm:h-12 text-center text-base sm:text-lg"
           />
         </div>
 
         <Button
           variant="hero"
           size="lg"
-          className="w-full"
+          className="w-full h-10 sm:h-12 text-sm sm:text-base"
           disabled={searchPhone.length < 14 || isSearching}
           onClick={handleSearch}
         >
           {isSearching ? (
-            <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+            <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
           ) : (
-            <Search className="w-5 h-5 mr-2" />
+            <Search className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
           )}
           {isSearching ? 'Buscando...' : 'Buscar Meu Cadastro'}
         </Button>
@@ -258,7 +258,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
             setWhatsapp(searchPhone);
             setMode('register');
           }}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           Não tenho cadastro → <span className="text-secondary font-medium">Cadastrar agora</span>
         </button>
@@ -267,13 +267,13 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
   );
 
   const renderForm = () => (
-    <div className="p-4 space-y-4">
+    <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
       {/* Back button */}
       <button
         onClick={() => setMode('search')}
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
         Voltar
       </button>
 
@@ -438,15 +438,15 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-card border-border p-0 animate-scale-in">
+      <DialogContent className="w-[95vw] max-w-[500px] max-h-[85vh] overflow-y-auto bg-card border-border p-0 animate-scale-in mx-auto">
         {/* Header */}
         <div className="bg-primary p-3 text-primary-foreground sticky top-0 z-10">
           <DialogHeader>
-            <DialogTitle className="text-base font-display font-bold text-center flex items-center justify-center gap-2">
+            <DialogTitle className="text-sm sm:text-base font-display font-bold text-center flex items-center justify-center gap-2">
               <Truck className="w-4 h-4" />
               {mode === 'search' ? 'Área do Prestador' : mode === 'edit' ? 'Editar Cadastro' : 'Novo Cadastro'}
             </DialogTitle>
-            <DialogDescription className="text-primary-foreground/80 text-center text-[11px]">
+            <DialogDescription className="text-primary-foreground/80 text-center text-[10px] sm:text-[11px]">
               {mode === 'search' 
                 ? 'Acesse ou crie seu cadastro' 
                 : mode === 'edit' 
