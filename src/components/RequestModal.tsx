@@ -123,7 +123,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[400px] sm:max-w-[500px] bg-card border-border p-0 animate-scale-in max-h-[95vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-[400px] sm:max-w-[500px] bg-card border-border p-0 animate-scale-in max-h-[95vh] overflow-y-auto scrollbar-hide">
         {/* Header */}
         <div className="bg-primary p-3 sm:p-4 text-primary-foreground sticky top-0 z-10">
           <DialogHeader>
