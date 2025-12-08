@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLocation } from '@/contexts/LocationContext';
-import { Car, Truck, Bike, Clock, AlertTriangle, Fuel, RotateCcw, Building2, CheckCircle2, RefreshCw, MessageCircle, Navigation, Users, DollarSign } from 'lucide-react';
+import { Car, Truck, Bike, Clock, AlertTriangle, Fuel, RotateCcw, Building2, CheckCircle2, RefreshCw, MessageCircle, Navigation, Users, DollarSign, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import MiniMap from '@/components/MiniMap';
 import ProviderCard from '@/components/ProviderCard';
@@ -32,6 +32,7 @@ const RequestPanel: React.FC = () => {
   const { providers, loading: providersLoading } = useProviders();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [destination, setDestination] = useState('');
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleType | null>(null);
   const [selectedCondition, setSelectedCondition] = useState<VehicleCondition | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
@@ -69,7 +70,7 @@ const RequestPanel: React.FC = () => {
     return total;
   };
 
-  const canSubmit = name.length >= 2 && phone.length >= 14 && selectedVehicle && selectedCondition;
+  const canSubmit = name.length >= 2 && phone.length >= 14 && destination.length >= 3 && selectedVehicle && selectedCondition;
 
   const handleSubmit = () => {
     if (!canSubmit) {
@@ -98,13 +99,14 @@ const RequestPanel: React.FC = () => {
       `📱 *WhatsApp:* ${phone}\n\n` +
       `🚙 *Tipo de Veículo:* ${vehicleLabel}\n` +
       `⚠️ *Situação:* ${conditionLabel}\n\n` +
-      `📍 *Localização do Cliente:*\n${location.address}\n` +
+      `📍 *Localização do Cliente (ORIGEM):*\n${location.address}\n` +
       `🗺️ *Região:* ${location.region}\n` +
-      `📐 *Coordenadas:* ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}\n` +
+      `📐 *Coordenadas:* ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}\n\n` +
+      `🏁 *Destino (PARA ONDE LEVAR):*\n${destination}\n` +
       providerInfo +
       priceInfo +
       `\n🕐 *Horário da Solicitação:* ${getCurrentTime()}\n\n` +
-      `🔗 *Ver no Mapa:*\nhttps://www.google.com/maps?q=${location.latitude},${location.longitude}`;
+      `🔗 *Ver no Mapa (Origem):*\nhttps://www.google.com/maps?q=${location.latitude},${location.longitude}`;
     
     const message = encodeURIComponent(messageText);
 
@@ -125,6 +127,7 @@ const RequestPanel: React.FC = () => {
     
     setName('');
     setPhone('');
+    setDestination('');
     setSelectedVehicle(null);
     setSelectedCondition(null);
     setSelectedProvider(null);
@@ -172,6 +175,20 @@ const RequestPanel: React.FC = () => {
               </Button>
             </div>
           </div>
+        </div>
+
+        {/* Destination Input */}
+        <div>
+          <label className="flex items-center gap-1 text-xs font-medium mb-1">
+            <MapPin className="w-3 h-3 text-secondary" />
+            Para onde levar o veículo? *
+          </label>
+          <Input
+            placeholder="Ex: Oficina do João, Rua das Flores, 123 - Centro"
+            value={destination}
+            onChange={(e) => setDestination(e.target.value)}
+            className="h-9 text-sm"
+          />
         </div>
 
         {/* Personal Info - Compact */}
