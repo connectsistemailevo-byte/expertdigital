@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useLocation } from '@/contexts/LocationContext';
 import Map from '@/components/Map';
 import ProviderRegistrationModal from '@/components/ProviderRegistrationModal';
@@ -8,22 +7,11 @@ import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
 import RequestPanel from '@/components/RequestPanel';
 import heroTruck from '@/assets/hero-truck.png';
-import { MapPin, Phone, ArrowRight, CheckCircle, Settings, X, Truck } from 'lucide-react';
-import { toast } from 'sonner';
+import { MapPin, Phone, ArrowRight, CheckCircle, Truck } from 'lucide-react';
 
 const Index: React.FC = () => {
   const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [tokenInput, setTokenInput] = useState('');
-  const { location, mapboxToken, setMapboxToken } = useLocation();
-
-  const handleSaveToken = () => {
-    if (tokenInput.trim()) {
-      setMapboxToken(tokenInput.trim());
-      toast.success('Token Mapbox salvo com sucesso!');
-      setShowSettings(false);
-    }
-  };
+  const { location, mapboxToken } = useLocation();
 
   return (
     <div className="min-h-screen bg-background">
@@ -48,12 +36,6 @@ const Index: React.FC = () => {
                 <Truck className="w-4 h-4" />
                 Sou Prestador
               </button>
-              <button 
-                onClick={() => setShowSettings(true)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Settings className="w-5 h-5" />
-              </button>
             </nav>
             <Button 
               variant="hero" 
@@ -66,40 +48,6 @@ const Index: React.FC = () => {
           </div>
         </div>
       </header>
-
-      {/* Settings Modal */}
-      {showSettings && (
-        <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card rounded-2xl border border-border shadow-xl w-full max-w-md p-6 animate-scale-in">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display font-bold text-lg">Configurações</h3>
-              <button onClick={() => setShowSettings(false)}>
-                <X className="w-5 h-5 text-muted-foreground hover:text-foreground" />
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Mapbox Access Token</label>
-                <Input
-                  placeholder="pk.eyJ1IjoiLi4uIiwiYSI6Ii4uLiJ9..."
-                  value={tokenInput || mapboxToken}
-                  onChange={(e) => setTokenInput(e.target.value)}
-                  className="h-11"
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                  Obtenha seu token em{' '}
-                  <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer" className="text-secondary hover:underline">
-                    mapbox.com
-                  </a>
-                </p>
-              </div>
-              <Button variant="hero" className="w-full" onClick={handleSaveToken}>
-                Salvar Token
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Hero Section with Request Panel */}
       <section className="relative min-h-screen pt-20 overflow-hidden">

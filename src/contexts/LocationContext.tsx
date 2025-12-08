@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LocationData {
   latitude: number;
@@ -14,7 +15,6 @@ interface LocationContextType {
   location: LocationData;
   refreshLocation: () => void;
   mapboxToken: string;
-  setMapboxToken: (token: string) => void;
 }
 
 const LocationContext = createContext<LocationContextType | null>(null);
@@ -31,12 +31,8 @@ interface LocationProviderProps {
   children: ReactNode;
 }
 
-const STORAGE_KEY = 'achei_guincho_mapbox_token';
-
 export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) => {
-  const [mapboxToken, setMapboxTokenState] = useState(() => {
-    return localStorage.getItem(STORAGE_KEY) || '';
-  });
+  const [mapboxToken, setMapboxToken] = useState('');
 
   const [location, setLocation] = useState<LocationData>({
     latitude: 0,
@@ -48,10 +44,20 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     error: null,
   });
 
-  const setMapboxToken = (token: string) => {
-    setMapboxTokenState(token);
-    localStorage.setItem(STORAGE_KEY, token);
-  };
+  // Busca o token do Mapbox da edge function
+  useEffect(() => {
+    const fetchMapboxToken = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+        if (!error && data?.token) {
+          setMapboxToken(data.token);
+        }
+      } catch (err) {
+        console.error('Error fetching Mapbox token:', err);
+      }
+    };
+    fetchMapboxToken();
+  }, []);
 
   const getAddressFromCoordinates = useCallback(async (lat: number, lng: number): Promise<{ address: string; region: string }> => {
     // Primeiro tenta com Mapbox se tiver token
@@ -195,7 +201,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
   }, [fetchLocation]);
 
   return (
-    <LocationContext.Provider value={{ location, refreshLocation: fetchLocation, mapboxToken, setMapboxToken }}>
+    <LocationContext.Provider value={{ location, refreshLocation: fetchLocation, mapboxToken }}>
       {children}
     </LocationContext.Provider>
   );
