@@ -125,12 +125,30 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       const data = await response.json();
       
       if (data.features && data.features.length > 0) {
-        setSuggestions(data.features.map((f: any) => ({
-          id: f.id,
-          name: f.text + (f.address ? `, ${f.address}` : ''),
-          full_address: f.place_name,
-          isPOI: false,
-        })));
+        setSuggestions(data.features.map((f: any) => {
+          // Extrair bairro do contexto
+          const context = f.context || [];
+          const neighborhood = context.find((c: any) => c.id?.includes('neighborhood'))?.text || '';
+          const locality = context.find((c: any) => c.id?.includes('locality'))?.text || '';
+          const city = context.find((c: any) => c.id?.includes('place'))?.text || '';
+          
+          // Montar nome com bairro
+          let name = f.text + (f.address ? `, ${f.address}` : '');
+          const bairro = neighborhood || locality;
+          if (bairro) {
+            name += ` - ${bairro}`;
+          }
+          if (city && city !== bairro) {
+            name += `, ${city}`;
+          }
+          
+          return {
+            id: f.id,
+            name: name,
+            full_address: f.place_name,
+            isPOI: false,
+          };
+        }));
         setShowSuggestions(true);
       } else {
         // Se não encontrar com bbox, tenta sem bbox mas com proximity
@@ -141,12 +159,28 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         const fallbackData = await fallbackResponse.json();
         
         if (fallbackData.features && fallbackData.features.length > 0) {
-          setSuggestions(fallbackData.features.map((f: any) => ({
-            id: f.id,
-            name: f.text + (f.address ? `, ${f.address}` : ''),
-            full_address: f.place_name,
-            isPOI: false,
-          })));
+          setSuggestions(fallbackData.features.map((f: any) => {
+            const context = f.context || [];
+            const neighborhood = context.find((c: any) => c.id?.includes('neighborhood'))?.text || '';
+            const locality = context.find((c: any) => c.id?.includes('locality'))?.text || '';
+            const city = context.find((c: any) => c.id?.includes('place'))?.text || '';
+            
+            let name = f.text + (f.address ? `, ${f.address}` : '');
+            const bairro = neighborhood || locality;
+            if (bairro) {
+              name += ` - ${bairro}`;
+            }
+            if (city && city !== bairro) {
+              name += `, ${city}`;
+            }
+            
+            return {
+              id: f.id,
+              name: name,
+              full_address: f.place_name,
+              isPOI: false,
+            };
+          }));
           setShowSuggestions(true);
         } else {
           setSuggestions([]);
