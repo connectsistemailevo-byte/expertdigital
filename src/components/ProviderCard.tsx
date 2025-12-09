@@ -65,11 +65,16 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
         </div>
         
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <h4 className="font-semibold text-sm truncate">{provider.name}</h4>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-medium">
-              Disponível
-            </span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-[9px] px-1 py-0.5 rounded bg-muted text-muted-foreground">
+                R${provider.base_price?.toFixed(0) || 50} + R${provider.price_per_km?.toFixed(2) || '5.00'}/km
+              </span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-medium">
+                Disponível
+              </span>
+            </div>
           </div>
           
           {/* Provider distance (how far provider is from client) */}
