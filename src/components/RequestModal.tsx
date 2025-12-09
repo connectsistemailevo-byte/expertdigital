@@ -78,14 +78,9 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
 
   const canSubmit = name.length >= 2 && phone.length >= 14 && destination.length >= 3 && selectedVehicle && selectedCondition;
 
-  const handleSubmit = () => {
-    if (!canSubmit) {
-      toast.error('Por favor, preencha todos os campos obrigatórios');
-      return;
-    }
-
-    const vehicleLabel = vehicleTypes.find(v => v.id === selectedVehicle)?.label;
-    const conditionLabel = vehicleConditions.find(c => c.id === selectedCondition)?.label;
+  const getWhatsAppUrl = () => {
+    const vehicleLabel = vehicleTypes.find(v => v.id === selectedVehicle)?.label || '';
+    const conditionLabel = vehicleConditions.find(c => c.id === selectedCondition)?.label || '';
     
     const defaultWhatsApp = '5562991429264';
     
@@ -119,24 +114,38 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
       ? selectedProvider.whatsapp.replace(/\D/g, '') 
       : defaultWhatsApp;
     const formattedNumber = whatsappNumber.startsWith('55') ? whatsappNumber : `55${whatsappNumber}`;
-    const whatsappUrl = `https://wa.me/${formattedNumber}?text=${message}`;
     
-    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    return `https://wa.me/${formattedNumber}?text=${message}`;
+  };
+
+  const handleSubmit = () => {
+    if (!canSubmit) {
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+
+    const url = getWhatsAppUrl();
+    
+    // Use location.href for better mobile compatibility
+    window.location.href = url;
     
     toast.success('Abrindo WhatsApp...', {
       description: selectedProvider 
         ? `Entrando em contato com ${selectedProvider.name}` 
         : 'Entrando em contato com a central',
-      duration: 5000,
+      duration: 3000,
     });
     
-    setName('');
-    setPhone('');
-    setDestination('');
-    setSelectedVehicle(null);
-    setSelectedCondition(null);
-    setSelectedProvider(null);
-    onOpenChange(false);
+    // Reset form after short delay
+    setTimeout(() => {
+      setName('');
+      setPhone('');
+      setDestination('');
+      setSelectedVehicle(null);
+      setSelectedCondition(null);
+      setSelectedProvider(null);
+      onOpenChange(false);
+    }, 500);
   };
 
   return (
@@ -319,16 +328,44 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
 
         {/* Fixed Footer with Submit Button */}
         <div className="shrink-0 p-2 sm:p-3 border-t border-border bg-card">
-          <Button
-            variant="hero"
-            size="default"
-            className="w-full h-10"
-            disabled={!canSubmit}
-            onClick={handleSubmit}
+          {!canSubmit && (
+            <p className="text-[9px] text-amber-600 dark:text-amber-400 text-center mb-1.5">
+              {!destination ? '⚠️ Informe o destino' : 
+               !name || name.length < 2 ? '⚠️ Informe seu nome' :
+               !phone || phone.length < 14 ? '⚠️ Informe seu WhatsApp' :
+               !selectedVehicle ? '⚠️ Selecione o tipo de veículo' :
+               !selectedCondition ? '⚠️ Selecione a situação' : ''}
+            </p>
+          )}
+          
+          <a
+            href={canSubmit ? getWhatsAppUrl() : undefined}
+            onClick={(e) => {
+              if (!canSubmit) {
+                e.preventDefault();
+                toast.error('Preencha todos os campos obrigatórios');
+                return;
+              }
+              toast.success('Abrindo WhatsApp...');
+              setTimeout(() => {
+                setName('');
+                setPhone('');
+                setDestination('');
+                setSelectedVehicle(null);
+                setSelectedCondition(null);
+                setSelectedProvider(null);
+                onOpenChange(false);
+              }, 500);
+            }}
+            className={`flex items-center justify-center gap-2 w-full h-10 rounded-lg font-semibold text-sm transition-all ${
+              canSubmit 
+                ? 'bg-secondary text-secondary-foreground hover:bg-secondary/90 cursor-pointer' 
+                : 'bg-muted text-muted-foreground cursor-not-allowed'
+            }`}
           >
-            <MessageCircle className="w-4 h-4 mr-2" />
+            <MessageCircle className="w-4 h-4" />
             Solicitar Guincho Agora
-          </Button>
+          </a>
 
           <div className="flex items-center justify-center gap-1 pt-2">
             <Clock className="w-2.5 h-2.5 text-muted-foreground" />
