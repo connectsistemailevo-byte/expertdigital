@@ -3,9 +3,14 @@ import { Input } from '@/components/ui/input';
 import { MapPin, Loader2, Building2 } from 'lucide-react';
 import { useLocation } from '@/contexts/LocationContext';
 
+export interface DestinationCoordinates {
+  latitude: number;
+  longitude: number;
+}
+
 interface AddressAutocompleteProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: string, coordinates?: DestinationCoordinates) => void;
   placeholder?: string;
   className?: string;
 }
@@ -15,6 +20,8 @@ interface Suggestion {
   name: string;
   full_address: string;
   isPOI: boolean;
+  coordinates?: [number, number]; // [longitude, latitude]
+  mapbox_id?: string;
 }
 
 // Palavras que indicam busca por POI/estabelecimento
@@ -74,12 +81,10 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       const isSearchingPOI = isPOISearch(query);
       
       // Bounding box centrado na localização do usuário (raio de ~50km)
-      // Isso força os resultados a serem da região
       let bboxParam = '';
       let proximityParam = '';
       
       if (location.latitude && location.longitude) {
-        // Bbox de aproximadamente 100km ao redor do usuário
         const delta = 0.9; // ~100km
         bboxParam = `&bbox=${location.longitude - delta},${location.latitude - delta},${location.longitude + delta},${location.latitude + delta}`;
         proximityParam = `&proximity=${location.longitude},${location.latitude}`;
@@ -96,6 +101,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         if (data.suggestions && data.suggestions.length > 0) {
           setSuggestions(data.suggestions.map((s: any) => ({
             id: s.mapbox_id,
+            mapbox_id: s.mapbox_id,
             name: s.name,
             full_address: s.full_address || s.place_formatted || s.name,
             isPOI: true,
@@ -117,7 +123,6 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
   const searchWithGeocoding = async (query: string, bboxParam: string, proximityParam: string) => {
     try {
-      // Usar bbox para restringir resultados à região + proximity para ordenar
       const response = await fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=br&language=pt&limit=5${bboxParam}${proximityParam}&types=address,neighborhood,locality,place&autocomplete=true`
       );
@@ -126,13 +131,11 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       
       if (data.features && data.features.length > 0) {
         setSuggestions(data.features.map((f: any) => {
-          // Extrair bairro do contexto
           const context = f.context || [];
           const neighborhood = context.find((c: any) => c.id?.includes('neighborhood'))?.text || '';
           const locality = context.find((c: any) => c.id?.includes('locality'))?.text || '';
           const city = context.find((c: any) => c.id?.includes('place'))?.text || '';
           
-          // Montar nome com bairro
           let name = f.text + (f.address ? `, ${f.address}` : '');
           const bairro = neighborhood || locality;
           if (bairro) {
@@ -147,11 +150,12 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
             name: name,
             full_address: f.place_name,
             isPOI: false,
+            coordinates: f.center as [number, number], // [longitude, latitude]
           };
         }));
         setShowSuggestions(true);
       } else {
-        // Se não encontrar com bbox, tenta sem bbox mas com proximity
+        // Fallback sem bbox
         const fallbackResponse = await fetch(
           `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=br&language=pt&limit=5${proximityParam}&types=address,neighborhood,locality,place&autocomplete=true`
         );
@@ -179,6 +183,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
               name: name,
               full_address: f.place_name,
               isPOI: false,
+              coordinates: f.center as [number, number],
             };
           }));
           setShowSuggestions(true);
@@ -192,10 +197,35 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     }
   };
 
+  // Buscar coordenadas de POI usando retrieve endpoint
+  const retrievePOICoordinates = async (mapboxId: string): Promise<DestinationCoordinates | undefined> => {
+    if (!mapboxToken) return undefined;
+    
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/search/searchbox/v1/retrieve/${mapboxId}?access_token=${mapboxToken}&session_token=${sessionTokenRef.current}`
+      );
+      const data = await response.json();
+      
+      if (data.features && data.features.length > 0) {
+        const coords = data.features[0].geometry?.coordinates;
+        if (coords) {
+          return {
+            longitude: coords[0],
+            latitude: coords[1],
+          };
+        }
+      }
+    } catch (error) {
+      console.error('Error retrieving POI coordinates:', error);
+    }
+    return undefined;
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
-    onChange(newValue);
+    onChange(newValue, undefined); // Clear coordinates when typing
 
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
@@ -206,12 +236,26 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     }, 400);
   };
 
-  const handleSuggestionClick = (suggestion: Suggestion) => {
+  const handleSuggestionClick = async (suggestion: Suggestion) => {
     const displayValue = suggestion.full_address || suggestion.name;
     setInputValue(displayValue);
-    onChange(displayValue);
     setSuggestions([]);
     setShowSuggestions(false);
+    
+    let coordinates: DestinationCoordinates | undefined;
+    
+    if (suggestion.isPOI && suggestion.mapbox_id) {
+      // Buscar coordenadas do POI
+      coordinates = await retrievePOICoordinates(suggestion.mapbox_id);
+    } else if (suggestion.coordinates) {
+      // Usar coordenadas do geocoding
+      coordinates = {
+        longitude: suggestion.coordinates[0],
+        latitude: suggestion.coordinates[1],
+      };
+    }
+    
+    onChange(displayValue, coordinates);
     sessionTokenRef.current = crypto.randomUUID();
   };
 

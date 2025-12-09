@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLocation } from '@/contexts/LocationContext';
-import { Car, Truck, Bike, Clock, AlertTriangle, Fuel, RotateCcw, Building2, CheckCircle2, RefreshCw, MessageCircle, Navigation, Users, DollarSign, MapPin } from 'lucide-react';
+import { Car, Truck, Bike, Clock, AlertTriangle, Fuel, RotateCcw, Building2, CheckCircle2, RefreshCw, MessageCircle, Navigation, Users, DollarSign, MapPin, Route } from 'lucide-react';
 import { toast } from 'sonner';
 import MiniMap from '@/components/MiniMap';
 import ProviderCard from '@/components/ProviderCard';
-import AddressAutocomplete from '@/components/AddressAutocomplete';
+import AddressAutocomplete, { DestinationCoordinates } from '@/components/AddressAutocomplete';
 import { useProviders, Provider } from '@/hooks/useProviders';
 
 type VehicleType = 'carro' | 'moto' | 'caminhonete' | 'caminhao' | 'outros';
@@ -28,18 +28,42 @@ const vehicleConditions = [
   { id: 'outros' as VehicleCondition, label: 'Outros', icon: AlertTriangle, color: 'text-gray-500' },
 ];
 
+// Calculate distance between two points using Haversine formula
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
 const RequestPanel: React.FC = () => {
   const { location, refreshLocation } = useLocation();
   const { providers, loading: providersLoading } = useProviders();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [destination, setDestination] = useState('');
+  const [destinationCoords, setDestinationCoords] = useState<DestinationCoordinates | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleType | null>(null);
   const [selectedCondition, setSelectedCondition] = useState<VehicleCondition | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
 
   // Check if subsolo condition requires patins
   const needsPatins = selectedCondition === 'subsolo';
+
+  // Calculate trip distance (client location → destination)
+  const tripDistanceKm = destinationCoords && location.latitude && location.longitude
+    ? calculateDistance(
+        location.latitude,
+        location.longitude,
+        destinationCoords.latitude,
+        destinationCoords.longitude
+      )
+    : 0;
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -53,6 +77,11 @@ const RequestPanel: React.FC = () => {
     setPhone(formatPhone(e.target.value));
   };
 
+  const handleDestinationChange = (value: string, coordinates?: DestinationCoordinates) => {
+    setDestination(value);
+    setDestinationCoords(coordinates || null);
+  };
+
   const getCurrentTime = () => {
     return new Date().toLocaleString('pt-BR', {
       day: '2-digit',
@@ -63,8 +92,12 @@ const RequestPanel: React.FC = () => {
     });
   };
 
+  // Calculate total price based on trip distance
   const calculateTotalPrice = (provider: Provider) => {
-    let total = provider.estimatedPrice || 0;
+    const basePrice = provider.base_price || 50;
+    const pricePerKm = provider.price_per_km || 5;
+    let total = basePrice + (tripDistanceKm * pricePerKm);
+    
     if (needsPatins && provider.has_patins) {
       total += provider.patins_extra_price || 30;
     }
@@ -81,10 +114,15 @@ const RequestPanel: React.FC = () => {
     
     let providerInfo = '';
     let priceInfo = '';
+    let tripInfo = '';
+    
+    if (tripDistanceKm > 0) {
+      tripInfo = `\n📏 *Distância do Trajeto:* ${tripDistanceKm.toFixed(1)} km\n`;
+    }
     
     if (selectedProvider) {
       const totalPrice = calculateTotalPrice(selectedProvider);
-      providerInfo = `\n📏 *Distância até você:* ${selectedProvider.distance?.toFixed(1)} km\n⏱️ *Tempo estimado:* ~${selectedProvider.estimatedTime} minutos\n`;
+      providerInfo = `\n🚚 *Prestador:* ${selectedProvider.name}\n📍 *Distância do prestador:* ${selectedProvider.distance?.toFixed(1)} km\n⏱️ *Tempo chegada:* ~${selectedProvider.estimatedTime} min\n`;
       priceInfo = `\n💰 *Valor Estimado:* R$ ${totalPrice.toFixed(2)}${needsPatins ? ' (com patins)' : ''}\n`;
     }
     
@@ -98,10 +136,13 @@ const RequestPanel: React.FC = () => {
       `🗺️ *Região:* ${location.region}\n` +
       `📐 *Coordenadas:* ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}\n\n` +
       `🏁 *Destino (PARA ONDE LEVAR):*\n${destination}\n` +
+      (destinationCoords ? `📐 *Coordenadas Destino:* ${destinationCoords.latitude.toFixed(6)}, ${destinationCoords.longitude.toFixed(6)}\n` : '') +
+      tripInfo +
       providerInfo +
       priceInfo +
       `\n🕐 *Horário da Solicitação:* ${getCurrentTime()}\n\n` +
-      `🔗 *Ver no Mapa (Origem):*\nhttps://www.google.com/maps?q=${location.latitude},${location.longitude}`;
+      `🔗 *Ver no Mapa (Origem):*\nhttps://www.google.com/maps?q=${location.latitude},${location.longitude}` +
+      (destinationCoords ? `\n\n🔗 *Ver no Mapa (Destino):*\nhttps://www.google.com/maps?q=${destinationCoords.latitude},${destinationCoords.longitude}` : '');
     
     const message = encodeURIComponent(messageText);
 
@@ -165,9 +206,15 @@ const RequestPanel: React.FC = () => {
           </label>
           <AddressAutocomplete
             value={destination}
-            onChange={setDestination}
+            onChange={handleDestinationChange}
             placeholder="Ex: Oficina do João, Rua das Flores, 123"
           />
+          {tripDistanceKm > 0 && (
+            <div className="flex items-center gap-1 mt-1 text-[10px] text-green-600 dark:text-green-400">
+              <Route className="w-3 h-3" />
+              <span>Distância do trajeto: <strong>{tripDistanceKm.toFixed(1)} km</strong></span>
+            </div>
+          )}
         </div>
 
         {/* Personal Info - Compact */}
@@ -271,14 +318,15 @@ const RequestPanel: React.FC = () => {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-1 sm:gap-1.5 max-h-[100px] sm:max-h-[140px] overflow-y-auto pr-1">
-              {providers.slice(0, 3).map((provider) => (
+            <div className="grid grid-cols-1 gap-1 sm:gap-1.5 max-h-[140px] sm:max-h-[180px] overflow-y-auto pr-1">
+              {providers.slice(0, 5).map((provider) => (
                 <ProviderCard
                   key={provider.id}
                   provider={provider}
                   isSelected={selectedProvider?.id === provider.id}
                   onSelect={() => setSelectedProvider(provider)}
                   needsPatins={needsPatins}
+                  tripDistanceKm={tripDistanceKm}
                 />
               ))}
             </div>
@@ -286,15 +334,23 @@ const RequestPanel: React.FC = () => {
         </div>
 
         {/* Selected Provider Price Summary */}
-        {selectedProvider && (
-          <div className="flex items-center justify-between p-1.5 sm:p-2 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
-              <span className="text-[10px] sm:text-xs font-medium text-green-700 dark:text-green-400">
-                Valor estimado:
-              </span>
+        {selectedProvider && tripDistanceKm > 0 && (
+          <div className="flex items-center justify-between p-2 sm:p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-1.5">
+                <Route className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
+                <span className="text-[10px] sm:text-xs font-medium text-green-700 dark:text-green-400">
+                  Trajeto: {tripDistanceKm.toFixed(1)} km
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
+                <span className="text-[10px] sm:text-xs font-medium text-green-700 dark:text-green-400">
+                  Valor estimado:
+                </span>
+              </div>
             </div>
-            <span className="text-xs sm:text-sm font-bold text-green-700 dark:text-green-400">
+            <span className="text-base sm:text-lg font-bold text-green-700 dark:text-green-400">
               R$ {calculateTotalPrice(selectedProvider).toFixed(2)}
             </span>
           </div>
