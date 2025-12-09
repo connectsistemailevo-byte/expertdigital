@@ -1,12 +1,13 @@
 import React from 'react';
 import { Provider } from '@/hooks/useProviders';
-import { MapPin, Clock, Truck, CheckCircle, DollarSign } from 'lucide-react';
+import { MapPin, Clock, Truck, CheckCircle, DollarSign, Route } from 'lucide-react';
 
 interface ProviderCardProps {
   provider: Provider;
   isSelected: boolean;
   onSelect: () => void;
   needsPatins?: boolean;
+  tripDistanceKm?: number; // Distance from client location to destination
 }
 
 const serviceLabels: Record<string, string> = {
@@ -18,16 +19,29 @@ const serviceLabels: Record<string, string> = {
   guincho_completo: 'Completo',
 };
 
-const ProviderCard: React.FC<ProviderCardProps> = ({ provider, isSelected, onSelect, needsPatins = false }) => {
-  const calculateTotalPrice = () => {
-    let total = provider.estimatedPrice || 0;
+const ProviderCard: React.FC<ProviderCardProps> = ({ 
+  provider, 
+  isSelected, 
+  onSelect, 
+  needsPatins = false,
+  tripDistanceKm 
+}) => {
+  // Calculate price based on trip distance (client → destination), not provider distance
+  const calculateTripPrice = () => {
+    const basePrice = provider.base_price || 50;
+    const pricePerKm = provider.price_per_km || 5;
+    const distance = tripDistanceKm || 0;
+    
+    let total = basePrice + (distance * pricePerKm);
+    
     if (needsPatins && provider.has_patins) {
       total += provider.patins_extra_price || 30;
     }
     return total;
   };
 
-  const totalPrice = calculateTotalPrice();
+  const tripPrice = calculateTripPrice();
+  const hasValidTripDistance = tripDistanceKm && tripDistanceKm > 0;
 
   return (
     <button
@@ -51,12 +65,18 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, isSelected, onSel
         </div>
         
         <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-sm truncate">{provider.name}</h4>
+          <div className="flex items-center justify-between">
+            <h4 className="font-semibold text-sm truncate">{provider.name}</h4>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-medium">
+              Disponível
+            </span>
+          </div>
           
+          {/* Provider distance (how far provider is from client) */}
           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
             <div className="flex items-center gap-1">
               <MapPin className="w-3 h-3" />
-              <span>{provider.distance?.toFixed(1)} km</span>
+              <span>{provider.distance?.toFixed(1)} km de você</span>
             </div>
             <div className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
@@ -64,18 +84,38 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, isSelected, onSel
             </div>
           </div>
           
-          {/* Price Display */}
-          <div className="flex items-center gap-1 mt-1">
-            <DollarSign className="w-3 h-3 text-green-500" />
-            <span className="text-sm font-bold text-green-600">
-              R$ {totalPrice.toFixed(2)}
-            </span>
-            {needsPatins && provider.has_patins && (
-              <span className="text-[10px] text-muted-foreground">(com patins)</span>
-            )}
-          </div>
+          {/* Trip distance and price - only show if destination is set */}
+          {hasValidTripDistance ? (
+            <div className="flex items-center gap-3 mt-1.5 p-1.5 bg-green-50 dark:bg-green-950/30 rounded-md">
+              <div className="flex items-center gap-1">
+                <Route className="w-3 h-3 text-green-600" />
+                <span className="text-xs font-medium text-green-700 dark:text-green-400">
+                  Trajeto: {tripDistanceKm.toFixed(1)} km
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <DollarSign className="w-3 h-3 text-green-600" />
+                <span className="text-sm font-bold text-green-700 dark:text-green-400">
+                  R$ {tripPrice.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 mt-1.5 p-1.5 bg-muted/50 rounded-md">
+              <Route className="w-3 h-3 text-muted-foreground" />
+              <span className="text-[10px] text-muted-foreground">
+                Informe o destino para ver o valor
+              </span>
+            </div>
+          )}
+
+          {needsPatins && provider.has_patins && hasValidTripDistance && (
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              (inclui R$ {(provider.patins_extra_price || 30).toFixed(2)} de patins)
+            </p>
+          )}
           
-          <div className="flex flex-wrap gap-1 mt-1">
+          <div className="flex flex-wrap gap-1 mt-1.5">
             {provider.has_patins && (
               <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary">
                 Patins
