@@ -76,13 +76,13 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
     return total;
   };
 
-  const canSubmit = name.length >= 2 && phone.length >= 14 && destination.length >= 3 && selectedVehicle && selectedCondition;
+  const canSubmit = name.trim().length >= 2 && phone.replace(/\D/g, '').length >= 10 && destination.trim().length >= 3 && selectedVehicle && selectedCondition;
 
   const getWhatsAppUrl = () => {
     const vehicleLabel = vehicleTypes.find(v => v.id === selectedVehicle)?.label || '';
     const conditionLabel = vehicleConditions.find(c => c.id === selectedCondition)?.label || '';
     
-    const defaultWhatsApp = '5562991429264';
+    const defaultWhatsApp = '5562994389675';
     
     let providerInfo = '';
     let priceInfo = '';
@@ -115,7 +115,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
       : defaultWhatsApp;
     const formattedNumber = whatsappNumber.startsWith('55') ? whatsappNumber : `55${whatsappNumber}`;
     
-    return `https://wa.me/${formattedNumber}?text=${message}`;
+    return `https://api.whatsapp.com/send?phone=${formattedNumber}&text=${message}`;
   };
 
   const handleSubmit = () => {
@@ -330,42 +330,30 @@ const RequestModal: React.FC<RequestModalProps> = ({ open, onOpenChange }) => {
         <div className="shrink-0 p-2 sm:p-3 border-t border-border bg-card">
           {!canSubmit && (
             <p className="text-[9px] text-amber-600 dark:text-amber-400 text-center mb-1.5">
-              {!destination ? '⚠️ Informe o destino' : 
-               !name || name.length < 2 ? '⚠️ Informe seu nome' :
-               !phone || phone.length < 14 ? '⚠️ Informe seu WhatsApp' :
+              {!destination || destination.trim().length < 3 ? '⚠️ Informe o destino' : 
+               !name || name.trim().length < 2 ? '⚠️ Informe seu nome' :
+               !phone || phone.replace(/\D/g, '').length < 10 ? '⚠️ Informe seu WhatsApp' :
                !selectedVehicle ? '⚠️ Selecione o tipo de veículo' :
                !selectedCondition ? '⚠️ Selecione a situação' : ''}
             </p>
           )}
           
-          <a
-            href={canSubmit ? getWhatsAppUrl() : undefined}
-            onClick={(e) => {
-              if (!canSubmit) {
-                e.preventDefault();
-                toast.error('Preencha todos os campos obrigatórios');
-                return;
-              }
-              toast.success('Abrindo WhatsApp...');
-              setTimeout(() => {
-                setName('');
-                setPhone('');
-                setDestination('');
-                setSelectedVehicle(null);
-                setSelectedCondition(null);
-                setSelectedProvider(null);
-                onOpenChange(false);
-              }, 500);
-            }}
-            className={`flex items-center justify-center gap-2 w-full h-10 rounded-lg font-semibold text-sm transition-all ${
-              canSubmit 
-                ? 'bg-secondary text-secondary-foreground hover:bg-secondary/90 cursor-pointer' 
-                : 'bg-muted text-muted-foreground cursor-not-allowed'
-            }`}
-          >
-            <MessageCircle className="w-4 h-4" />
-            Solicitar Guincho Agora
-          </a>
+          {canSubmit ? (
+            <a
+              href={getWhatsAppUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full h-12 rounded-lg font-bold text-base bg-green-600 text-white hover:bg-green-700 active:bg-green-800 cursor-pointer shadow-lg"
+            >
+              <MessageCircle className="w-5 h-5" />
+              ENVIAR PARA WHATSAPP
+            </a>
+          ) : (
+            <div className="flex items-center justify-center gap-2 w-full h-12 rounded-lg font-semibold text-sm bg-muted text-muted-foreground cursor-not-allowed">
+              <MessageCircle className="w-4 h-4" />
+              Preencha todos os campos
+            </div>
+          )}
 
           <div className="flex items-center justify-center gap-1 pt-2">
             <Clock className="w-2.5 h-2.5 text-muted-foreground" />
