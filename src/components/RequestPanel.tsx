@@ -122,8 +122,21 @@ const RequestPanel: React.FC = () => {
     
     if (selectedProvider) {
       const totalPrice = calculateTotalPrice(selectedProvider);
-      providerInfo = `\n🚚 *Prestador:* ${selectedProvider.name}\n📍 *Distância do prestador:* ${selectedProvider.distance?.toFixed(1)} km\n⏱️ *Tempo chegada:* ~${selectedProvider.estimatedTime} min\n`;
-      priceInfo = `\n💰 *Valor Estimado:* R$ ${totalPrice.toFixed(2)}${needsPatins ? ' (com patins)' : ''}\n`;
+      const basePrice = selectedProvider.base_price || 50;
+      const pricePerKm = selectedProvider.price_per_km || 5;
+      const patinsPrice = needsPatins && selectedProvider.has_patins ? (selectedProvider.patins_extra_price || 30) : 0;
+      
+      providerInfo = `\n🚚 *Prestador Selecionado:* ${selectedProvider.name}\n📍 *Distância do prestador:* ${selectedProvider.distance?.toFixed(1)} km\n⏱️ *Tempo estimado de chegada:* ~${selectedProvider.estimatedTime} min\n`;
+      priceInfo = `\n💰 *VALOR ESTIMADO DO SERVIÇO:*\n` +
+        `   Base: R$ ${basePrice.toFixed(2)}\n` +
+        `   ${tripDistanceKm.toFixed(1)} km × R$ ${pricePerKm.toFixed(2)} = R$ ${(tripDistanceKm * pricePerKm).toFixed(2)}\n` +
+        (patinsPrice > 0 ? `   Patins (subsolo): R$ ${patinsPrice.toFixed(2)}\n` : '') +
+        `   *TOTAL: R$ ${totalPrice.toFixed(2)}*\n`;
+    } else if (tripDistanceKm > 0) {
+      // Show estimated price range without provider selected
+      const minPrice = 50 + (tripDistanceKm * 3);
+      const maxPrice = 100 + (tripDistanceKm * 8);
+      priceInfo = `\n💰 *Valor Estimado:* R$ ${minPrice.toFixed(0)} - R$ ${maxPrice.toFixed(0)} (selecione um prestador para valor exato)\n`;
     }
     
     const messageText = 
