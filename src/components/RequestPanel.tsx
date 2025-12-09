@@ -10,7 +10,7 @@ import AddressAutocomplete, { DestinationCoordinates } from '@/components/Addres
 import { useProviders, Provider } from '@/hooks/useProviders';
 
 type VehicleType = 'carro' | 'moto' | 'caminhonete' | 'caminhao' | 'outros';
-type VehicleCondition = 'pane' | 'seca' | 'capotado' | 'subsolo' | 'outros';
+type VehicleCondition = 'pane' | 'seca' | 'capotado' | 'subsolo' | 'roda_travada' | 'volante_travado' | 'precisa_patins' | 'outros';
 
 const vehicleTypes = [
   { id: 'carro' as VehicleType, label: 'Carro', icon: Car },
@@ -20,12 +20,18 @@ const vehicleTypes = [
   { id: 'outros' as VehicleType, label: 'Outros', icon: Car },
 ];
 
+// Conditions that require patins (additional equipment)
+const PATINS_REQUIRED_CONDITIONS: VehicleCondition[] = ['subsolo', 'roda_travada', 'volante_travado', 'precisa_patins'];
+
 const vehicleConditions = [
-  { id: 'pane' as VehicleCondition, label: 'Pane Mecânica', icon: AlertTriangle, color: 'text-amber-500' },
-  { id: 'seca' as VehicleCondition, label: 'Sem Combustível', icon: Fuel, color: 'text-red-500' },
-  { id: 'capotado' as VehicleCondition, label: 'Capotado', icon: RotateCcw, color: 'text-orange-500' },
-  { id: 'subsolo' as VehicleCondition, label: 'Subsolo', icon: Building2, color: 'text-blue-500' },
-  { id: 'outros' as VehicleCondition, label: 'Outros', icon: AlertTriangle, color: 'text-gray-500' },
+  { id: 'pane' as VehicleCondition, label: 'Pane Mecânica', icon: AlertTriangle, color: 'text-amber-500', needsPatins: false },
+  { id: 'seca' as VehicleCondition, label: 'Sem Combustível', icon: Fuel, color: 'text-red-500', needsPatins: false },
+  { id: 'capotado' as VehicleCondition, label: 'Capotado', icon: RotateCcw, color: 'text-orange-500', needsPatins: false },
+  { id: 'subsolo' as VehicleCondition, label: 'Subsolo', icon: Building2, color: 'text-blue-500', needsPatins: true },
+  { id: 'roda_travada' as VehicleCondition, label: 'Roda Travada', icon: AlertTriangle, color: 'text-purple-500', needsPatins: true },
+  { id: 'volante_travado' as VehicleCondition, label: 'Volante Travado', icon: AlertTriangle, color: 'text-indigo-500', needsPatins: true },
+  { id: 'precisa_patins' as VehicleCondition, label: 'Precisa Patins', icon: Building2, color: 'text-cyan-500', needsPatins: true },
+  { id: 'outros' as VehicleCondition, label: 'Outros', icon: AlertTriangle, color: 'text-gray-500', needsPatins: false },
 ];
 
 // Calculate distance between two points using Haversine formula
@@ -52,8 +58,8 @@ const RequestPanel: React.FC = () => {
   const [selectedCondition, setSelectedCondition] = useState<VehicleCondition | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
 
-  // Check if subsolo condition requires patins
-  const needsPatins = selectedCondition === 'subsolo';
+  // Check if selected condition requires patins
+  const needsPatins = selectedCondition ? PATINS_REQUIRED_CONDITIONS.includes(selectedCondition) : false;
 
   // Calculate trip distance (client location → destination)
   const tripDistanceKm = destinationCoords && location.latitude && location.longitude
@@ -288,7 +294,7 @@ const RequestPanel: React.FC = () => {
         {/* Vehicle Condition - Compact */}
         <div>
           <label className="block text-[10px] sm:text-xs font-medium mb-1 sm:mb-2">Situação do veículo *</label>
-          <div className="grid grid-cols-3 gap-0.5 sm:gap-1">
+          <div className="grid grid-cols-4 gap-0.5 sm:gap-1">
             {vehicleConditions.map((condition) => {
               const Icon = condition.icon;
               const isSelected = selectedCondition === condition.id;
@@ -296,14 +302,17 @@ const RequestPanel: React.FC = () => {
                 <button
                   key={condition.id}
                   onClick={() => setSelectedCondition(condition.id)}
-                  className={`relative flex items-center gap-1 p-1.5 sm:p-2 rounded-md sm:rounded-lg border-2 transition-all duration-200 ${
+                  className={`relative flex flex-col items-center gap-0.5 p-1 sm:p-1.5 rounded-md sm:rounded-lg border-2 transition-all duration-200 ${
                     isSelected
                       ? 'border-secondary bg-secondary/10'
                       : 'border-border hover:border-secondary/50 hover:bg-muted'
                   }`}
                 >
                   <Icon className={`w-3 h-3 sm:w-4 sm:h-4 ${condition.color} shrink-0`} />
-                  <span className="font-medium text-[8px] sm:text-[10px] truncate">{condition.label}</span>
+                  <span className="font-medium text-[7px] sm:text-[9px] text-center leading-tight">{condition.label}</span>
+                  {condition.needsPatins && (
+                    <span className="text-[6px] sm:text-[7px] text-cyan-600 dark:text-cyan-400 font-medium">+patins</span>
+                  )}
                   {isSelected && (
                     <CheckCircle2 className="w-2 h-2 sm:w-3 sm:h-3 text-secondary absolute top-0 right-0" />
                   )}
@@ -311,6 +320,14 @@ const RequestPanel: React.FC = () => {
               );
             })}
           </div>
+          {needsPatins && (
+            <div className="mt-1.5 p-1.5 rounded-md bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800">
+              <p className="text-[9px] sm:text-[10px] text-cyan-700 dark:text-cyan-300 flex items-center gap-1">
+                <Building2 className="w-3 h-3" />
+                <span><strong>Patins necessários:</strong> Será adicionado valor extra conforme tabela do prestador</span>
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Available Providers - Compact */}
