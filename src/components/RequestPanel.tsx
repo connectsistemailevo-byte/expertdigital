@@ -71,19 +71,13 @@ const RequestPanel: React.FC = () => {
     return total;
   };
 
-  const canSubmit = name.length >= 2 && phone.length >= 14 && destination.length >= 3 && selectedVehicle && selectedCondition;
+  const canSubmit = name.trim().length >= 2 && phone.replace(/\D/g, '').length >= 10 && destination.trim().length >= 3 && selectedVehicle && selectedCondition;
 
-  const handleSubmit = () => {
-    if (!canSubmit) {
-      toast.error('Por favor, preencha todos os campos obrigatórios');
-      return;
-    }
-
-    const vehicleLabel = vehicleTypes.find(v => v.id === selectedVehicle)?.label;
-    const conditionLabel = vehicleConditions.find(c => c.id === selectedCondition)?.label;
+  const getWhatsAppUrl = () => {
+    const vehicleLabel = vehicleTypes.find(v => v.id === selectedVehicle)?.label || '';
+    const conditionLabel = vehicleConditions.find(c => c.id === selectedCondition)?.label || '';
     
-    // Default WhatsApp number if no provider selected
-    const defaultWhatsApp = '5562991429264';
+    const defaultWhatsApp = '5562994389675';
     
     let providerInfo = '';
     let priceInfo = '';
@@ -115,23 +109,8 @@ const RequestPanel: React.FC = () => {
       ? selectedProvider.whatsapp.replace(/\D/g, '') 
       : defaultWhatsApp;
     const formattedNumber = whatsappNumber.startsWith('55') ? whatsappNumber : `55${whatsappNumber}`;
-    const whatsappUrl = `https://wa.me/${formattedNumber}?text=${message}`;
     
-    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-    
-    toast.success('Abrindo WhatsApp...', {
-      description: selectedProvider 
-        ? `Entrando em contato com ${selectedProvider.name}` 
-        : 'Entrando em contato com a central',
-      duration: 5000,
-    });
-    
-    setName('');
-    setPhone('');
-    setDestination('');
-    setSelectedVehicle(null);
-    setSelectedCondition(null);
-    setSelectedProvider(null);
+    return `https://api.whatsapp.com/send?phone=${formattedNumber}&text=${message}`;
   };
 
   return (
@@ -321,17 +300,33 @@ const RequestPanel: React.FC = () => {
           </div>
         )}
 
-        {/* Submit Button */}
-        <Button
-          variant="hero"
-          size="lg"
-          className="w-full h-9 sm:h-10 text-xs sm:text-sm"
-          disabled={!canSubmit}
-          onClick={handleSubmit}
-        >
-          <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
-          Solicitar Guincho Agora
-        </Button>
+        {/* Submit Button - Always visible */}
+        {!canSubmit && (
+          <p className="text-[9px] text-amber-600 dark:text-amber-400 text-center">
+            {!destination || destination.trim().length < 3 ? '⚠️ Informe o destino' : 
+             !name || name.trim().length < 2 ? '⚠️ Informe seu nome' :
+             !phone || phone.replace(/\D/g, '').length < 10 ? '⚠️ Informe seu WhatsApp' :
+             !selectedVehicle ? '⚠️ Selecione o tipo de veículo' :
+             !selectedCondition ? '⚠️ Selecione a situação' : ''}
+          </p>
+        )}
+        
+        {canSubmit ? (
+          <a
+            href={getWhatsAppUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full h-12 rounded-lg font-bold text-base bg-green-600 text-white hover:bg-green-700 active:bg-green-800 cursor-pointer shadow-lg"
+          >
+            <MessageCircle className="w-5 h-5" />
+            ENVIAR PARA WHATSAPP
+          </a>
+        ) : (
+          <div className="flex items-center justify-center gap-2 w-full h-10 rounded-lg font-semibold text-sm bg-muted text-muted-foreground cursor-not-allowed">
+            <MessageCircle className="w-4 h-4" />
+            Preencha todos os campos
+          </div>
+        )}
 
         {/* Footer */}
         <div className="flex items-center justify-center gap-1 pt-1.5 sm:pt-2 border-t border-border">
