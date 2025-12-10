@@ -114,25 +114,26 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
 
     setIsSearching(true);
     try {
-      // Formatar o telefone do mesmo jeito que está salvo no banco
-      const formattedForSearch = searchPhone;
-      
-      // Extrair partes do número para busca flexível
       // O número pode estar salvo como (62) 99142-9264 ou 62991429264
-      const ddd = cleanPhone.slice(0, 2);
-      const firstPart = cleanPhone.slice(2, 7);
-      const lastPart = cleanPhone.slice(7);
+      // Usar os últimos 4 dígitos com hífen para match mais preciso
+      const last4 = cleanPhone.slice(-4);
+      const secondToLast4 = cleanPhone.slice(-8, -4);
       
-      // Criar padrão de busca que funciona com ambos formatos
-      // Buscar por padrão: %DDD%FIRST%LAST%
-      const searchPattern = `%${ddd}%${firstPart.slice(-4)}%${lastPart}%`;
+      // Criar padrão que funciona: busca por "XXXX-YYYY" onde YYYY são os últimos 4 dígitos
+      const searchPattern = `%${secondToLast4}%${last4}%`;
       
-      console.log('Buscando prestador:', { cleanPhone, searchPattern, formattedForSearch });
+      console.log('Buscando prestador:', { 
+        cleanPhone, 
+        searchPattern,
+        formattedForSearch: searchPhone,
+        last4,
+        secondToLast4
+      });
       
       const { data: providers, error } = await supabase
         .from('providers')
         .select('*')
-        .or(`whatsapp.eq.${formattedForSearch},whatsapp.ilike.${searchPattern}`)
+        .ilike('whatsapp', searchPattern)
         .order('created_at', { ascending: false })
         .limit(1);
 
