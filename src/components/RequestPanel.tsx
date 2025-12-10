@@ -15,9 +15,8 @@ type PaymentMethod = 'pix' | 'dinheiro' | 'credito' | 'debito';
 const vehicleTypes = [
   { id: 'carro' as VehicleType, label: 'Carro', icon: Car },
   { id: 'moto' as VehicleType, label: 'Moto', icon: Bike },
-  { id: 'caminhonete' as VehicleType, label: 'Caminhonete', icon: Car },
+  { id: 'caminhonete' as VehicleType, label: 'Utilitários', icon: Car },
   { id: 'caminhao' as VehicleType, label: 'Caminhão', icon: Truck },
-  { id: 'outros' as VehicleType, label: 'Outros', icon: Car },
 ];
 
 const PATINS_REQUIRED_CONDITIONS: VehicleCondition[] = ['subsolo', 'roda_travada', 'volante_travado', 'precisa_patins'];
@@ -182,8 +181,8 @@ const RequestPanel: React.FC = () => {
           <div className="space-y-3">
             {/* Vehicle Type */}
             <div>
-              <label className="block text-xs font-medium mb-2">Tipo de veículo *</label>
-              <div className="grid grid-cols-5 gap-1.5">
+              <label className="block text-sm font-bold mb-2 text-foreground">Tipo de veículo *</label>
+              <div className="grid grid-cols-4 gap-2">
                 {vehicleTypes.map((vehicle) => {
                   const Icon = vehicle.icon;
                   const isSelected = selectedVehicle === vehicle.id;
@@ -191,20 +190,20 @@ const RequestPanel: React.FC = () => {
                     <button
                       key={vehicle.id}
                       onClick={() => setSelectedVehicle(vehicle.id)}
-                      className={`relative flex flex-col items-center gap-1.5 p-2.5 rounded-xl border-2 transition-all shadow-sm hover:shadow-md ${
+                      className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all shadow-sm hover:shadow-md ${
                         isSelected 
                           ? 'border-secondary bg-gradient-to-br from-secondary/20 to-secondary/5 shadow-secondary/20' 
                           : 'border-border/50 hover:border-secondary/50 hover:bg-muted/50 bg-card'
                       }`}
                     >
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
                         isSelected 
                           ? 'bg-gradient-to-br from-secondary to-amber-500 text-white shadow-lg shadow-secondary/30' 
                           : 'bg-gradient-to-br from-muted to-muted/50'
                       }`}>
-                        <Icon className="w-5 h-5" />
+                        <Icon className="w-6 h-6" />
                       </div>
-                      <span className={`font-semibold text-[10px] text-center leading-tight ${isSelected ? 'text-secondary' : ''}`}>
+                      <span className={`font-bold text-xs text-center leading-tight ${isSelected ? 'text-secondary' : 'text-foreground'}`}>
                         {vehicle.label}
                       </span>
                       {isSelected && (
@@ -220,7 +219,7 @@ const RequestPanel: React.FC = () => {
 
             {/* Vehicle Condition */}
             <div>
-              <label className="block text-xs font-medium mb-2">Situação do veículo *</label>
+              <label className="block text-sm font-bold mb-2 text-foreground">Situação do veículo *</label>
               <div className="grid grid-cols-4 gap-1.5">
                 {vehicleConditions.map((condition) => {
                   const Icon = condition.icon;
@@ -240,11 +239,11 @@ const RequestPanel: React.FC = () => {
                       }`}>
                         <Icon className={`w-5 h-5 ${condition.color}`} />
                       </div>
-                      <span className={`font-semibold text-[8px] text-center leading-tight ${isSelected ? 'text-secondary' : ''}`}>
+                      <span className={`font-bold text-[9px] text-center leading-tight ${isSelected ? 'text-secondary' : 'text-foreground'}`}>
                         {condition.label}
                       </span>
                       {condition.needsPatins && (
-                        <span className="text-[7px] font-medium text-cyan-600 bg-cyan-100 px-1.5 py-0.5 rounded-full">+patins</span>
+                        <span className="text-[7px] font-bold text-cyan-600 bg-cyan-100 px-1.5 py-0.5 rounded-full">+patins</span>
                       )}
                       {isSelected && (
                         <div className="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full flex items-center justify-center shadow-lg">
@@ -259,8 +258,8 @@ const RequestPanel: React.FC = () => {
 
             {/* Payment Methods */}
             <div>
-              <label className="flex items-center gap-1 text-xs font-medium mb-2">
-                <CreditCard className="w-3 h-3 text-secondary" />
+              <label className="flex items-center gap-1.5 text-sm font-bold mb-2 text-foreground">
+                <CreditCard className="w-4 h-4 text-secondary" />
                 Forma de pagamento *
               </label>
               <div className="grid grid-cols-4 gap-1.5">
@@ -282,7 +281,7 @@ const RequestPanel: React.FC = () => {
                       }`}>
                         <Icon className={`w-5 h-5 ${payment.color}`} />
                       </div>
-                      <span className={`font-semibold text-[9px] text-center leading-tight ${isSelected ? 'text-secondary' : ''}`}>
+                      <span className={`font-bold text-[9px] text-center leading-tight ${isSelected ? 'text-secondary' : 'text-foreground'}`}>
                         {payment.label}
                       </span>
                       {isSelected && (
