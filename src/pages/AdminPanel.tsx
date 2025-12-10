@@ -93,14 +93,29 @@ export default function AdminPanel() {
   const loadProviders = async () => {
     setLoading(true);
     try {
+      const storedPassword = localStorage.getItem('admin_password');
+      if (!storedPassword) {
+        setIsAuthenticated(false);
+        return;
+      }
+      
       const { data, error } = await supabase.functions.invoke('admin-providers', {
         body: {
           action: 'list_providers',
-          admin_password: localStorage.getItem('admin_password'),
+          admin_password: storedPassword,
         },
       });
 
-      if (error) throw error;
+      // Handle edge function error (non-2xx status)
+      if (error) {
+        console.error('Edge function error:', error);
+        // If it's an auth error, clear the password and show login
+        setIsAuthenticated(false);
+        localStorage.removeItem('admin_password');
+        toast({ title: 'Senha incorreta ou expirada. Digite novamente.', variant: 'destructive' });
+        return;
+      }
+      
       if (data?.error) {
         if (data.error === 'Acesso não autorizado') {
           setIsAuthenticated(false);
@@ -114,9 +129,12 @@ export default function AdminPanel() {
       setProviders(data.providers || []);
     } catch (err: any) {
       console.error('Error loading providers:', err);
+      // Clear auth on any error to allow re-login
+      setIsAuthenticated(false);
+      localStorage.removeItem('admin_password');
       toast({
         title: 'Erro ao carregar prestadores',
-        description: err.message,
+        description: 'Digite sua senha novamente.',
         variant: 'destructive',
       });
     } finally {
