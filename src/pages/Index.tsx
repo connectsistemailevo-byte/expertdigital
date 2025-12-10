@@ -63,21 +63,21 @@ const Index: React.FC = () => {
 
         {/* Centered Content */}
         <div className="relative z-10 container mx-auto px-4 py-8 md:py-12 flex flex-col items-center justify-center min-h-[calc(100vh-5rem)]">
-          {/* Device Frame with Glow - HORIZONTAL like reference */}
-          <div className="w-full max-w-[95vw] md:max-w-[900px] lg:max-w-[1000px] mx-auto animate-slide-up">
+          {/* Device Frame with Glow - HORIZONTAL */}
+          <div className="w-full max-w-[95vw] md:max-w-[950px] lg:max-w-[1100px] mx-auto animate-slide-up">
             {/* Outer glow effect */}
             <div className="relative">
               {/* Multi-layer glow */}
               <div className="absolute -inset-3 md:-inset-5 bg-gradient-to-r from-blue-600/50 via-purple-500/40 to-blue-600/50 rounded-[1.5rem] md:rounded-[2.5rem] blur-2xl opacity-70" />
               <div className="absolute -inset-2 md:-inset-4 bg-gradient-to-b from-blue-500/30 via-transparent to-purple-600/30 rounded-[1.25rem] md:rounded-[2rem] blur-xl" />
               
-              {/* Device frame - HORIZONTAL aspect ratio */}
-              <div className="relative bg-[#0d1320]/95 backdrop-blur-md rounded-[1.25rem] md:rounded-[2rem] p-3 md:p-4 border border-white/10 shadow-2xl" style={{ aspectRatio: '16/10' }}>
+              {/* Device frame */}
+              <div className="relative bg-[#0d1320]/95 backdrop-blur-md rounded-[1.25rem] md:rounded-[2rem] p-3 md:p-4 border border-white/10 shadow-2xl">
                 {/* Inner border glow */}
                 <div className="absolute inset-0 rounded-[1.25rem] md:rounded-[2rem] bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10 pointer-events-none" />
                 
-                {/* Content - Horizontal layout */}
-                <div className="relative h-full overflow-hidden rounded-xl md:rounded-2xl">
+                {/* Content */}
+                <div className="relative overflow-hidden rounded-xl md:rounded-2xl">
                   <RequestPanel />
                 </div>
               </div>
