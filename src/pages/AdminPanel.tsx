@@ -153,9 +153,11 @@ export default function AdminPanel() {
   };
 
   useEffect(() => {
-    if (adminPassword) {
+    const storedPassword = localStorage.getItem('admin_password');
+    if (storedPassword) {
       setIsAuthenticated(true);
-      loadProviders();
+      // Load providers after a small delay to ensure state is set
+      setTimeout(() => loadProviders(), 100);
     }
   }, []);
 
