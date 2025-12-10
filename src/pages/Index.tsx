@@ -97,7 +97,7 @@ const Index: React.FC = () => {
       </section>
 
       {/* How it works */}
-      <section className="py-20 bg-muted" id="como-funciona">
+      <section className="py-20 bg-gradient-to-b from-slate-50 to-white" id="como-funciona">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <span className="inline-block px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-4">
