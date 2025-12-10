@@ -14,6 +14,7 @@ interface LocationData {
 interface LocationContextType {
   location: LocationData;
   refreshLocation: () => void;
+  updateLocation: (lat: number, lng: number) => Promise<void>;
   mapboxToken: string;
 }
 
@@ -201,12 +202,29 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     }
   }, [getAddressFromCoordinates]);
 
+  // Função para atualizar localização manualmente (quando usuário arrasta o marcador)
+  const updateLocation = useCallback(async (lat: number, lng: number) => {
+    setLocation(prev => ({ ...prev, loading: true }));
+    
+    const { address, region } = await getAddressFromCoordinates(lat, lng);
+    
+    setLocation({
+      latitude: lat,
+      longitude: lng,
+      address,
+      region,
+      accuracy: null,
+      loading: false,
+      error: null,
+    });
+  }, [getAddressFromCoordinates]);
+
   useEffect(() => {
     fetchLocation();
   }, [fetchLocation]);
 
   return (
-    <LocationContext.Provider value={{ location, refreshLocation: fetchLocation, mapboxToken }}>
+    <LocationContext.Provider value={{ location, refreshLocation: fetchLocation, updateLocation, mapboxToken }}>
       {children}
     </LocationContext.Provider>
   );

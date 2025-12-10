@@ -11,8 +11,9 @@ const MiniMap: React.FC<MiniMapProps> = ({ className }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const marker = useRef<mapboxgl.Marker | null>(null);
-  const { location, mapboxToken } = useLocation();
+  const { location, mapboxToken, updateLocation } = useLocation();
   const [mapReady, setMapReady] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Initialize map when token is available and location is ready
   useEffect(() => {
@@ -43,58 +44,100 @@ const MiniMap: React.FC<MiniMapProps> = ({ className }) => {
       map.current.on('load', () => {
         setMapReady(true);
         
-        // Add marker after map loads
+        // Add draggable marker after map loads
         if (map.current) {
           const el = document.createElement('div');
           el.innerHTML = `
             <div class="marker-container" style="
               position: relative;
               width: 40px;
-              height: 40px;
+              height: 50px;
+              cursor: grab;
             ">
               <div style="
                 position: absolute;
-                bottom: 0;
+                bottom: 10px;
                 left: 50%;
                 transform: translateX(-50%);
-                width: 40px;
-                height: 40px;
+                width: 36px;
+                height: 36px;
                 background: linear-gradient(135deg, #f5a623, #f7b731);
                 border-radius: 50% 50% 50% 0;
                 transform: translateX(-50%) rotate(-45deg);
                 border: 3px solid white;
                 box-shadow: 0 4px 15px rgba(245, 166, 35, 0.6);
-              "></div>
+                transition: transform 0.15s ease;
+              " class="marker-pin"></div>
               <div style="
                 position: absolute;
-                bottom: 8px;
+                bottom: 18px;
                 left: 50%;
                 transform: translateX(-50%);
-                width: 12px;
-                height: 12px;
+                width: 10px;
+                height: 10px;
                 background: white;
                 border-radius: 50%;
               "></div>
               <div style="
                 position: absolute;
-                bottom: -5px;
+                bottom: 0;
                 left: 50%;
                 transform: translateX(-50%);
                 width: 20px;
                 height: 8px;
-                background: rgba(0,0,0,0.2);
+                background: rgba(0,0,0,0.25);
                 border-radius: 50%;
                 filter: blur(2px);
-              "></div>
+              " class="marker-shadow"></div>
+              <div style="
+                position: absolute;
+                top: -24px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0,0,0,0.75);
+                color: white;
+                font-size: 9px;
+                padding: 2px 6px;
+                border-radius: 4px;
+                white-space: nowrap;
+                pointer-events: none;
+              ">Arraste para ajustar</div>
             </div>
           `;
+          el.style.cursor = 'grab';
 
           marker.current = new mapboxgl.Marker({ 
             element: el,
-            anchor: 'bottom'
+            anchor: 'bottom',
+            draggable: true // Enable dragging!
           })
             .setLngLat([location.longitude, location.latitude])
             .addTo(map.current);
+
+          // Handle drag events
+          marker.current.on('dragstart', () => {
+            setIsDragging(true);
+            el.style.cursor = 'grabbing';
+            const pin = el.querySelector('.marker-pin') as HTMLElement;
+            if (pin) {
+              pin.style.transform = 'translateX(-50%) rotate(-45deg) scale(1.1)';
+            }
+          });
+
+          marker.current.on('dragend', async () => {
+            setIsDragging(false);
+            el.style.cursor = 'grab';
+            const pin = el.querySelector('.marker-pin') as HTMLElement;
+            if (pin) {
+              pin.style.transform = 'translateX(-50%) rotate(-45deg) scale(1)';
+            }
+            
+            // Get new coordinates and update location
+            if (marker.current) {
+              const lngLat = marker.current.getLngLat();
+              await updateLocation(lngLat.lat, lngLat.lng);
+            }
+          });
         }
       });
 
@@ -113,11 +156,11 @@ const MiniMap: React.FC<MiniMapProps> = ({ className }) => {
         marker.current = null;
       }
     };
-  }, [mapboxToken, location.latitude, location.longitude, location.loading]);
+  }, [mapboxToken, location.latitude, location.longitude, location.loading, updateLocation]);
 
-  // Update marker position when location changes
+  // Update marker position when location changes (but not during drag)
   useEffect(() => {
-    if (marker.current && map.current && mapReady && !location.loading) {
+    if (marker.current && map.current && mapReady && !location.loading && !isDragging) {
       marker.current.setLngLat([location.longitude, location.latitude]);
       map.current.flyTo({
         center: [location.longitude, location.latitude],
@@ -125,7 +168,7 @@ const MiniMap: React.FC<MiniMapProps> = ({ className }) => {
         duration: 1000,
       });
     }
-  }, [location.latitude, location.longitude, location.loading, mapReady]);
+  }, [location.latitude, location.longitude, location.loading, mapReady, isDragging]);
 
   // Show placeholder when no token
   if (!mapboxToken) {
@@ -161,6 +204,11 @@ const MiniMap: React.FC<MiniMapProps> = ({ className }) => {
   return (
     <div className={`${className} relative min-h-[160px]`} style={{ minHeight: '160px' }}>
       <div ref={mapContainer} className="absolute inset-0 w-full h-full" style={{ minHeight: '160px' }} />
+      {isDragging && (
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs px-3 py-1 rounded-full">
+          Solte para definir localização
+        </div>
+      )}
     </div>
   );
 };
