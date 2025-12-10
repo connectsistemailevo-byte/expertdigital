@@ -5,9 +5,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Edge function to retrieve Mapbox public token from secrets
-
 serve(async (req) => {
+  console.log("get-mapbox-token function called");
+  
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -15,19 +15,25 @@ serve(async (req) => {
   try {
     const token = Deno.env.get("MAPBOX_PUBLIC_TOKEN");
     
+    console.log("Token exists:", !!token);
+    console.log("Token length:", token?.length || 0);
+    
     if (!token) {
+      console.error("MAPBOX_PUBLIC_TOKEN not found in environment");
       return new Response(
         JSON.stringify({ error: "Mapbox token not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    console.log("Returning token successfully");
     return new Response(
       JSON.stringify({ token }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error in get-mapbox-token:", message);
     return new Response(
       JSON.stringify({ error: message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
