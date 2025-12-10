@@ -105,8 +105,15 @@ serve(async (req) => {
       });
     }
 
-    const needsPlanSelection = !subscription.adesao_paga && 
-      (subscription.trial_corridas_restantes <= 0 || !subscription.trial_ativo);
+    // Verificar se precisa selecionar plano
+    const needsPlanSelection = 
+      // Não pagou e trial esgotado
+      (!subscription.adesao_paga && subscription.trial_corridas_restantes <= 0) ||
+      // Não pagou e trial desativado
+      (!subscription.adesao_paga && !subscription.trial_ativo) ||
+      // Pagou mas atingiu limite (exceto PRO que é ilimitado)
+      (subscription.adesao_paga && subscription.plano !== 'pro' && 
+       subscription.limite_corridas > 0 && subscription.corridas_usadas >= subscription.limite_corridas);
 
     logStep("Returning subscription data", { 
       plano: subscription.plano, 

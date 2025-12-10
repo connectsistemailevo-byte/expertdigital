@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { PlanSelectionModal } from '@/components/PlanSelectionModal';
+import { TrialExhaustedModal } from '@/components/TrialExhaustedModal';
 import { 
   Truck, 
   Phone, 
@@ -67,6 +68,8 @@ export default function ProviderDashboard() {
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [customization, setCustomization] = useState<CustomizationData | null>(null);
   const [showPlanModal, setShowPlanModal] = useState(false);
+  const [showTrialExhaustedModal, setShowTrialExhaustedModal] = useState(false);
+  const [blockReason, setBlockReason] = useState<'trial_exhausted' | 'limit_reached' | 'no_plan'>('trial_exhausted');
 
   const success = searchParams.get('success');
   const providerId = searchParams.get('provider_id');
@@ -119,9 +122,18 @@ export default function ProviderDashboard() {
       setSubscription(data.subscription);
       setCustomization(data.customization);
 
-      // Mostrar modal de planos se necessário
+      // Mostrar modal de trial esgotado se necessário
       if (data.needs_plan_selection) {
-        setShowPlanModal(true);
+        // Determinar o motivo
+        const sub = data.subscription;
+        if (!sub?.adesao_paga && sub?.trial_corridas_restantes <= 0) {
+          setBlockReason('trial_exhausted');
+        } else if (sub?.adesao_paga && sub?.corridas_usadas >= sub?.limite_corridas && sub?.limite_corridas > 0) {
+          setBlockReason('limit_reached');
+        } else {
+          setBlockReason('no_plan');
+        }
+        setShowTrialExhaustedModal(true);
       }
 
       // Salvar whatsapp no localStorage
@@ -475,6 +487,18 @@ export default function ProviderDashboard() {
           )}
         </div>
       </div>
+
+      {/* Modal de Trial Esgotado */}
+      <TrialExhaustedModal
+        open={showTrialExhaustedModal}
+        onOpenChange={setShowTrialExhaustedModal}
+        providerId={provider.id}
+        whatsapp={provider.whatsapp}
+        reason={blockReason}
+        message={blockReason === 'limit_reached' 
+          ? `Você atingiu o limite de ${subscription?.limite_corridas} corridas do seu plano.` 
+          : undefined}
+      />
 
       {/* Modal de Seleção de Plano */}
       <PlanSelectionModal
