@@ -114,25 +114,43 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
 
     setIsSearching(true);
     try {
-      // Buscar prestador por diferentes formatos de telefone
-      // Usar limit(1) ao invés de maybeSingle() para evitar erro quando há duplicados
+      // Formatar o telefone do mesmo jeito que está salvo no banco
+      const formattedForSearch = searchPhone;
+      
+      // Extrair partes do número para busca flexível
+      // O número pode estar salvo como (62) 99142-9264 ou 62991429264
+      const ddd = cleanPhone.slice(0, 2);
+      const firstPart = cleanPhone.slice(2, 7);
+      const lastPart = cleanPhone.slice(7);
+      
+      // Criar padrão de busca que funciona com ambos formatos
+      // Buscar por padrão: %DDD%FIRST%LAST%
+      const searchPattern = `%${ddd}%${firstPart.slice(-4)}%${lastPart}%`;
+      
+      console.log('Buscando prestador:', { cleanPhone, searchPattern, formattedForSearch });
+      
       const { data: providers, error } = await supabase
         .from('providers')
         .select('*')
-        .or(`whatsapp.eq.${searchPhone},whatsapp.eq.${cleanPhone},whatsapp.eq.55${cleanPhone},whatsapp.ilike.%${cleanPhone.slice(-8)}%`)
+        .or(`whatsapp.eq.${formattedForSearch},whatsapp.ilike.${searchPattern}`)
         .order('created_at', { ascending: false })
         .limit(1);
 
-      if (error) throw error;
+      console.log('Resultado da busca:', { providers, error });
 
-      const data = providers && providers.length > 0 ? providers[0] : null;
+      if (error) {
+        console.error('Erro na busca:', error);
+        throw error;
+      }
 
-      if (data) {
-        const providerData = data as ProviderData;
-        console.log('Provider found:', providerData);
+      if (providers && providers.length > 0) {
+        const providerData = providers[0] as ProviderData;
+        console.log('Provider encontrado:', providerData);
+        
+        // Setar o provider existente
         setExistingProvider(providerData);
         
-        // Populate form with existing data from database
+        // Preencher formulário com dados do banco
         setName(providerData.name);
         setWhatsapp(providerData.whatsapp);
         setHasPatins(providerData.has_patins);
@@ -142,31 +160,43 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
         setPatinsExtraPrice(String(providerData.patins_extra_price || 30));
         
         // Buscar subscription do provider
-        const { data: subData } = await supabase
+        console.log('Buscando subscription para provider_id:', providerData.id);
+        const { data: subData, error: subError } = await supabase
           .from('provider_subscriptions')
           .select('*')
           .eq('provider_id', providerData.id)
           .limit(1);
         
+        console.log('Subscription result:', { subData, subError });
+        
         if (subData && subData.length > 0) {
-          console.log('Subscription found:', subData[0]);
-          setSubscription(subData[0] as SubscriptionData);
+          const subscriptionData = subData[0] as SubscriptionData;
+          console.log('Subscription encontrada:', subscriptionData);
+          setSubscription(subscriptionData);
         } else {
+          console.log('Nenhuma subscription encontrada');
           setSubscription(null);
         }
         
+        // Mudar para modo de edição
         setMode('edit');
-        toast.success(`Bem-vindo de volta, ${providerData.name}!`);
+        toast.success(`Bem-vindo de volta, ${providerData.name}!`, {
+          description: `Seus dados foram carregados do cadastro.`
+        });
       } else {
-        // No provider found, go to registration
+        // Nenhum prestador encontrado, ir para cadastro
+        console.log('Nenhum prestador encontrado');
         setWhatsapp(searchPhone);
         setSubscription(null);
+        setExistingProvider(null);
         setMode('register');
         toast.info('Nenhum cadastro encontrado. Faça seu cadastro agora!');
       }
     } catch (error: any) {
-      console.error('Error searching provider:', error);
-      toast.error('Erro ao buscar cadastro');
+      console.error('Erro ao buscar prestador:', error);
+      toast.error('Erro ao buscar cadastro', {
+        description: error.message || 'Tente novamente'
+      });
     } finally {
       setIsSearching(false);
     }
