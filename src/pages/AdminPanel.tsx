@@ -110,7 +110,6 @@ export default function AdminPanel() {
       // Handle edge function error (non-2xx status)
       if (error) {
         console.error('[AdminPanel] Edge function error:', error);
-        // If it's an auth error, clear the password and show login
         setIsAuthenticated(false);
         localStorage.removeItem('admin_password');
         toast({ title: 'Senha incorreta ou expirada. Digite novamente.', variant: 'destructive' });
@@ -127,18 +126,27 @@ export default function AdminPanel() {
         throw new Error(data.error);
       }
 
-      console.log('[AdminPanel] Loaded providers:', data.providers?.length, data.providers?.map((p: any) => ({
-        name: p.name,
-        trial_restante: p.provider_subscriptions?.[0]?.trial_corridas_restantes
-      })));
-      
       const newProviders = data.providers || [];
+      
+      // Debug detalhado
+      console.log('[AdminPanel] Raw provider data:', JSON.stringify(newProviders, null, 2));
+      newProviders.forEach((p: any) => {
+        const sub = p.provider_subscriptions?.[0];
+        console.log(`[AdminPanel] Provider ${p.name}:`, {
+          trial_ativo: sub?.trial_ativo,
+          trial_corridas_restantes: sub?.trial_corridas_restantes,
+          corridas_usadas: sub?.corridas_usadas,
+          adesao_paga: sub?.adesao_paga
+        });
+      });
+      
       setProviders(newProviders);
       
       // Atualizar selectedProvider se existir para refletir os novos dados
       if (selectedProvider) {
         const updatedProvider = newProviders.find((p: ProviderWithSubscription) => p.id === selectedProvider.id);
         if (updatedProvider) {
+          console.log('[AdminPanel] Updated selectedProvider:', updatedProvider.name, updatedProvider.provider_subscriptions?.[0]?.trial_corridas_restantes);
           setSelectedProvider(updatedProvider);
         }
       }

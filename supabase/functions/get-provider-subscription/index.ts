@@ -34,12 +34,20 @@ serve(async (req) => {
 
     // Se temos whatsapp, buscar o provider_id
     if (whatsapp && !provider_id) {
-      const { data: provider } = await supabaseClient
+      // Limpar o whatsapp para comparação
+      const cleanPhone = whatsapp.replace(/\D/g, '');
+      logStep("Searching provider by whatsapp", { cleanPhone });
+      
+      // Buscar por match parcial (últimos 8 dígitos)
+      const last8 = cleanPhone.slice(-8);
+      const { data: providers } = await supabaseClient
         .from('providers')
-        .select('id')
-        .eq('whatsapp', whatsapp)
-        .maybeSingle();
+        .select('id, whatsapp')
+        .ilike('whatsapp', `%${last8.slice(0,4)}%${last8.slice(4)}%`);
 
+      logStep("Provider search result", { providers });
+
+      const provider = providers?.[0];
       if (!provider) {
         return new Response(JSON.stringify({
           found: false,
