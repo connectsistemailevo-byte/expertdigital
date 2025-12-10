@@ -376,7 +376,8 @@ export default function AdminPanel() {
                       <TableHead className="text-slate-400">Nome</TableHead>
                       <TableHead className="text-slate-400">WhatsApp</TableHead>
                       <TableHead className="text-slate-400">Status</TableHead>
-                      <TableHead className="text-slate-400">Corridas</TableHead>
+                      <TableHead className="text-slate-400">Trial Restante</TableHead>
+                      <TableHead className="text-slate-400">Corridas Usadas</TableHead>
                       <TableHead className="text-slate-400">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -396,8 +397,32 @@ export default function AdminPanel() {
                           <TableCell>
                             {getStatusBadge(provider)}
                           </TableCell>
-                          <TableCell className="text-slate-300">
-                            {getRidesInfo(provider)}
+                          <TableCell>
+                            {sub?.trial_ativo && !sub?.adesao_paga ? (
+                              <div className="flex items-center gap-2">
+                                <span className={`font-bold text-lg ${(sub?.trial_corridas_restantes ?? 0) <= 3 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                  {sub?.trial_corridas_restantes ?? 0}
+                                </span>
+                                <span className="text-slate-500 text-xs">restantes</span>
+                              </div>
+                            ) : (
+                              <span className="text-slate-500">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {sub?.adesao_paga ? (
+                              <div className="flex items-center gap-1">
+                                <span className="font-bold text-white">{sub?.corridas_usadas ?? 0}</span>
+                                {sub?.limite_corridas !== -1 && (
+                                  <span className="text-slate-500 text-xs">/ {sub?.limite_corridas}</span>
+                                )}
+                                {sub?.limite_corridas === -1 && (
+                                  <span className="text-slate-500 text-xs">(∞)</span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-slate-500">{sub?.corridas_usadas ?? 0}</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-1 flex-wrap">
@@ -501,18 +526,38 @@ export default function AdminPanel() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
+            <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+              <p className="text-xs text-slate-400 mb-1">Corridas restantes atuais</p>
+              <p className="text-2xl font-bold text-emerald-400">
+                {(selectedProvider && getSubscription(selectedProvider)?.trial_corridas_restantes) ?? 0}
+              </p>
+            </div>
             <div>
-              <Label className="text-slate-300">Quantidade de corridas</Label>
+              <Label className="text-slate-300">Nova quantidade de corridas</Label>
               <Input
                 type="number"
                 value={ridesInput}
                 onChange={(e) => setRidesInput(e.target.value)}
-                className="bg-slate-800 border-slate-600 text-white"
+                className="bg-slate-800 border-slate-600 text-white text-lg font-bold"
                 min="0"
               />
             </div>
+            <div className="flex gap-2">
+              {[5, 10, 15, 20].map((num) => (
+                <Button
+                  key={num}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 border-slate-600 text-slate-300"
+                  onClick={() => setRidesInput(String(num))}
+                >
+                  {num}
+                </Button>
+              ))}
+            </div>
             <Button
-              className="w-full"
+              className="w-full bg-emerald-600 hover:bg-emerald-700"
               onClick={() => {
                 if (selectedProvider) {
                   executeAction('set_trial_rides', selectedProvider.id, { rides: parseInt(ridesInput) });
@@ -520,7 +565,7 @@ export default function AdminPanel() {
                 }
               }}
             >
-              Salvar
+              Salvar Corridas do Trial
             </Button>
           </div>
         </DialogContent>

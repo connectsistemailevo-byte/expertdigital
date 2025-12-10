@@ -438,8 +438,8 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
                   <p className={`font-bold text-sm ${(subscription?.trial_corridas_restantes ?? 0) <= 3 ? 'text-amber-400' : 'text-green-400'}`}>
                     🎁 Período de Teste Ativo
                   </p>
-                  <p className="text-sm text-foreground font-medium">
-                    Você tem <span className={`font-bold text-lg ${(subscription?.trial_corridas_restantes ?? 0) <= 3 ? 'text-amber-400' : 'text-green-400'}`}>
+                  <p className="text-sm text-foreground font-semibold">
+                    Você tem <span className={`font-black text-xl ${(subscription?.trial_corridas_restantes ?? 0) <= 3 ? 'text-amber-400' : 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]'}`}>
                       {subscription?.trial_corridas_restantes ?? 0}
                     </span> solicitações restantes no trial
                   </p>
