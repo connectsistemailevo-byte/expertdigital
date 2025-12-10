@@ -49,6 +49,18 @@ const serviceOptions = [
   { id: 'guincho_completo', label: 'Guincho Completo' },
 ];
 
+// Função para gerar slug a partir do nome
+const generateSlug = (name: string): string => {
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .replace(/[^a-z0-9\s-]/g, '') // Remove caracteres especiais
+    .replace(/\s+/g, '-') // Substitui espaços por hífens
+    .replace(/-+/g, '-') // Remove hífens duplicados
+    .replace(/^-|-$/g, ''); // Remove hífens do início e fim
+};
+
 type ModalMode = 'search' | 'register' | 'edit';
 
 const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ open, onOpenChange }) => {
@@ -263,10 +275,29 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
           return;
         }
 
+        // Gerar slug único
+        const baseSlug = generateSlug(name);
+        let slug = baseSlug;
+        let slugCounter = 1;
+        
+        // Verificar se slug já existe e gerar um único
+        while (true) {
+          const { data: existingSlug } = await supabase
+            .from('providers')
+            .select('id')
+            .eq('slug', slug)
+            .single();
+          
+          if (!existingSlug) break;
+          slug = `${baseSlug}-${slugCounter}`;
+          slugCounter++;
+        }
+
         // Create new provider
         const { data: newProvider, error } = await supabase.from('providers').insert({
           name,
           whatsapp,
+          slug, // Adicionar slug gerado
           has_patins: hasPatins,
           service_types: selectedServices,
           latitude: location.latitude,
@@ -304,6 +335,16 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
 
           if (subError) {
             console.error('Error creating subscription:', subError);
+          }
+
+          // Criar customização padrão para o prestador
+          const { error: customError } = await supabase.from('provider_customization').insert({
+            provider_id: newProvider.id,
+            company_name: name,
+          });
+
+          if (customError) {
+            console.error('Error creating customization:', customError);
           }
         }
 

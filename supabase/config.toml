@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.admin-providers]
 verify_jwt = false
+
+[functions.generate-provider-slugs]
+verify_jwt = false
