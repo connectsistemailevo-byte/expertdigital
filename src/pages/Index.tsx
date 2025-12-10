@@ -55,40 +55,32 @@ const Index: React.FC = () => {
           
           {/* Hero Text Above Panel */}
           <div className="text-center mb-6 md:mb-8 animate-fade-in">
-            <span className="inline-block px-4 py-1.5 bg-secondary/20 text-secondary rounded-full text-xs md:text-sm font-semibold mb-3 md:mb-4">
+            <span className="inline-block py-1.5 text-secondary rounded-full text-xs font-semibold mb-3 md:mb-4 md:text-lg bg-primary-foreground px-[26px]">
               Atendimento 24h em todo o Brasil
             </span>
-            <h1 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4">
-              Seu Guincho de<br />
-              <span className="text-secondary">Bolso</span>
+            <h1 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4">Seu Guincho 
+Aki 24hs<br />
+              <span className="text-secondary text-3xl">Aki 24hs</span>
             </h1>
-            <p className="text-white/70 text-sm md:text-base max-w-md mx-auto mb-4 md:mb-6 px-4">
+            <p className="text-sm md:text-base max-w-md mx-auto mb-4 md:mb-6 bg-transparent text-primary-foreground px-[25px]">
               Conectamos você ao guincheiro mais próximo em poucos minutos. Sem complicação, com total transparência.
             </p>
             
             {/* Location Display */}
             <div className="flex items-center justify-center gap-2 mb-4 md:mb-6">
               <MapPin className="w-4 h-4 text-secondary" />
-              <span className="text-white/80 text-sm">
+              <span className="font-medium bg-transparent text-secondary text-xs px-[50px]">
                 {location.address || location.region || 'Obtendo localização...'}
               </span>
             </div>
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
-              <Button 
-                variant="hero" 
-                size="lg"
-                onClick={() => window.open('https://wa.me/5562999999999', '_blank')}
-                className="w-full sm:w-auto"
-              >
+              <Button variant="hero" size="lg" onClick={() => window.open('https://wa.me/5562999999999', '_blank')} className="w-full sm:w-auto">
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Falar no WhatsApp
               </Button>
-              <button 
-                onClick={() => setIsProviderModalOpen(true)}
-                className="text-sm text-secondary hover:text-secondary/80 transition-colors underline underline-offset-4"
-              >
+              <button onClick={() => setIsProviderModalOpen(true)} className="transition-colors underline underline-offset-4 text-secondary text-xl bg-secondary-foreground">
                 É guincheiro? Cadastre-se aqui
               </button>
             </div>
@@ -96,14 +88,12 @@ const Index: React.FC = () => {
 
           {/* Trust badges - Visible on all devices */}
           <div className="flex flex-wrap justify-center items-center gap-3 md:gap-6 mb-6 animate-fade-in" style={{
-            animationDelay: '200ms'
-          }}>
-            {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => (
-              <div key={badge} className="flex items-center gap-1.5 md:gap-2">
+          animationDelay: '200ms'
+        }}>
+            {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => <div key={badge} className="flex items-center gap-1.5 md:gap-2">
                 <CheckCircle className="w-3.5 h-3.5 md:w-4 md:h-4 text-secondary" />
-                <span className="text-xs md:text-sm text-white/80">{badge}</span>
-              </div>
-            ))}
+                <span className="md:text-sm bg-secondary px-[11px] text-lg text-secondary">{badge}</span>
+              </div>)}
           </div>
 
           {/* Device Frame with Glow - HORIZONTAL */}
