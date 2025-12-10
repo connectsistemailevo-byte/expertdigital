@@ -7,19 +7,19 @@ import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
 import RequestPanel from '@/components/RequestPanel';
 import { MapPin, Phone, ArrowRight, CheckCircle, Truck, Navigation, Settings, MessageCircle } from 'lucide-react';
-
 const Index: React.FC = () => {
   const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
-  const { location, mapboxToken } = useLocation();
-
-  return (
-    <div className="min-h-screen bg-[#0a0f1a]">
+  const {
+    location,
+    mapboxToken
+  } = useLocation();
+  return <div className="min-h-screen bg-[#0a0f1a]">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0f1a]/90 backdrop-blur-lg border-b border-white/10">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16 md:h-20">
-            <div className="font-display text-xl md:text-2xl font-bold text-white">
-              GUINCHO FÁCIL<span className="text-secondary"> 24HS</span>
+            <div className="font-display text-xl md:text-2xl font-bold text-white rounded-lg">
+              Aki Guincho <span className="text-secondary"> 24HS</span>
             </div>
             <nav className="hidden md:flex items-center gap-8">
               <a href="#recursos" className="text-sm text-white/70 hover:text-white transition-colors">
@@ -28,19 +28,12 @@ const Index: React.FC = () => {
               <a href="#como-funciona" className="text-sm text-white/70 hover:text-white transition-colors">
                 Como Funciona
               </a>
-              <button 
-                onClick={() => setIsProviderModalOpen(true)}
-                className="text-sm text-white/70 hover:text-white transition-colors flex items-center gap-2"
-              >
+              <button onClick={() => setIsProviderModalOpen(true)} className="text-sm text-white/70 hover:text-white transition-colors flex items-center gap-2">
                 <Truck className="w-4 h-4" />
                 Sou Prestador
               </button>
             </nav>
-            <Button 
-              variant="hero" 
-              size="default"
-              onClick={() => setIsProviderModalOpen(true)}
-            >
+            <Button variant="hero" size="default" onClick={() => setIsProviderModalOpen(true)} className="pb-[6px] mx-[8px] my-0 pt-[10px] pr-[7px] rounded text-base pl-[5px]">
               <Truck className="w-4 h-4 mr-2" />
               Sou Prestador
             </Button>
@@ -52,11 +45,7 @@ const Index: React.FC = () => {
       <section className="relative min-h-screen pt-20 overflow-hidden">
         {/* Full Map Background */}
         <div className="absolute inset-0 z-0">
-          {mapboxToken ? (
-            <Map className="w-full h-full" />
-          ) : (
-            <div className="w-full h-full bg-[#0a0f1a]" />
-          )}
+          {mapboxToken ? <Map className="w-full h-full" /> : <div className="w-full h-full bg-[#0a0f1a]" />}
           {/* Dark overlay for readability */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#0a0f1a]/60 via-transparent to-[#0a0f1a]/80" />
         </div>
@@ -85,13 +74,13 @@ const Index: React.FC = () => {
           </div>
 
           {/* Trust badges below card - Hidden on mobile for cleaner look */}
-          <div className="hidden md:flex flex-wrap justify-center items-center gap-6 mt-8 animate-fade-in" style={{ animationDelay: '400ms' }}>
-            {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map((badge) => (
-              <div key={badge} className="flex items-center gap-2">
+          <div className="hidden md:flex flex-wrap justify-center items-center gap-6 mt-8 animate-fade-in" style={{
+          animationDelay: '400ms'
+        }}>
+            {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => <div key={badge} className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-secondary" />
                 <span className="text-sm text-white/80">{badge}</span>
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
       </section>
@@ -119,14 +108,24 @@ const Index: React.FC = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {[
-              { title: 'Informe sua localização', desc: 'Capturamos automaticamente sua localização para agilizar o atendimento', icon: Navigation, color: 'from-blue-400 to-cyan-400' },
-              { title: 'Escolha o serviço', desc: 'Selecione o tipo de veículo e a situação em que ele se encontra', icon: Settings, color: 'from-amber-400 to-orange-400' },
-              { title: 'Receba atendimento', desc: 'O guincheiro mais próximo entra em contato pelo WhatsApp', icon: MessageCircle, color: 'from-green-400 to-emerald-400' },
-            ].map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <div key={index} className="text-center group">
+            {[{
+            title: 'Informe sua localização',
+            desc: 'Capturamos automaticamente sua localização para agilizar o atendimento',
+            icon: Navigation,
+            color: 'from-blue-400 to-cyan-400'
+          }, {
+            title: 'Escolha o serviço',
+            desc: 'Selecione o tipo de veículo e a situação em que ele se encontra',
+            icon: Settings,
+            color: 'from-amber-400 to-orange-400'
+          }, {
+            title: 'Receba atendimento',
+            desc: 'O guincheiro mais próximo entra em contato pelo WhatsApp',
+            icon: MessageCircle,
+            color: 'from-green-400 to-emerald-400'
+          }].map((item, index) => {
+            const Icon = item.icon;
+            return <div key={index} className="text-center group">
                   <div className="relative mx-auto mb-6 w-24 h-24">
                     {/* Glow effect */}
                     <div className={`absolute inset-0 bg-gradient-to-br ${item.color} rounded-3xl blur-lg opacity-50 group-hover:opacity-80 transition-opacity`} />
@@ -141,9 +140,8 @@ const Index: React.FC = () => {
                   <p className="text-white/70 text-sm leading-relaxed">
                     {item.desc}
                   </p>
-                </div>
-              );
-            })}
+                </div>;
+          })}
           </div>
         </div>
       </section>
@@ -161,11 +159,10 @@ const Index: React.FC = () => {
           <p className="text-white/80 mb-8 max-w-xl mx-auto">
             Não fique na mão! Solicite um guincho em poucos segundos e tenha atendimento rápido e seguro.
           </p>
-          <Button 
-            variant="hero" 
-            size="xl"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          >
+          <Button variant="hero" size="xl" onClick={() => window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        })}>
             Solicitar Guincho
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
@@ -177,8 +174,6 @@ const Index: React.FC = () => {
       
       {/* Provider Registration Modal */}
       <ProviderRegistrationModal open={isProviderModalOpen} onOpenChange={setIsProviderModalOpen} />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
