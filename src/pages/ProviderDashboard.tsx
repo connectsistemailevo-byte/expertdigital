@@ -107,6 +107,10 @@ export default function ProviderDashboard() {
         body: { whatsapp: phone },
       });
 
+      console.log('[ProviderDashboard] Dados carregados:', data);
+      console.log('[ProviderDashboard] needs_plan_selection:', data?.needs_plan_selection);
+      console.log('[ProviderDashboard] subscription:', data?.subscription);
+
       if (error) throw error;
 
       if (!data?.found) {
@@ -122,17 +126,24 @@ export default function ProviderDashboard() {
       setSubscription(data.subscription);
       setCustomization(data.customization);
 
+      // Verificar se precisa mostrar modal de planos
+      const sub = data.subscription;
+      const trialEsgotado = !sub?.adesao_paga && sub?.trial_corridas_restantes <= 0;
+      const limiteAtingido = sub?.adesao_paga && sub?.plano !== 'pro' && sub?.limite_corridas > 0 && sub?.corridas_usadas >= sub?.limite_corridas;
+      
+      console.log('[ProviderDashboard] trialEsgotado:', trialEsgotado);
+      console.log('[ProviderDashboard] limiteAtingido:', limiteAtingido);
+
       // Mostrar modal de trial esgotado se necessário
-      if (data.needs_plan_selection) {
-        // Determinar o motivo
-        const sub = data.subscription;
-        if (!sub?.adesao_paga && sub?.trial_corridas_restantes <= 0) {
+      if (trialEsgotado || limiteAtingido || data.needs_plan_selection) {
+        if (trialEsgotado) {
           setBlockReason('trial_exhausted');
-        } else if (sub?.adesao_paga && sub?.corridas_usadas >= sub?.limite_corridas && sub?.limite_corridas > 0) {
+        } else if (limiteAtingido) {
           setBlockReason('limit_reached');
         } else {
           setBlockReason('no_plan');
         }
+        console.log('[ProviderDashboard] Abrindo modal de planos, razão:', trialEsgotado ? 'trial_exhausted' : limiteAtingido ? 'limit_reached' : 'no_plan');
         setShowTrialExhaustedModal(true);
       }
 
@@ -163,6 +174,7 @@ export default function ProviderDashboard() {
   // Efeito para carregar dados do prestador se já logado
   useEffect(() => {
     const savedWhatsapp = localStorage.getItem('provider_whatsapp');
+    console.log('[ProviderDashboard] savedWhatsapp:', savedWhatsapp);
     if (savedWhatsapp) {
       setWhatsapp(savedWhatsapp);
       loadProviderData(savedWhatsapp);
@@ -186,6 +198,15 @@ export default function ProviderDashboard() {
 
   const getPlanBadge = () => {
     if (!subscription) return null;
+
+    // Trial esgotado
+    if (!subscription.adesao_paga && subscription.trial_corridas_restantes <= 0) {
+      return (
+        <Badge className="bg-red-500/20 text-red-400 border-red-500">
+          Trial Esgotado - Contrate um Plano
+        </Badge>
+      );
+    }
 
     if (subscription.trial_ativo && !subscription.adesao_paga) {
       return (
