@@ -58,12 +58,12 @@ const Index: React.FC = () => {
             backgroundImage: `url(${heroTruck})`,
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/85 to-primary/70" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[hsl(217,71%,20%)]/98 via-[hsl(217,71%,25%)]/95 to-[hsl(217,71%,30%)]/90" />
         </div>
 
         {/* Optional Map Overlay */}
         {mapboxToken && (
-          <div className="absolute inset-0 z-0 opacity-20">
+          <div className="absolute inset-0 z-0 opacity-15 mix-blend-overlay">
             <Map className="w-full h-full" />
           </div>
         )}

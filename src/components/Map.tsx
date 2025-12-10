@@ -26,7 +26,7 @@ const Map: React.FC<MapProps> = ({ className }) => {
     try {
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
+        style: 'mapbox://styles/mapbox/navigation-night-v1',
         center: [location.longitude, location.latitude],
         zoom: 13,
         pitch: 45,
