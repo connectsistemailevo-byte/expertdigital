@@ -289,6 +289,59 @@ export default function ProviderDashboard() {
           </Button>
         </div>
 
+        {/* Alerta de Trial Esgotado */}
+        {subscription && !subscription.adesao_paga && subscription.trial_corridas_restantes <= 0 && (
+          <Card className="bg-red-500/20 border-red-500/50">
+            <CardContent className="py-4">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-red-500/30 flex items-center justify-center">
+                    <AlertTriangle className="w-6 h-6 text-red-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-red-400">Período de Teste Encerrado</h3>
+                    <p className="text-slate-400">Suas 10 corridas gratuitas acabaram. Contrate um plano para continuar.</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => setShowTrialExhaustedModal(true)}
+                  className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-bold"
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Contratar Plano
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Alerta de Limite Atingido (planos pagos) */}
+        {subscription && subscription.adesao_paga && subscription.plano !== 'pro' && 
+         subscription.limite_corridas > 0 && subscription.corridas_usadas >= subscription.limite_corridas && (
+          <Card className="bg-yellow-500/20 border-yellow-500/50">
+            <CardContent className="py-4">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-yellow-500/30 flex items-center justify-center">
+                    <AlertTriangle className="w-6 h-6 text-yellow-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-yellow-400">Limite de Corridas Atingido</h3>
+                    <p className="text-slate-400">Você atingiu o limite de {subscription.limite_corridas} corridas do seu plano.</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => setShowPlanModal(true)}
+                  className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold"
+                >
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Fazer Upgrade
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Status Cards */}
         <div className="grid md:grid-cols-3 gap-4">
           {/* Corridas */}
