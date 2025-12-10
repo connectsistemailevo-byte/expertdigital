@@ -58,68 +58,34 @@ const Index: React.FC = () => {
             <div className="w-full h-full bg-[#0a0f1a]" />
           )}
           {/* Dark overlay for readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0f1a]/80 via-[#0a0f1a]/40 to-[#0a0f1a]/80" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0f1a]/60 via-transparent to-[#0a0f1a]/80" />
         </div>
 
         {/* Centered Content */}
-        <div className="relative z-10 container mx-auto px-4 pt-12 pb-12 flex flex-col items-center min-h-[calc(100vh-5rem)]">
-          {/* Top Section - Title and Subtitle */}
-          <div className="text-center mb-8 animate-fade-in">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-6">
-              <span className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
-              <span className="text-sm font-medium text-white">Atendimento 24h em todo o Brasil</span>
-            </div>
-            
-            {/* Title */}
-            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4">
-              Seu Guincho de
-              <span className="text-secondary block">Bolso</span>
-            </h1>
-            
-            {/* Subtitle */}
-            <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-6">
-              Conectamos você ao guincheiro mais próximo em poucos minutos. Sem complicação, com total transparência.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap justify-center gap-4 mb-8">
-              <Button 
-                variant="default" 
-                size="lg"
-                className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
-                onClick={() => window.open('https://wa.me/5562991429264', '_blank')}
-              >
-                <Phone className="w-5 h-5 mr-2" />
-                Falar no WhatsApp
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="border-white/30 text-white hover:bg-white/10"
-                onClick={() => setIsProviderModalOpen(true)}
-              >
-                <Truck className="w-5 h-5 mr-2" />
-                Sou Prestador
-              </Button>
-            </div>
-          </div>
-
-          {/* Centered Modal Card */}
-          <div className="w-full max-w-xl mx-auto animate-slide-up" style={{ animationDelay: '200ms' }}>
+        <div className="relative z-10 container mx-auto px-4 py-8 md:py-12 flex flex-col items-center justify-center min-h-[calc(100vh-5rem)]">
+          {/* Device Frame with Glow - Like Mapbox */}
+          <div className="w-full max-w-[480px] md:max-w-[540px] mx-auto animate-slide-up">
+            {/* Outer glow effect */}
             <div className="relative">
-              {/* Glow effect behind card */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 via-secondary/20 to-primary/30 rounded-3xl blur-xl opacity-50" />
+              {/* Multi-layer glow */}
+              <div className="absolute -inset-3 md:-inset-4 bg-gradient-to-r from-blue-600/40 via-purple-500/30 to-blue-600/40 rounded-[2rem] md:rounded-[2.5rem] blur-2xl opacity-60" />
+              <div className="absolute -inset-2 md:-inset-3 bg-gradient-to-b from-blue-500/20 via-transparent to-purple-600/20 rounded-[1.75rem] md:rounded-[2rem] blur-xl" />
               
-              {/* Card */}
-              <div className="relative">
-                <RequestPanel />
+              {/* Device frame */}
+              <div className="relative bg-[#0d1320]/95 backdrop-blur-md rounded-[1.5rem] md:rounded-[2rem] p-2 md:p-3 border border-white/10 shadow-2xl">
+                {/* Inner border glow */}
+                <div className="absolute inset-0 rounded-[1.5rem] md:rounded-[2rem] bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10 pointer-events-none" />
+                
+                {/* Content */}
+                <div className="relative">
+                  <RequestPanel />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Trust badges below card */}
-          <div className="flex flex-wrap justify-center items-center gap-6 mt-8 animate-fade-in" style={{ animationDelay: '400ms' }}>
+          {/* Trust badges below card - Hidden on mobile for cleaner look */}
+          <div className="hidden md:flex flex-wrap justify-center items-center gap-6 mt-8 animate-fade-in" style={{ animationDelay: '400ms' }}>
             {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map((badge) => (
               <div key={badge} className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-secondary" />
