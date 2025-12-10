@@ -6,10 +6,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { useLocation } from '@/contexts/LocationContext';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Truck, RefreshCw, CheckCircle2, UserPlus, DollarSign, Search, Edit, ArrowLeft, Zap, Gift, AlertTriangle, ExternalLink } from 'lucide-react';
+import { MapPin, Truck, RefreshCw, CheckCircle2, UserPlus, DollarSign, Search, Edit, ArrowLeft, Zap, Gift, AlertTriangle, ExternalLink, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import MiniMap from '@/components/MiniMap';
+import { PlanSelectionModal } from '@/components/PlanSelectionModal';
 
 interface ProviderRegistrationModalProps {
   open: boolean;
@@ -81,6 +82,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
   const [pricePerKm, setPricePerKm] = useState('5');
   const [patinsExtraPrice, setPatinsExtraPrice] = useState('30');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPlanModal, setShowPlanModal] = useState(false);
 
   // Reset state when modal closes
   useEffect(() => {
@@ -445,88 +447,115 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
       </button>
 
       {/* Trial/Subscription Banner - Sempre mostra no modo edit */}
-      {mode === 'edit' && (
-        <div className={`rounded-xl p-3 border ${
-          subscription?.trial_ativo 
-            ? (subscription?.trial_corridas_restantes ?? 0) <= 3 
-              ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-amber-500/40'
-              : 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/40'
-            : subscription?.adesao_paga
-              ? 'bg-gradient-to-r from-blue-500/20 to-indigo-500/20 border-blue-500/40'
-              : 'bg-gradient-to-r from-red-500/20 to-rose-500/20 border-red-500/40'
-        }`}>
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-              subscription?.trial_ativo 
-                ? (subscription?.trial_corridas_restantes ?? 0) <= 3 ? 'bg-amber-500/30' : 'bg-green-500/30'
-                : subscription?.adesao_paga ? 'bg-blue-500/30' : 'bg-red-500/30'
-            }`}>
-              {subscription?.trial_ativo ? (
-                (subscription?.trial_corridas_restantes ?? 0) <= 3 ? (
-                  <AlertTriangle className="w-5 h-5 text-amber-400" />
+      {mode === 'edit' && (() => {
+        const trialEsgotado = subscription?.trial_ativo && (subscription?.trial_corridas_restantes ?? 0) <= 0;
+        const semPlano = !subscription?.trial_ativo && !subscription?.adesao_paga;
+        const precisaPlano = trialEsgotado || semPlano;
+
+        return (
+          <div className={`rounded-xl p-3 border ${
+            precisaPlano
+              ? 'bg-gradient-to-r from-red-500/20 to-rose-500/20 border-red-500/40'
+              : subscription?.trial_ativo 
+                ? (subscription?.trial_corridas_restantes ?? 0) <= 3 
+                  ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-amber-500/40'
+                  : 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/40'
+                : subscription?.adesao_paga
+                  ? 'bg-gradient-to-r from-blue-500/20 to-indigo-500/20 border-blue-500/40'
+                  : 'bg-gradient-to-r from-red-500/20 to-rose-500/20 border-red-500/40'
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                precisaPlano
+                  ? 'bg-red-500/30'
+                  : subscription?.trial_ativo 
+                    ? (subscription?.trial_corridas_restantes ?? 0) <= 3 ? 'bg-amber-500/30' : 'bg-green-500/30'
+                    : subscription?.adesao_paga ? 'bg-blue-500/30' : 'bg-red-500/30'
+              }`}>
+                {precisaPlano ? (
+                  <AlertTriangle className="w-5 h-5 text-red-400" />
+                ) : subscription?.trial_ativo ? (
+                  (subscription?.trial_corridas_restantes ?? 0) <= 3 ? (
+                    <AlertTriangle className="w-5 h-5 text-amber-400" />
+                  ) : (
+                    <Gift className="w-5 h-5 text-green-400" />
+                  )
+                ) : subscription?.adesao_paga ? (
+                  <CheckCircle2 className="w-5 h-5 text-blue-400" />
                 ) : (
-                  <Gift className="w-5 h-5 text-green-400" />
-                )
-              ) : subscription?.adesao_paga ? (
-                <CheckCircle2 className="w-5 h-5 text-blue-400" />
-              ) : (
-                <AlertTriangle className="w-5 h-5 text-red-400" />
-              )}
-            </div>
-            <div className="flex-1">
-              {subscription?.trial_ativo ? (
-                <>
-                  <p className={`font-bold text-sm ${(subscription?.trial_corridas_restantes ?? 0) <= 3 ? 'text-amber-400' : 'text-green-400'}`}>
-                    🎁 Período de Teste Ativo
-                  </p>
-                  <p className="text-sm text-foreground font-semibold">
-                    Você tem <span className={`font-black text-xl ${(subscription?.trial_corridas_restantes ?? 0) <= 3 ? 'text-amber-400' : 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]'}`}>
-                      {subscription?.trial_corridas_restantes ?? 0}
-                    </span> solicitações restantes no trial
-                  </p>
-                </>
-              ) : subscription?.adesao_paga ? (
-                <>
-                  <p className="font-bold text-sm text-blue-400">
-                    ✓ Plano {subscription?.plano?.charAt(0).toUpperCase()}{subscription?.plano?.slice(1)}
-                  </p>
-                  <p className="text-sm text-foreground font-medium">
-                    {subscription?.plano === 'pro' ? (
-                      <span className="text-blue-400 font-bold">Solicitações ilimitadas</span>
-                    ) : (
-                      <>Usadas: <span className="font-bold text-lg">{subscription?.corridas_usadas ?? 0}</span> / {subscription?.limite_corridas ?? 0}</>
-                    )}
-                  </p>
-                </>
-              ) : subscription ? (
-                <div className="flex items-center justify-between gap-2 w-full">
-                  <div>
-                    <p className="font-bold text-sm text-red-400">⚠️ Trial Expirado</p>
-                    <p className="text-sm text-foreground">Suas corridas acabaram</p>
+                  <AlertTriangle className="w-5 h-5 text-red-400" />
+                )}
+              </div>
+              <div className="flex-1">
+                {precisaPlano ? (
+                  <div className="flex flex-col gap-2">
+                    <div>
+                      <p className="font-bold text-sm text-red-400">
+                        ⚠️ {trialEsgotado ? 'Trial Esgotado!' : 'Sem Plano Ativo'}
+                      </p>
+                      <p className="text-sm text-foreground">
+                        {trialEsgotado ? 'Suas 10 corridas gratuitas acabaram' : 'Você precisa de um plano para continuar'}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="w-full bg-gradient-to-r from-primary to-purple-600 text-white font-bold"
+                      onClick={() => setShowPlanModal(true)}
+                    >
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      Contratar Plano Agora
+                    </Button>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-shrink-0 text-xs border-red-500/50 text-red-400 hover:bg-red-500/10"
-                    onClick={() => {
-                      onOpenChange(false);
-                      navigate('/painel-prestador');
-                    }}
-                  >
-                    <ExternalLink className="w-3 h-3 mr-1" />
-                    Planos
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <p className="font-bold text-sm text-amber-400">⏳ Carregando informações...</p>
-                  <p className="text-sm text-foreground">Aguarde enquanto buscamos seus dados</p>
-                </>
-              )}
+                ) : subscription?.trial_ativo ? (
+                  <>
+                    <p className={`font-bold text-sm ${(subscription?.trial_corridas_restantes ?? 0) <= 3 ? 'text-amber-400' : 'text-green-400'}`}>
+                      🎁 Período de Teste Ativo
+                    </p>
+                    <p className="text-sm text-foreground font-semibold">
+                      Você tem <span className={`font-black text-xl ${(subscription?.trial_corridas_restantes ?? 0) <= 3 ? 'text-amber-400' : 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]'}`}>
+                        {subscription?.trial_corridas_restantes ?? 0}
+                      </span> solicitações restantes no trial
+                    </p>
+                  </>
+                ) : subscription?.adesao_paga ? (
+                  <>
+                    <p className="font-bold text-sm text-blue-400">
+                      ✓ Plano {subscription?.plano?.charAt(0).toUpperCase()}{subscription?.plano?.slice(1)}
+                    </p>
+                    <p className="text-sm text-foreground font-medium">
+                      {subscription?.plano === 'pro' ? (
+                        <span className="text-blue-400 font-bold">Solicitações ilimitadas</span>
+                      ) : (
+                        <>Usadas: <span className="font-bold text-lg">{subscription?.corridas_usadas ?? 0}</span> / {subscription?.limite_corridas ?? 0}</>
+                      )}
+                    </p>
+                  </>
+                ) : subscription ? (
+                  <div className="flex items-center justify-between gap-2 w-full">
+                    <div>
+                      <p className="font-bold text-sm text-red-400">⚠️ Trial Expirado</p>
+                      <p className="text-sm text-foreground">Suas corridas acabaram</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="flex-shrink-0 text-xs bg-gradient-to-r from-primary to-purple-600 text-white"
+                      onClick={() => setShowPlanModal(true)}
+                    >
+                      <CreditCard className="w-3 h-3 mr-1" />
+                      Ver Planos
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="font-bold text-sm text-amber-400">⏳ Carregando informações...</p>
+                    <p className="text-sm text-foreground">Aguarde enquanto buscamos seus dados</p>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Location Map */}
       <div className="rounded-xl overflow-hidden border border-border">
@@ -707,6 +736,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
   );
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-16px)] sm:w-[95vw] max-w-[500px] max-h-[85vh] overflow-y-auto overflow-x-hidden bg-card border-border p-0 animate-scale-in mx-auto rounded-xl">
         {/* Header */}
@@ -730,6 +760,17 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
         {mode === 'search' ? renderSearchMode() : renderForm()}
       </DialogContent>
     </Dialog>
+
+    {/* Modal de seleção de planos */}
+    {existingProvider && (
+      <PlanSelectionModal
+        open={showPlanModal}
+        onOpenChange={setShowPlanModal}
+        providerId={existingProvider.id}
+        whatsapp={existingProvider.whatsapp}
+      />
+    )}
+  </>
   );
 };
 
