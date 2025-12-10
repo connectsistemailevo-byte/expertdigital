@@ -49,11 +49,16 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     const fetchMapboxToken = async () => {
       try {
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        if (!error && data?.token) {
+        if (error) {
+          console.warn('Mapbox token not available, using fallback geocoding:', error);
+          return;
+        }
+        if (data?.token) {
           setMapboxToken(data.token);
+          console.log('Mapbox token loaded successfully');
         }
       } catch (err) {
-        console.error('Error fetching Mapbox token:', err);
+        console.warn('Error fetching Mapbox token, using fallback:', err);
       }
     };
     fetchMapboxToken();
