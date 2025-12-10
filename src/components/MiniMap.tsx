@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useLocation } from '@/contexts/LocationContext';
+import { Crosshair } from 'lucide-react';
 
 interface MiniMapProps {
   className?: string;
@@ -11,7 +12,7 @@ const MiniMap: React.FC<MiniMapProps> = ({ className }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const marker = useRef<mapboxgl.Marker | null>(null);
-  const { location, mapboxToken, updateLocation } = useLocation();
+  const { location, mapboxToken, updateLocation, refreshLocation } = useLocation();
   const [mapReady, setMapReady] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -39,7 +40,13 @@ const MiniMap: React.FC<MiniMapProps> = ({ className }) => {
         dragPan: true,
         scrollZoom: false,
         doubleClickZoom: true,
+        attributionControl: false,
       });
+
+      // Add custom attribution
+      map.current.addControl(new mapboxgl.AttributionControl({
+        customAttribution: '© ShowTime Creative'
+      }), 'bottom-right');
 
       map.current.on('load', () => {
         setMapReady(true);
@@ -109,7 +116,7 @@ const MiniMap: React.FC<MiniMapProps> = ({ className }) => {
           marker.current = new mapboxgl.Marker({ 
             element: el,
             anchor: 'bottom',
-            draggable: true // Enable dragging!
+            draggable: true
           })
             .setLngLat([location.longitude, location.latitude])
             .addTo(map.current);
@@ -170,6 +177,11 @@ const MiniMap: React.FC<MiniMapProps> = ({ className }) => {
     }
   }, [location.latitude, location.longitude, location.loading, mapReady, isDragging]);
 
+  // Handle GPS center button click
+  const handleCenterOnGPS = () => {
+    refreshLocation();
+  };
+
   // Show placeholder when no token
   if (!mapboxToken) {
     return (
@@ -182,7 +194,7 @@ const MiniMap: React.FC<MiniMapProps> = ({ className }) => {
             </svg>
           </div>
           <p className="text-sm font-medium text-foreground">Mapa indisponível</p>
-          <p className="text-xs text-muted-foreground mt-1">Configure o token Mapbox</p>
+          <p className="text-xs text-muted-foreground mt-1">ShowTime Creative</p>
         </div>
       </div>
     );
@@ -204,8 +216,18 @@ const MiniMap: React.FC<MiniMapProps> = ({ className }) => {
   return (
     <div className={`${className} relative min-h-[160px]`} style={{ minHeight: '160px' }}>
       <div ref={mapContainer} className="absolute inset-0 w-full h-full" style={{ minHeight: '160px' }} />
+      
+      {/* GPS Center Button */}
+      <button
+        onClick={handleCenterOnGPS}
+        className="absolute top-2 right-2 z-10 w-8 h-8 bg-white rounded-lg shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+        title="Centralizar na localização GPS"
+      >
+        <Crosshair className="w-4 h-4 text-blue-600" />
+      </button>
+      
       {isDragging && (
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs px-3 py-1 rounded-full">
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs px-3 py-1 rounded-full z-10">
           Solte para definir localização
         </div>
       )}
