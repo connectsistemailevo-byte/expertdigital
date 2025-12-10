@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLocation } from '@/contexts/LocationContext';
-import { Car, Truck, Bike, Clock, AlertTriangle, Fuel, RotateCcw, Building2, CheckCircle2, RefreshCw, MessageCircle, Navigation, Users, DollarSign, MapPin, Route } from 'lucide-react';
+import { Car, Truck, Bike, Clock, AlertTriangle, Fuel, RotateCcw, Building2, CheckCircle2, RefreshCw, MessageCircle, Navigation, Users, DollarSign, MapPin, Route, CreditCard, Banknote, QrCode, Landmark } from 'lucide-react';
 import MiniMap from '@/components/MiniMap';
 import ProviderCard from '@/components/ProviderCard';
 import AddressAutocomplete, { DestinationCoordinates } from '@/components/AddressAutocomplete';
@@ -10,6 +10,7 @@ import { useProviders, Provider } from '@/hooks/useProviders';
 
 type VehicleType = 'carro' | 'moto' | 'caminhonete' | 'caminhao' | 'outros';
 type VehicleCondition = 'pane' | 'seca' | 'capotado' | 'subsolo' | 'roda_travada' | 'volante_travado' | 'precisa_patins' | 'outros';
+type PaymentMethod = 'pix' | 'dinheiro' | 'credito' | 'debito';
 
 const vehicleTypes = [
   { id: 'carro' as VehicleType, label: 'Carro', icon: Car },
@@ -32,6 +33,13 @@ const vehicleConditions = [
   { id: 'outros' as VehicleCondition, label: 'Outros', icon: AlertTriangle, color: 'text-gray-500', needsPatins: false },
 ];
 
+const paymentMethods = [
+  { id: 'pix' as PaymentMethod, label: 'PIX', icon: QrCode, color: 'text-teal-500' },
+  { id: 'dinheiro' as PaymentMethod, label: 'Dinheiro', icon: Banknote, color: 'text-green-500' },
+  { id: 'credito' as PaymentMethod, label: 'Crédito', icon: CreditCard, color: 'text-blue-500' },
+  { id: 'debito' as PaymentMethod, label: 'Débito', icon: Landmark, color: 'text-purple-500' },
+];
+
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -51,6 +59,7 @@ const RequestPanel: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleType | null>(null);
   const [selectedCondition, setSelectedCondition] = useState<VehicleCondition | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<PaymentMethod | null>(null);
 
   const needsPatins = selectedCondition ? PATINS_REQUIRED_CONDITIONS.includes(selectedCondition) : false;
   const tripDistanceKm = destinationCoords && location.latitude && location.longitude
@@ -79,11 +88,12 @@ const RequestPanel: React.FC = () => {
     return total;
   };
 
-  const canSubmit = name.trim().length >= 2 && phone.replace(/\D/g, '').length >= 10 && destination.trim().length >= 3 && selectedVehicle && selectedCondition;
+  const canSubmit = name.trim().length >= 2 && phone.replace(/\D/g, '').length >= 10 && destination.trim().length >= 3 && selectedVehicle && selectedCondition && selectedPayment;
 
   const getWhatsAppUrl = () => {
     const vehicleLabel = vehicleTypes.find(v => v.id === selectedVehicle)?.label || '';
     const conditionLabel = vehicleConditions.find(c => c.id === selectedCondition)?.label || '';
+    const paymentLabel = paymentMethods.find(p => p.id === selectedPayment)?.label || '';
     const defaultWhatsApp = '5562994389675';
     
     let providerInfo = '', priceInfo = '', tripInfo = '';
@@ -95,7 +105,7 @@ const RequestPanel: React.FC = () => {
       priceInfo = `\n💰 *TOTAL: R$ ${totalPrice.toFixed(2)}*\n`;
     }
     
-    const messageText = `🚗 *GUINCHO FÁCIL 24HS*\n\n👤 *Cliente:* ${name}\n📱 *WhatsApp:* ${phone}\n\n🚙 *Veículo:* ${vehicleLabel}\n⚠️ *Situação:* ${conditionLabel}\n\n📍 *Origem:*\n${location.address}\n\n🏁 *Destino:*\n${destination}\n${tripInfo}${providerInfo}${priceInfo}\n🕐 *Horário:* ${getCurrentTime()}`;
+    const messageText = `🚗 *GUINCHO FÁCIL 24HS*\n\n👤 *Cliente:* ${name}\n📱 *WhatsApp:* ${phone}\n\n🚙 *Veículo:* ${vehicleLabel}\n⚠️ *Situação:* ${conditionLabel}\n💳 *Pagamento:* ${paymentLabel}\n\n📍 *Origem:*\n${location.address}\n\n🏁 *Destino:*\n${destination}\n${tripInfo}${providerInfo}${priceInfo}\n🕐 *Horário:* ${getCurrentTime()}`;
     
     const message = encodeURIComponent(messageText);
     const whatsappNumber = selectedProvider ? selectedProvider.whatsapp.replace(/\D/g, '') : defaultWhatsApp;
@@ -220,6 +230,33 @@ const RequestPanel: React.FC = () => {
                 })}
               </div>
             </div>
+
+            {/* Payment Methods */}
+            <div>
+              <label className="flex items-center gap-1 text-xs font-medium mb-2">
+                <CreditCard className="w-3 h-3 text-secondary" />
+                Forma de pagamento *
+              </label>
+              <div className="grid grid-cols-4 gap-1">
+                {paymentMethods.map((payment) => {
+                  const Icon = payment.icon;
+                  const isSelected = selectedPayment === payment.id;
+                  return (
+                    <button
+                      key={payment.id}
+                      onClick={() => setSelectedPayment(payment.id)}
+                      className={`relative flex flex-col items-center gap-0.5 p-1.5 rounded-lg border-2 transition-all ${
+                        isSelected ? 'border-secondary bg-secondary/10' : 'border-border hover:border-secondary/50 hover:bg-muted'
+                      }`}
+                    >
+                      <Icon className={`w-4 h-4 ${payment.color}`} />
+                      <span className="font-medium text-[8px] text-center leading-tight">{payment.label}</span>
+                      {isSelected && <CheckCircle2 className="w-2.5 h-2.5 text-secondary absolute -top-0.5 -right-0.5" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           {/* Column 3: Providers + Submit */}
@@ -275,7 +312,8 @@ const RequestPanel: React.FC = () => {
                  !name ? '⚠️ Informe seu nome' :
                  !phone || phone.replace(/\D/g, '').length < 10 ? '⚠️ Informe seu WhatsApp' :
                  !selectedVehicle ? '⚠️ Selecione o veículo' :
-                 !selectedCondition ? '⚠️ Selecione a situação' : ''}
+                 !selectedCondition ? '⚠️ Selecione a situação' :
+                 !selectedPayment ? '⚠️ Selecione forma de pagamento' : ''}
               </p>
             )}
 

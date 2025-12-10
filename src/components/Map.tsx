@@ -127,7 +127,7 @@ const Map: React.FC<MapProps> = ({ className }) => {
     return (
       <div className={`${className} bg-primary/20 flex items-center justify-center`}>
         <div className="text-center p-4">
-          <p className="text-muted-foreground text-sm">Configure sua API Mapbox para ver o mapa</p>
+          <p className="text-muted-foreground text-sm">Configure sua API ShowTime Creative para ver o mapa</p>
         </div>
       </div>
     );
