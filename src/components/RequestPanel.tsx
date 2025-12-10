@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLocation } from '@/contexts/LocationContext';
-import { Car, Truck, Bike, Clock, AlertTriangle, Fuel, RotateCcw, Building2, CheckCircle2, RefreshCw, MessageCircle, Navigation, Users, DollarSign, MapPin, Route, CreditCard, Banknote, QrCode, Landmark } from 'lucide-react';
+import { Car, Truck, Bike, Clock, AlertTriangle, Fuel, RotateCcw, Building2, CheckCircle2, RefreshCw, MessageCircle, Navigation, Users, DollarSign, MapPin, Route, CreditCard, Banknote, QrCode, Landmark, Loader2 } from 'lucide-react';
 import MiniMap from '@/components/MiniMap';
 import ProviderCard from '@/components/ProviderCard';
 import AddressAutocomplete, { DestinationCoordinates } from '@/components/AddressAutocomplete';
 import { useProviders, Provider } from '@/hooks/useProviders';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+import { TrialExhaustedModal } from '@/components/TrialExhaustedModal';
 
 type VehicleType = 'carro' | 'moto' | 'caminhonete' | 'caminhao' | 'outros';
 type VehicleCondition = 'pane' | 'seca' | 'capotado' | 'subsolo' | 'roda_travada' | 'volante_travado' | 'precisa_patins' | 'outros';
@@ -59,6 +62,10 @@ const RequestPanel: React.FC = () => {
   const [selectedCondition, setSelectedCondition] = useState<VehicleCondition | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethod | null>(null);
+  const [isSendingToWhatsApp, setIsSendingToWhatsApp] = useState(false);
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
+  const [blockedReason, setBlockedReason] = useState<'trial_exhausted' | 'limit_reached' | 'no_plan'>('trial_exhausted');
+  const [blockedMessage, setBlockedMessage] = useState('');
 
   const needsPatins = selectedCondition ? PATINS_REQUIRED_CONDITIONS.includes(selectedCondition) : false;
   const tripDistanceKm = destinationCoords && location.latitude && location.longitude
@@ -110,6 +117,54 @@ const RequestPanel: React.FC = () => {
     const whatsappNumber = selectedProvider ? selectedProvider.whatsapp.replace(/\D/g, '') : defaultWhatsApp;
     const formattedNumber = whatsappNumber.startsWith('55') ? whatsappNumber : `55${whatsappNumber}`;
     return `https://api.whatsapp.com/send?phone=${formattedNumber}&text=${message}`;
+  };
+
+  // Função para enviar ao WhatsApp com contagem de corrida
+  const handleSendToWhatsApp = async () => {
+    if (!selectedProvider) {
+      // Sem prestador selecionado, enviar direto
+      window.open(getWhatsAppUrl(), '_blank');
+      return;
+    }
+
+    setIsSendingToWhatsApp(true);
+
+    try {
+      // Incrementar corrida do prestador
+      const { data, error } = await supabase.functions.invoke('increment-provider-rides', {
+        body: { provider_id: selectedProvider.id },
+      });
+
+      if (error) throw error;
+
+      if (data?.blocked) {
+        // Prestador bloqueado
+        setBlockedReason(data.reason as any);
+        setBlockedMessage(data.message || '');
+        setShowBlockedModal(true);
+        
+        toast({
+          title: 'Prestador com limite atingido',
+          description: 'Este prestador atingiu o limite de corridas. Tente outro prestador.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Sucesso - abrir WhatsApp
+      window.open(getWhatsAppUrl(), '_blank');
+      
+      toast({
+        title: 'Solicitação enviada!',
+        description: `Mensagem enviada para ${selectedProvider.name}`,
+      });
+    } catch (err: any) {
+      console.error('Error incrementing ride:', err);
+      // Em caso de erro, enviar mesmo assim
+      window.open(getWhatsAppUrl(), '_blank');
+    } finally {
+      setIsSendingToWhatsApp(false);
+    }
   };
 
   return (
@@ -356,15 +411,23 @@ const RequestPanel: React.FC = () => {
 
             {/* Submit */}
             {canSubmit ? (
-              <a
-                href={getWhatsAppUrl()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full h-11 rounded-lg font-bold text-sm bg-green-600 text-white hover:bg-green-700 shadow-lg transition-colors"
+              <button
+                onClick={handleSendToWhatsApp}
+                disabled={isSendingToWhatsApp}
+                className="flex items-center justify-center gap-2 w-full h-11 rounded-lg font-bold text-sm bg-green-600 text-white hover:bg-green-700 shadow-lg transition-colors disabled:opacity-70"
               >
-                <MessageCircle className="w-5 h-5" />
-                ENVIAR PARA WHATSAPP
-              </a>
+                {isSendingToWhatsApp ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    ENVIANDO...
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle className="w-5 h-5" />
+                    ENVIAR PARA WHATSAPP
+                  </>
+                )}
+              </button>
             ) : (
               <div className="flex items-center justify-center gap-2 w-full h-11 rounded-lg font-semibold text-sm bg-muted text-muted-foreground cursor-not-allowed">
                 <MessageCircle className="w-4 h-4" />
@@ -380,6 +443,18 @@ const RequestPanel: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal de bloqueio */}
+      {selectedProvider && (
+        <TrialExhaustedModal
+          open={showBlockedModal}
+          onOpenChange={setShowBlockedModal}
+          providerId={selectedProvider.id}
+          whatsapp={selectedProvider.whatsapp}
+          reason={blockedReason}
+          message={blockedMessage}
+        />
+      )}
     </div>
   );
 };

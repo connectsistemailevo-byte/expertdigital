@@ -7,6 +7,7 @@ import { LocationProvider } from "@/contexts/LocationContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ProviderDashboard from "./pages/ProviderDashboard";
+import AdminPanel from "./pages/AdminPanel";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/provider-dashboard" element={<ProviderDashboard />} />
+            <Route path="/admin" element={<AdminPanel />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
