@@ -6,7 +6,6 @@ import ProviderRegistrationModal from '@/components/ProviderRegistrationModal';
 import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
 import RequestPanel from '@/components/RequestPanel';
-import heroTruck from '@/assets/hero-truck.png';
 import { MapPin, Phone, ArrowRight, CheckCircle, Truck } from 'lucide-react';
 
 const Index: React.FC = () => {
@@ -14,24 +13,24 @@ const Index: React.FC = () => {
   const { location, mapboxToken } = useLocation();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#0a0f1a]">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-lg border-b border-border">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0f1a]/90 backdrop-blur-lg border-b border-white/10">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16 md:h-20">
-            <div className="font-display text-xl md:text-2xl font-bold text-foreground">
-              ACHEI<span className="text-secondary"> GUINCHO</span>
+            <div className="font-display text-xl md:text-2xl font-bold text-white">
+              GUINCHO FÁCIL<span className="text-secondary"> 24HS</span>
             </div>
             <nav className="hidden md:flex items-center gap-8">
-              <a href="#recursos" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <a href="#recursos" className="text-sm text-white/70 hover:text-white transition-colors">
                 Recursos
               </a>
-              <a href="#como-funciona" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <a href="#como-funciona" className="text-sm text-white/70 hover:text-white transition-colors">
                 Como Funciona
               </a>
               <button 
                 onClick={() => setIsProviderModalOpen(true)}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
+                className="text-sm text-white/70 hover:text-white transition-colors flex items-center gap-2"
               >
                 <Truck className="w-4 h-4" />
                 Sou Prestador
@@ -49,98 +48,84 @@ const Index: React.FC = () => {
         </div>
       </header>
 
-      {/* Hero Section with Request Panel */}
+      {/* Hero Section - Map Background with Centered Content */}
       <section className="relative min-h-screen pt-20 overflow-hidden">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-          style={{ 
-            backgroundImage: `url(${heroTruck})`,
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-[hsl(217,71%,20%)]/98 via-[hsl(217,71%,25%)]/95 to-[hsl(217,71%,30%)]/90" />
+        {/* Full Map Background */}
+        <div className="absolute inset-0 z-0">
+          {mapboxToken ? (
+            <Map className="w-full h-full" />
+          ) : (
+            <div className="w-full h-full bg-[#0a0f1a]" />
+          )}
+          {/* Dark overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0f1a]/80 via-[#0a0f1a]/40 to-[#0a0f1a]/80" />
         </div>
 
-        {/* Optional Map Overlay */}
-        {mapboxToken && (
-          <div className="absolute inset-0 z-0 opacity-15 mix-blend-overlay">
-            <Map className="w-full h-full" />
-          </div>
-        )}
+        {/* Centered Content */}
+        <div className="relative z-10 container mx-auto px-4 pt-12 pb-12 flex flex-col items-center min-h-[calc(100vh-5rem)]">
+          {/* Top Section - Title and Subtitle */}
+          <div className="text-center mb-8 animate-fade-in">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-6">
+              <span className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
+              <span className="text-sm font-medium text-white">Atendimento 24h em todo o Brasil</span>
+            </div>
+            
+            {/* Title */}
+            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4">
+              Seu Guincho de
+              <span className="text-secondary block">Bolso</span>
+            </h1>
+            
+            {/* Subtitle */}
+            <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-6">
+              Conectamos você ao guincheiro mais próximo em poucos minutos. Sem complicação, com total transparência.
+            </p>
 
-        {/* Content */}
-        <div className="relative z-10 container mx-auto px-4 pt-8 pb-12">
-          <div className="grid lg:grid-cols-2 gap-8 items-start min-h-[calc(100vh-8rem)]">
-            {/* Left side - Hero content */}
-            <div className="flex flex-col justify-center py-8 lg:py-16">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/20 backdrop-blur-sm rounded-full mb-6 animate-fade-in w-fit">
-                <span className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
-                <span className="text-sm font-medium text-primary-foreground">Atendimento 24h em todo o Brasil</span>
-              </div>
-              
-              {/* Title */}
-              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-primary-foreground leading-tight mb-6 animate-slide-up drop-shadow-lg">
-                Seu Guincho de
-                <span className="text-secondary block">Bolso</span>
-              </h1>
-              
-              {/* Subtitle */}
-              <p className="text-xl md:text-2xl text-primary-foreground/90 max-w-xl mb-8 animate-slide-up font-medium drop-shadow-md" style={{ animationDelay: '100ms' }}>
-                Conectamos você ao guincheiro mais próximo em poucos minutos. Sem complicação, com total transparência.
-              </p>
-
-              {/* Location Card */}
-              {!location.loading && !location.error && (
-                <div className="inline-flex items-center gap-3 px-5 py-3 bg-primary-foreground/10 backdrop-blur-md rounded-xl border border-primary-foreground/20 mb-8 animate-fade-in w-fit" style={{ animationDelay: '200ms' }}>
-                  <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
-                    <MapPin className="w-5 h-5 text-secondary-foreground" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-xs text-primary-foreground/70">Sua localização</p>
-                    <p className="text-sm font-medium text-primary-foreground">{location.region}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* WhatsApp Button */}
-              <div className="animate-slide-up" style={{ animationDelay: '300ms' }}>
-                <Button 
-                  variant="heroOutline" 
-                  size="xl"
-                  className="w-full sm:w-auto"
-                  onClick={() => window.open('https://wa.me/5562991429264', '_blank')}
-                >
-                  <Phone className="w-5 h-5 mr-2" />
-                  Falar no WhatsApp
-                </Button>
-              </div>
-
-              {/* Provider CTA */}
-              <button
-                onClick={() => setIsProviderModalOpen(true)}
-                className="mt-6 text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors flex items-center gap-2 animate-fade-in"
-                style={{ animationDelay: '400ms' }}
+            {/* CTA Buttons */}
+            <div className="flex flex-wrap justify-center gap-4 mb-8">
+              <Button 
+                variant="default" 
+                size="lg"
+                className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+                onClick={() => window.open('https://wa.me/5562991429264', '_blank')}
               >
-                <Truck className="w-4 h-4" />
-                É guincheiro? Cadastre-se aqui
-              </button>
+                <Phone className="w-5 h-5 mr-2" />
+                Falar no WhatsApp
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="border-white/30 text-white hover:bg-white/10"
+                onClick={() => setIsProviderModalOpen(true)}
+              >
+                <Truck className="w-5 h-5 mr-2" />
+                Sou Prestador
+              </Button>
+            </div>
+          </div>
 
-              {/* Trust badges */}
-              <div className="flex flex-wrap items-center gap-6 mt-8 animate-fade-in" style={{ animationDelay: '500ms' }}>
-                {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map((badge) => (
-                  <div key={badge} className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-secondary" />
-                    <span className="text-sm text-primary-foreground/80">{badge}</span>
-                  </div>
-                ))}
+          {/* Centered Modal Card */}
+          <div className="w-full max-w-xl mx-auto animate-slide-up" style={{ animationDelay: '200ms' }}>
+            <div className="relative">
+              {/* Glow effect behind card */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 via-secondary/20 to-primary/30 rounded-3xl blur-xl opacity-50" />
+              
+              {/* Card */}
+              <div className="relative">
+                <RequestPanel />
               </div>
             </div>
+          </div>
 
-            {/* Right side - Request Panel */}
-            <div className="animate-slide-up lg:py-8" style={{ animationDelay: '200ms' }}>
-              <RequestPanel />
-            </div>
+          {/* Trust badges below card */}
+          <div className="flex flex-wrap justify-center items-center gap-6 mt-8 animate-fade-in" style={{ animationDelay: '400ms' }}>
+            {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map((badge) => (
+              <div key={badge} className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-secondary" />
+                <span className="text-sm text-white/80">{badge}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -187,15 +172,12 @@ const Index: React.FC = () => {
 
       {/* CTA Section */}
       <section className="py-20 bg-primary relative overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-10"
-          style={{ backgroundImage: `url(${heroTruck})` }}
-        />
+        <div className="absolute inset-0 bg-[#0a0f1a]" />
         <div className="container mx-auto px-4 relative z-10 text-center">
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground mb-6">
+          <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-6">
             Precisa de um guincho agora?
           </h2>
-          <p className="text-primary-foreground/80 mb-8 max-w-xl mx-auto">
+          <p className="text-white/80 mb-8 max-w-xl mx-auto">
             Não fique na mão! Solicite um guincho em poucos segundos e tenha atendimento rápido e seguro.
           </p>
           <Button 
