@@ -52,11 +52,18 @@ serve(async (req) => {
 
     switch (action) {
       case "list_providers": {
+        logStep("Fetching providers from database...");
+        
         // Listar todos os providers com suas subscriptions
         const { data: providers, error } = await supabaseClient
           .from('providers')
           .select(`
-            *,
+            id,
+            name,
+            whatsapp,
+            address,
+            region,
+            created_at,
             provider_subscriptions (
               id,
               plano,
@@ -71,15 +78,21 @@ serve(async (req) => {
           `)
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          logStep("Error fetching providers", { error: error.message });
+          throw error;
+        }
 
         // Log detalhado dos providers para debug
         logStep("Listed providers", { 
           count: providers?.length,
-          details: providers?.map((p: any) => ({
+          rawData: providers?.map((p: any) => ({
+            id: p.id,
             name: p.name,
-            trial_restante: p.provider_subscriptions?.[0]?.trial_corridas_restantes,
+            has_subscriptions: !!p.provider_subscriptions,
+            subscription_count: p.provider_subscriptions?.length || 0,
             trial_ativo: p.provider_subscriptions?.[0]?.trial_ativo,
+            trial_restante: p.provider_subscriptions?.[0]?.trial_corridas_restantes,
           }))
         });
 
