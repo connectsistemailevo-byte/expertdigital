@@ -58,9 +58,9 @@ const Index: React.FC = () => {
             <span className="inline-block py-1.5 text-secondary rounded-full text-xs font-semibold mb-3 md:mb-4 md:text-lg bg-primary-foreground px-[26px]">
               Atendimento 24h em todo o Brasil
             </span>
-            <h1 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4">Seu Guincho   
+            <h1 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4">Seu Guincho    
 Aki 24hs<br />
-              <span className="text-secondary text-3xl">Aki 24hs</span>
+              <span className="text-secondary text-3xl">​</span>
             </h1>
             <p className="text-sm md:text-base max-w-md mx-auto mb-4 md:mb-6 bg-transparent text-primary-foreground px-[25px]">
               Conectamos você ao guincheiro mais próximo em poucos minutos. Sem complicação, com total transparência.
