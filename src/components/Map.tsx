@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useLocation } from '@/contexts/LocationContext';
+import showtimeLogo from '@/assets/showtime-logo.png';
 
 interface MapProps {
   className?: string;
@@ -32,6 +33,7 @@ const Map: React.FC<MapProps> = ({ className }) => {
         pitch: 45,
         bearing: -17.6,
         antialias: true,
+        attributionControl: false,
       });
 
       map.current.addControl(
@@ -134,8 +136,15 @@ const Map: React.FC<MapProps> = ({ className }) => {
   }
 
   return (
-    <div className={className}>
+    <div className={`${className} relative`}>
       <div ref={mapContainer} className="w-full h-full rounded-2xl overflow-hidden" />
+      
+      {/* ShowTime Creative Branding */}
+      <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2 bg-gray-900/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-lg">
+        <img src={showtimeLogo} alt="ShowTime Creative" className="w-5 h-5" />
+        <span className="text-xs font-bold text-white">ShowTime Creative</span>
+      </div>
+      
       <style>{`
         @keyframes pulse {
           0%, 100% { transform: scale(1); }
