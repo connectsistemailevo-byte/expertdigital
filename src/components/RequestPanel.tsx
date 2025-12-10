@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLocation } from '@/contexts/LocationContext';
@@ -42,6 +42,11 @@ const paymentMethods = [
   { id: 'debito' as PaymentMethod, label: 'Débito', icon: Landmark, color: 'text-purple-500' },
 ];
 
+interface RequestPanelProps {
+  filterProviderId?: string; // Para modo white-label: mostrar apenas este prestador
+  hideProviderSelection?: boolean; // Ocultar seleção de prestadores
+}
+
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -51,9 +56,18 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c;
 }
 
-const RequestPanel: React.FC = () => {
+const RequestPanel: React.FC<RequestPanelProps> = ({ 
+  filterProviderId,
+  hideProviderSelection = false 
+}) => {
   const { location, refreshLocation } = useLocation();
-  const { providers, loading: providersLoading } = useProviders();
+  const { providers: allProviders, loading: providersLoading } = useProviders();
+  
+  // Filtra prestadores se filterProviderId for fornecido
+  const providers = filterProviderId 
+    ? allProviders.filter(p => p.id === filterProviderId)
+    : allProviders;
+  
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [destination, setDestination] = useState('');
@@ -65,6 +79,16 @@ const RequestPanel: React.FC = () => {
   const [isSendingToWhatsApp, setIsSendingToWhatsApp] = useState(false);
   const [showUnavailableModal, setShowUnavailableModal] = useState(false);
   const [unavailableProviderName, setUnavailableProviderName] = useState('');
+
+  // Seleciona automaticamente o prestador filtrado (modo white-label)
+  useEffect(() => {
+    if (filterProviderId && providers.length > 0 && !selectedProvider) {
+      const filtered = providers.find(p => p.id === filterProviderId);
+      if (filtered) {
+        setSelectedProvider(filtered);
+      }
+    }
+  }, [filterProviderId, providers, selectedProvider]);
 
   const needsPatins = selectedCondition ? PATINS_REQUIRED_CONDITIONS.includes(selectedCondition) : false;
   const tripDistanceKm = destinationCoords && location.latitude && location.longitude
@@ -362,36 +386,38 @@ const RequestPanel: React.FC = () => {
 
           {/* Column 3: Providers + Submit */}
           <div className="space-y-3">
-            {/* Providers */}
-            <div>
-              <label className="flex items-center gap-1 text-xs font-medium mb-2">
-                <Users className="w-3 h-3" />
-                Prestadores disponíveis
-              </label>
-              {providersLoading ? (
-                <div className="flex items-center justify-center py-4">
-                  <RefreshCw className="w-5 h-5 animate-spin text-muted-foreground" />
-                </div>
-              ) : providers.length === 0 ? (
-                <div className="text-center py-4 bg-muted rounded-lg">
-                  <Users className="w-6 h-6 text-muted-foreground mx-auto mb-1" />
-                  <p className="text-xs text-muted-foreground">Nenhum prestador na região</p>
-                </div>
-              ) : (
-                <div className="space-y-1.5 max-h-[140px] overflow-y-auto">
-                  {providers.slice(0, 4).map((provider) => (
-                    <ProviderCard
-                      key={provider.id}
-                      provider={provider}
-                      isSelected={selectedProvider?.id === provider.id}
-                      onSelect={() => setSelectedProvider(provider)}
-                      needsPatins={needsPatins}
-                      tripDistanceKm={tripDistanceKm}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Providers - Ocultar se hideProviderSelection for true */}
+            {!hideProviderSelection && (
+              <div>
+                <label className="flex items-center gap-1 text-xs font-medium mb-2">
+                  <Users className="w-3 h-3" />
+                  Prestadores disponíveis
+                </label>
+                {providersLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <RefreshCw className="w-5 h-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : providers.length === 0 ? (
+                  <div className="text-center py-4 bg-muted rounded-lg">
+                    <Users className="w-6 h-6 text-muted-foreground mx-auto mb-1" />
+                    <p className="text-xs text-muted-foreground">Nenhum prestador na região</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 max-h-[140px] overflow-y-auto">
+                    {providers.slice(0, 4).map((provider) => (
+                      <ProviderCard
+                        key={provider.id}
+                        provider={provider}
+                        isSelected={selectedProvider?.id === provider.id}
+                        onSelect={() => setSelectedProvider(provider)}
+                        needsPatins={needsPatins}
+                        tripDistanceKm={tripDistanceKm}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Price Summary */}
             {selectedProvider && tripDistanceKm > 0 && (

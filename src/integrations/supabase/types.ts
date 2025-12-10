@@ -172,6 +172,7 @@ export type Database = {
           price_per_km: number | null
           region: string | null
           service_types: string[]
+          slug: string | null
           updated_at: string
           whatsapp: string
         }
@@ -188,6 +189,7 @@ export type Database = {
           price_per_km?: number | null
           region?: string | null
           service_types?: string[]
+          slug?: string | null
           updated_at?: string
           whatsapp: string
         }
@@ -204,6 +206,7 @@ export type Database = {
           price_per_km?: number | null
           region?: string | null
           service_types?: string[]
+          slug?: string | null
           updated_at?: string
           whatsapp?: string
         }
