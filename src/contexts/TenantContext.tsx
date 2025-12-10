@@ -48,7 +48,7 @@ const MAIN_DOMAINS = [
   '127.0.0.1',
   'lovable.app',
   'lovableproject.com',
-  // Adicione aqui seu domínio principal quando definir
+  'akiguincho.com.br',
 ];
 
 function isMainDomain(hostname: string): boolean {
