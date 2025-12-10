@@ -119,44 +119,67 @@ serve(async (req) => {
           throw new Error("provider_id e rides são obrigatórios");
         }
 
+        const ridesValue = parseInt(data.rides, 10);
+        logStep("Setting trial rides", { provider_id, ridesValue, rawValue: data.rides });
+
         // Primeiro verifica se já existe subscription
-        const { data: existingSub } = await supabaseClient
+        const { data: existingSub, error: fetchError } = await supabaseClient
           .from('provider_subscriptions')
           .select('*')
           .eq('provider_id', provider_id)
           .maybeSingle();
 
+        if (fetchError) {
+          logStep("Error fetching subscription", { error: fetchError.message });
+          throw fetchError;
+        }
+
         if (existingSub) {
           // Atualiza apenas os campos de trial, mantendo os outros
-          const { error } = await supabaseClient
+          const { data: updatedSub, error: updateError } = await supabaseClient
             .from('provider_subscriptions')
             .update({
               trial_ativo: true,
-              trial_corridas_restantes: data.rides,
+              trial_corridas_restantes: ridesValue,
+              updated_at: new Date().toISOString(),
             })
-            .eq('provider_id', provider_id);
+            .eq('provider_id', provider_id)
+            .select()
+            .single();
 
-          if (error) throw error;
+          if (updateError) {
+            logStep("Error updating subscription", { error: updateError.message });
+            throw updateError;
+          }
+          
+          logStep("Updated trial rides", { provider_id, newValue: updatedSub?.trial_corridas_restantes });
         } else {
           // Cria nova subscription com trial
-          const { error } = await supabaseClient
+          const { data: newSub, error: insertError } = await supabaseClient
             .from('provider_subscriptions')
             .insert({
               provider_id,
               trial_ativo: true,
-              trial_corridas_restantes: data.rides,
+              trial_corridas_restantes: ridesValue,
               corridas_usadas: 0,
               adesao_paga: false,
               limite_corridas: 0,
               mensalidade_atual: 0,
-            });
+            })
+            .select()
+            .single();
 
-          if (error) throw error;
+          if (insertError) {
+            logStep("Error inserting subscription", { error: insertError.message });
+            throw insertError;
+          }
+          
+          logStep("Created trial subscription", { provider_id, newValue: newSub?.trial_corridas_restantes });
         }
 
-        logStep("Set trial rides", { provider_id, rides: data.rides });
+        logStep("Set trial rides completed", { provider_id, rides: ridesValue });
 
-        return new Response(JSON.stringify({ success: true }), {
+        return new Response(JSON.stringify({ success: true, rides: ridesValue }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
