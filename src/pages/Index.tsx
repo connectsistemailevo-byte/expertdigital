@@ -7,19 +7,19 @@ import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
 import RequestPanel from '@/components/RequestPanel';
 import { MapPin, Phone, ArrowRight, CheckCircle, Truck, Navigation, Settings, MessageCircle } from 'lucide-react';
+
 const Index: React.FC = () => {
   const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
-  const {
-    location,
-    mapboxToken
-  } = useLocation();
-  return <div className="min-h-screen bg-[#0a0f1a]">
+  const { location, mapboxToken } = useLocation();
+
+  return (
+    <div className="min-h-screen bg-[#0a0f1a]">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0f1a]/90 backdrop-blur-lg border-b border-white/10">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16 md:h-20">
             <div className="font-display text-xl md:text-2xl font-bold text-white rounded-lg">
-              Aki Guincho <span className="text-secondary"> 24HS</span>
+              Aki Guincho <span className="text-secondary">24HS</span>
             </div>
             <nav className="hidden md:flex items-center gap-8">
               <a href="#recursos" className="text-sm text-white/70 hover:text-white transition-colors">
@@ -47,51 +47,60 @@ const Index: React.FC = () => {
         <div className="absolute inset-0 z-0">
           {mapboxToken ? <Map className="w-full h-full" /> : <div className="w-full h-full bg-[#0a0f1a]" />}
           {/* Dark overlay for readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0f1a]/60 via-transparent to-[#0a0f1a]/80" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0f1a]/70 via-[#0a0f1a]/40 to-[#0a0f1a]/80" />
         </div>
 
         {/* Centered Content */}
         <div className="relative z-10 container mx-auto px-4 py-6 md:py-12 flex flex-col items-center justify-center min-h-[calc(100vh-5rem)]">
           
-          {/* Hero Text Above Panel */}
-          <div className="text-center mb-6 md:mb-8 animate-fade-in">
-            <span className="inline-block py-1.5 text-secondary rounded-full text-xs font-semibold mb-3 md:mb-4 md:text-lg bg-primary-foreground px-[26px]">
-              Atendimento 24h em todo o Brasil
-            </span>
-            <h1 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold mb-3 md:mb-4 text-secondary">   
-Seu Guincho    Aki 24hs
-            <br />
-              <span className="text-secondary text-3xl">​</span>
-            </h1>
-            <p className="text-sm md:text-base max-w-md mx-auto mb-4 md:mb-6 px-[25px] bg-transparent text-primary-foreground">Conectamos você ao guincheiro mais próximo em poucos minutos. 
-
-          </p>
-            
-            {/* Location Display */}
-            <div className="flex items-center justify-center gap-2 mb-4 md:mb-6">
-              <MapPin className="w-4 h-4 text-secondary" />
-              <span className="font-medium bg-transparent text-secondary text-xs py-0 px-[51px]">
-                {location.address || location.region || 'Obtendo localização...'}
-              </span>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
+          {/* Hero Card - Clean separated content */}
+          <div className="w-full max-w-lg mx-auto mb-6 animate-fade-in">
+            <div className="bg-[#0d1320]/95 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/10 shadow-2xl">
+              {/* Badge */}
+              <div className="text-center mb-4">
+                <span className="inline-block py-2 px-4 bg-secondary/20 text-secondary rounded-full text-xs md:text-sm font-semibold">
+                  Atendimento 24h em todo o Brasil
+                </span>
+              </div>
               
-              <button onClick={() => setIsProviderModalOpen(true)} className="transition-colors underline underline-offset-4 text-secondary text-xl bg-secondary-foreground">
-                É guincheiro? Cadastre-se aqui
-              </button>
-            </div>
-          </div>
+              {/* Title */}
+              <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-4 text-secondary">
+                Seu Guincho Aki 24hs
+              </h1>
+              
+              {/* Description */}
+              <p className="text-sm md:text-base text-center text-white/80 mb-5">
+                Conectamos você ao guincheiro mais próximo em poucos minutos.
+              </p>
+              
+              {/* Location Display */}
+              <div className="flex items-center justify-center gap-2 py-3 px-4 bg-white/5 rounded-xl mb-5">
+                <MapPin className="w-4 h-4 text-secondary flex-shrink-0" />
+                <span className="font-medium text-white text-sm truncate">
+                  {location.loading ? 'Buscando sua localização...' : (location.address || location.region || 'Localização não disponível')}
+                </span>
+              </div>
 
-          {/* Trust badges - Visible on all devices */}
-          <div className="flex flex-wrap justify-center items-center gap-3 md:gap-6 mb-6 animate-fade-in" style={{
-          animationDelay: '200ms'
-        }}>
-            {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => <div key={badge} className="flex items-center gap-1.5 md:gap-2">
-                <CheckCircle className="w-3.5 h-3.5 md:w-4 md:h-4 text-secondary" />
-                <span className="md:text-sm px-[11px] text-lg bg-transparent text-primary-foreground">{badge}</span>
-              </div>)}
+              {/* Trust badges */}
+              <div className="flex flex-wrap justify-center items-center gap-3 mb-5">
+                {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => (
+                  <div key={badge} className="flex items-center gap-1.5">
+                    <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                    <span className="text-xs text-white/70">{badge}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA for providers */}
+              <div className="text-center pt-3 border-t border-white/10">
+                <button 
+                  onClick={() => setIsProviderModalOpen(true)} 
+                  className="text-secondary hover:text-secondary/80 transition-colors text-sm font-medium"
+                >
+                  É guincheiro? <span className="underline underline-offset-2">Cadastre-se aqui</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Device Frame with Glow - HORIZONTAL */}
@@ -140,24 +149,29 @@ Seu Guincho    Aki 24hs
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {[{
-            title: 'Informe sua localização',
-            desc: 'Capturamos automaticamente sua localização para agilizar o atendimento',
-            icon: Navigation,
-            color: 'from-blue-400 to-cyan-400'
-          }, {
-            title: 'Escolha o serviço',
-            desc: 'Selecione o tipo de veículo e a situação em que ele se encontra',
-            icon: Settings,
-            color: 'from-amber-400 to-orange-400'
-          }, {
-            title: 'Receba atendimento',
-            desc: 'O guincheiro mais próximo entra em contato pelo WhatsApp',
-            icon: MessageCircle,
-            color: 'from-green-400 to-emerald-400'
-          }].map((item, index) => {
-            const Icon = item.icon;
-            return <div key={index} className="text-center group">
+            {[
+              {
+                title: 'Informe sua localização',
+                desc: 'Capturamos automaticamente sua localização para agilizar o atendimento',
+                icon: Navigation,
+                color: 'from-blue-400 to-cyan-400'
+              },
+              {
+                title: 'Escolha o serviço',
+                desc: 'Selecione o tipo de veículo e a situação em que ele se encontra',
+                icon: Settings,
+                color: 'from-amber-400 to-orange-400'
+              },
+              {
+                title: 'Receba atendimento',
+                desc: 'O guincheiro mais próximo entra em contato pelo WhatsApp',
+                icon: MessageCircle,
+                color: 'from-green-400 to-emerald-400'
+              }
+            ].map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <div key={index} className="text-center group">
                   <div className="relative mx-auto mb-6 w-24 h-24">
                     {/* Glow effect */}
                     <div className={`absolute inset-0 bg-gradient-to-br ${item.color} rounded-3xl blur-lg opacity-50 group-hover:opacity-80 transition-opacity`} />
@@ -172,8 +186,9 @@ Seu Guincho    Aki 24hs
                   <p className="text-white/70 text-sm leading-relaxed">
                     {item.desc}
                   </p>
-                </div>;
-          })}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -191,10 +206,7 @@ Seu Guincho    Aki 24hs
           <p className="text-white/80 mb-8 max-w-xl mx-auto">
             Não fique na mão! Solicite um guincho em poucos segundos e tenha atendimento rápido e seguro.
           </p>
-          <Button variant="hero" size="xl" onClick={() => window.scrollTo({
-          top: 0,
-          behavior: 'smooth'
-        })}>
+          <Button variant="hero" size="xl" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
             Solicitar Guincho
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
@@ -206,6 +218,8 @@ Seu Guincho    Aki 24hs
       
       {/* Provider Registration Modal */}
       <ProviderRegistrationModal open={isProviderModalOpen} onOpenChange={setIsProviderModalOpen} />
-    </div>;
+    </div>
+  );
 };
+
 export default Index;
