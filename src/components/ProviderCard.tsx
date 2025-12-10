@@ -48,7 +48,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="font-semibold text-sm truncate text-current">{provider.name}</h4>
+            <h4 className="font-semibold text-sm truncate text-secondary-foreground">{provider.name}</h4>
             <div className="flex items-center gap-1.5 shrink-0">
               <span className="text-[9px] px-1 py-0.5 rounded bg-green-300 text-secondary-foreground">
                 R${provider.base_price?.toFixed(0) || 50} + R${provider.price_per_km?.toFixed(2) || '5.00'}/km
