@@ -6,7 +6,7 @@ import ProviderRegistrationModal from '@/components/ProviderRegistrationModal';
 import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
 import RequestPanel from '@/components/RequestPanel';
-import { MapPin, Phone, ArrowRight, CheckCircle, Truck } from 'lucide-react';
+import { MapPin, Phone, ArrowRight, CheckCircle, Truck, Navigation, Settings, MessageCircle } from 'lucide-react';
 
 const Index: React.FC = () => {
   const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
@@ -97,38 +97,57 @@ const Index: React.FC = () => {
       </section>
 
       {/* How it works */}
-      <section className="py-20 bg-gradient-to-b from-slate-50 to-white" id="como-funciona">
-        <div className="container mx-auto px-4">
+      <section className="py-20 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 relative overflow-hidden" id="como-funciona">
+        {/* Decorative elements */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-10 w-40 h-40 bg-yellow-300 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-blue-300 rounded-full blur-3xl" />
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-16">
-            <span className="inline-block px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-4">
+            <span className="inline-block px-4 py-2 bg-white/20 text-white rounded-full text-sm font-semibold mb-4 backdrop-blur-sm">
               Simples e Rápido
             </span>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
               Como Funciona
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-white/80 max-w-2xl mx-auto">
               Em apenas 3 passos você solicita um guincho e recebe atendimento
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {[
-              { step: '01', title: 'Informe sua localização', desc: 'Capturamos automaticamente sua localização para agilizar o atendimento' },
-              { step: '02', title: 'Escolha o serviço', desc: 'Selecione o tipo de veículo e a situação em que ele se encontra' },
-              { step: '03', title: 'Receba atendimento', desc: 'O guincheiro mais próximo entra em contato pelo WhatsApp' },
-            ].map((item, index) => (
-              <div key={index} className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-secondary text-secondary-foreground font-display font-bold text-2xl flex items-center justify-center mx-auto mb-4">
-                  {item.step}
+              { step: '01', title: 'Informe sua localização', desc: 'Capturamos automaticamente sua localização para agilizar o atendimento', icon: Navigation, color: 'from-blue-400 to-cyan-400' },
+              { step: '02', title: 'Escolha o serviço', desc: 'Selecione o tipo de veículo e a situação em que ele se encontra', icon: Settings, color: 'from-amber-400 to-orange-400' },
+              { step: '03', title: 'Receba atendimento', desc: 'O guincheiro mais próximo entra em contato pelo WhatsApp', icon: MessageCircle, color: 'from-green-400 to-emerald-400' },
+            ].map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <div key={index} className="text-center group">
+                  <div className="relative mx-auto mb-6 w-24 h-24">
+                    {/* Glow effect */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${item.color} rounded-3xl blur-lg opacity-50 group-hover:opacity-80 transition-opacity`} />
+                    {/* Icon container */}
+                    <div className={`relative w-full h-full rounded-3xl bg-gradient-to-br ${item.color} flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform`}>
+                      <Icon className="w-10 h-10 text-white" strokeWidth={2} />
+                    </div>
+                    {/* Step number badge */}
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg">
+                      <span className="font-bold text-sm text-gray-800">{item.step}</span>
+                    </div>
+                  </div>
+                  <h3 className="font-display font-bold text-xl text-white mb-3">
+                    {item.title}
+                  </h3>
+                  <p className="text-white/70 text-sm leading-relaxed">
+                    {item.desc}
+                  </p>
                 </div>
-                <h3 className="font-display font-semibold text-lg text-foreground mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-muted-foreground text-sm">
-                  {item.desc}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
