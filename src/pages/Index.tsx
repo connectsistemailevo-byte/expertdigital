@@ -51,7 +51,61 @@ const Index: React.FC = () => {
         </div>
 
         {/* Centered Content */}
-        <div className="relative z-10 container mx-auto px-4 py-8 md:py-12 flex flex-col items-center justify-center min-h-[calc(100vh-5rem)]">
+        <div className="relative z-10 container mx-auto px-4 py-6 md:py-12 flex flex-col items-center justify-center min-h-[calc(100vh-5rem)]">
+          
+          {/* Hero Text Above Panel */}
+          <div className="text-center mb-6 md:mb-8 animate-fade-in">
+            <span className="inline-block px-4 py-1.5 bg-secondary/20 text-secondary rounded-full text-xs md:text-sm font-semibold mb-3 md:mb-4">
+              Atendimento 24h em todo o Brasil
+            </span>
+            <h1 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4">
+              Seu Guincho de<br />
+              <span className="text-secondary">Bolso</span>
+            </h1>
+            <p className="text-white/70 text-sm md:text-base max-w-md mx-auto mb-4 md:mb-6 px-4">
+              Conectamos você ao guincheiro mais próximo em poucos minutos. Sem complicação, com total transparência.
+            </p>
+            
+            {/* Location Display */}
+            <div className="flex items-center justify-center gap-2 mb-4 md:mb-6">
+              <MapPin className="w-4 h-4 text-secondary" />
+              <span className="text-white/80 text-sm">
+                {location.address || location.region || 'Obtendo localização...'}
+              </span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
+              <Button 
+                variant="hero" 
+                size="lg"
+                onClick={() => window.open('https://wa.me/5562999999999', '_blank')}
+                className="w-full sm:w-auto"
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Falar no WhatsApp
+              </Button>
+              <button 
+                onClick={() => setIsProviderModalOpen(true)}
+                className="text-sm text-secondary hover:text-secondary/80 transition-colors underline underline-offset-4"
+              >
+                É guincheiro? Cadastre-se aqui
+              </button>
+            </div>
+          </div>
+
+          {/* Trust badges - Visible on all devices */}
+          <div className="flex flex-wrap justify-center items-center gap-3 md:gap-6 mb-6 animate-fade-in" style={{
+            animationDelay: '200ms'
+          }}>
+            {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => (
+              <div key={badge} className="flex items-center gap-1.5 md:gap-2">
+                <CheckCircle className="w-3.5 h-3.5 md:w-4 md:h-4 text-secondary" />
+                <span className="text-xs md:text-sm text-white/80">{badge}</span>
+              </div>
+            ))}
+          </div>
+
           {/* Device Frame with Glow - HORIZONTAL */}
           <div className="w-full max-w-[95vw] md:max-w-[950px] lg:max-w-[1100px] mx-auto animate-slide-up">
             {/* Outer glow effect */}
@@ -71,16 +125,6 @@ const Index: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Trust badges below card - Hidden on mobile for cleaner look */}
-          <div className="hidden md:flex flex-wrap justify-center items-center gap-6 mt-8 animate-fade-in" style={{
-          animationDelay: '400ms'
-        }}>
-            {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => <div key={badge} className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-secondary" />
-                <span className="text-sm text-white/80">{badge}</span>
-              </div>)}
           </div>
         </div>
       </section>
