@@ -120,9 +120,9 @@ const Index: React.FC = () => {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {[
-              { step: '01', title: 'Informe sua localização', desc: 'Capturamos automaticamente sua localização para agilizar o atendimento', icon: Navigation, color: 'from-blue-400 to-cyan-400' },
-              { step: '02', title: 'Escolha o serviço', desc: 'Selecione o tipo de veículo e a situação em que ele se encontra', icon: Settings, color: 'from-amber-400 to-orange-400' },
-              { step: '03', title: 'Receba atendimento', desc: 'O guincheiro mais próximo entra em contato pelo WhatsApp', icon: MessageCircle, color: 'from-green-400 to-emerald-400' },
+              { title: 'Informe sua localização', desc: 'Capturamos automaticamente sua localização para agilizar o atendimento', icon: Navigation, color: 'from-blue-400 to-cyan-400' },
+              { title: 'Escolha o serviço', desc: 'Selecione o tipo de veículo e a situação em que ele se encontra', icon: Settings, color: 'from-amber-400 to-orange-400' },
+              { title: 'Receba atendimento', desc: 'O guincheiro mais próximo entra em contato pelo WhatsApp', icon: MessageCircle, color: 'from-green-400 to-emerald-400' },
             ].map((item, index) => {
               const Icon = item.icon;
               return (
@@ -133,10 +133,6 @@ const Index: React.FC = () => {
                     {/* Icon container */}
                     <div className={`relative w-full h-full rounded-3xl bg-gradient-to-br ${item.color} flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform`}>
                       <Icon className="w-10 h-10 text-white" strokeWidth={2} />
-                    </div>
-                    {/* Step number badge */}
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg">
-                      <span className="font-bold text-sm text-gray-800">{item.step}</span>
                     </div>
                   </div>
                   <h3 className="font-display font-bold text-xl text-white mb-3">
