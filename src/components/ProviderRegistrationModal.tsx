@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { useLocation } from '@/contexts/LocationContext';
-import { MapPin, Truck, RefreshCw, CheckCircle2, UserPlus, DollarSign, Search, Edit, ArrowLeft, Zap, Gift } from 'lucide-react';
+import { MapPin, Truck, RefreshCw, CheckCircle2, UserPlus, DollarSign, Search, Edit, ArrowLeft, Zap, Gift, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import MiniMap from '@/components/MiniMap';
@@ -30,6 +30,15 @@ interface ProviderData {
   patins_extra_price: number;
 }
 
+interface SubscriptionData {
+  trial_ativo: boolean;
+  trial_corridas_restantes: number;
+  corridas_usadas: number;
+  plano: string | null;
+  adesao_paga: boolean;
+  limite_corridas: number | null;
+}
+
 const serviceOptions = [
   { id: 'moto', label: 'Somente Moto' },
   { id: 'carro_popular', label: 'Carro Popular' },
@@ -47,6 +56,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
   const [searchPhone, setSearchPhone] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [existingProvider, setExistingProvider] = useState<ProviderData | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   
   // Form fields
   const [name, setName] = useState('');
@@ -113,20 +123,34 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
       if (error) throw error;
 
       if (data) {
-        setExistingProvider(data as ProviderData);
+        const providerData = data as ProviderData;
+        setExistingProvider(providerData);
         // Populate form with existing data
-        setName(data.name);
-        setWhatsapp(data.whatsapp);
-        setHasPatins(data.has_patins);
-        setSelectedServices(data.service_types || []);
-        setBasePrice(String(data.base_price || 50));
-        setPricePerKm(String(data.price_per_km || 5));
-        setPatinsExtraPrice(String(data.patins_extra_price || 30));
+        setName(providerData.name);
+        setWhatsapp(providerData.whatsapp);
+        setHasPatins(providerData.has_patins);
+        setSelectedServices(providerData.service_types || []);
+        setBasePrice(String(providerData.base_price || 50));
+        setPricePerKm(String(providerData.price_per_km || 5));
+        setPatinsExtraPrice(String(providerData.patins_extra_price || 30));
+        
+        // Buscar subscription do provider
+        const { data: subData } = await supabase
+          .from('provider_subscriptions')
+          .select('*')
+          .eq('provider_id', providerData.id)
+          .maybeSingle();
+        
+        if (subData) {
+          setSubscription(subData as SubscriptionData);
+        }
+        
         setMode('edit');
         toast.success('Cadastro encontrado!');
       } else {
         // No provider found, go to registration
         setWhatsapp(searchPhone);
+        setSubscription(null);
         setMode('register');
         toast.info('Nenhum cadastro encontrado. Faça seu cadastro agora!');
       }
@@ -310,6 +334,71 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
         Voltar
       </button>
 
+      {/* Trial/Subscription Banner */}
+      {mode === 'edit' && subscription && (
+        <div className={`rounded-xl p-3 border ${
+          subscription.trial_ativo 
+            ? subscription.trial_corridas_restantes <= 3 
+              ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-amber-500/40'
+              : 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/40'
+            : subscription.adesao_paga
+              ? 'bg-gradient-to-r from-blue-500/20 to-indigo-500/20 border-blue-500/40'
+              : 'bg-gradient-to-r from-red-500/20 to-rose-500/20 border-red-500/40'
+        }`}>
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+              subscription.trial_ativo 
+                ? subscription.trial_corridas_restantes <= 3 ? 'bg-amber-500/30' : 'bg-green-500/30'
+                : subscription.adesao_paga ? 'bg-blue-500/30' : 'bg-red-500/30'
+            }`}>
+              {subscription.trial_ativo ? (
+                subscription.trial_corridas_restantes <= 3 ? (
+                  <AlertTriangle className="w-5 h-5 text-amber-400" />
+                ) : (
+                  <Gift className="w-5 h-5 text-green-400" />
+                )
+              ) : subscription.adesao_paga ? (
+                <CheckCircle2 className="w-5 h-5 text-blue-400" />
+              ) : (
+                <AlertTriangle className="w-5 h-5 text-red-400" />
+              )}
+            </div>
+            <div className="flex-1">
+              {subscription.trial_ativo ? (
+                <>
+                  <p className={`font-bold text-sm ${subscription.trial_corridas_restantes <= 3 ? 'text-amber-400' : 'text-green-400'}`}>
+                    Período de Teste
+                  </p>
+                  <p className="text-xs text-foreground">
+                    Você tem <span className={`font-bold ${subscription.trial_corridas_restantes <= 3 ? 'text-amber-400' : 'text-green-400'}`}>
+                      {subscription.trial_corridas_restantes} solicitações
+                    </span> restantes no trial
+                  </p>
+                </>
+              ) : subscription.adesao_paga ? (
+                <>
+                  <p className="font-bold text-sm text-blue-400">
+                    Plano {subscription.plano?.charAt(0).toUpperCase()}{subscription.plano?.slice(1)}
+                  </p>
+                  <p className="text-xs text-foreground">
+                    {subscription.plano === 'pro' ? (
+                      <span className="text-blue-400 font-bold">Solicitações ilimitadas</span>
+                    ) : (
+                      <>Usadas: <span className="font-bold">{subscription.corridas_usadas}</span> / {subscription.limite_corridas}</>
+                    )}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-bold text-sm text-red-400">Trial Expirado</p>
+                  <p className="text-xs text-foreground">Acesse seu painel para escolher um plano</p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Location Map */}
       <div className="rounded-xl overflow-hidden border border-border">
         <MiniMap className="h-[100px] w-full" />
@@ -339,93 +428,110 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
       </div>
 
       {/* Personal Info */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-[11px] font-medium mb-1">Nome *</label>
+          <label className="block text-sm font-semibold mb-1.5 text-foreground">Nome *</label>
           <Input
             placeholder="Seu nome"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="h-8 text-sm"
+            className="h-10 text-base font-medium"
           />
         </div>
         <div>
-          <label className="block text-[11px] font-medium mb-1">WhatsApp *</label>
+          <label className="block text-sm font-semibold mb-1.5 text-foreground">WhatsApp *</label>
           <Input
             placeholder="(00) 00000-0000"
             value={whatsapp}
             onChange={(e) => handlePhoneChange(e)}
             maxLength={15}
-            className="h-8 text-sm"
+            className="h-10 text-base font-medium"
           />
         </div>
       </div>
 
-      {/* Pricing Section */}
-      <div className="p-2 rounded-lg border border-border bg-muted/30">
-        <div className="flex items-center gap-1 mb-2">
-          <DollarSign className="w-3 h-3 text-green-500" />
-          <span className="text-[11px] font-medium">Tabela de Preços</span>
+      {/* Pricing Section - Enhanced visibility */}
+      <div className="p-4 rounded-xl border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-emerald-500/5">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+            <DollarSign className="w-4 h-4 text-green-400" />
+          </div>
+          <span className="text-base font-bold text-foreground">Tabela de Preços</span>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="block text-[9px] text-muted-foreground mb-0.5">Base (R$)</label>
-            <Input
-              type="number"
-              placeholder="50"
-              value={basePrice}
-              onChange={(e) => setBasePrice(e.target.value)}
-              className="h-7 text-xs"
-              min="0"
-              step="0.01"
-            />
+            <label className="block text-xs font-semibold text-foreground mb-1">Valor Base</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-green-400">R$</span>
+              <Input
+                type="number"
+                placeholder="50"
+                value={basePrice}
+                onChange={(e) => setBasePrice(e.target.value)}
+                className="h-10 text-base font-bold pl-10"
+                min="0"
+                step="0.01"
+              />
+            </div>
           </div>
           <div>
-            <label className="block text-[9px] text-muted-foreground mb-0.5">Por KM (R$)</label>
-            <Input
-              type="number"
-              placeholder="5"
-              value={pricePerKm}
-              onChange={(e) => setPricePerKm(e.target.value)}
-              className="h-7 text-xs"
-              min="0"
-              step="0.01"
-            />
+            <label className="block text-xs font-semibold text-foreground mb-1">Por KM</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-green-400">R$</span>
+              <Input
+                type="number"
+                placeholder="5"
+                value={pricePerKm}
+                onChange={(e) => setPricePerKm(e.target.value)}
+                className="h-10 text-base font-bold pl-10"
+                min="0"
+                step="0.01"
+              />
+            </div>
           </div>
           <div>
-            <label className="block text-[9px] text-muted-foreground mb-0.5">Patins (R$)</label>
-            <Input
-              type="number"
-              placeholder="30"
-              value={patinsExtraPrice}
-              onChange={(e) => setPatinsExtraPrice(e.target.value)}
-              className="h-7 text-xs"
-              min="0"
-              step="0.01"
-            />
+            <label className="block text-xs font-semibold text-foreground mb-1">+ Patins</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-green-400">R$</span>
+              <Input
+                type="number"
+                placeholder="30"
+                value={patinsExtraPrice}
+                onChange={(e) => setPatinsExtraPrice(e.target.value)}
+                className="h-10 text-base font-bold pl-10"
+                min="0"
+                step="0.01"
+              />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Has Patins */}
-      <div className="flex items-center space-x-2 p-2 rounded-lg border border-border bg-muted/50">
+      <div className="flex items-center space-x-3 p-3 rounded-xl border-2 border-border bg-muted/50">
         <Checkbox
           id="hasPatins"
           checked={hasPatins}
           onCheckedChange={(checked) => setHasPatins(checked === true)}
+          className="w-5 h-5"
         />
         <label
           htmlFor="hasPatins"
-          className="text-[11px] font-medium cursor-pointer"
+          className="text-sm font-semibold cursor-pointer text-foreground"
         >
           Possui patins para remoção de veículos travados
         </label>
       </div>
 
-      {/* Service Types */}
-      <div>
-        <label className="block text-[11px] font-medium mb-1.5">Tipos de serviço *</label>
-        <div className="grid grid-cols-3 gap-1">
+      {/* Service Types - Enhanced visibility */}
+      <div className="p-4 rounded-xl border-2 border-secondary/30 bg-gradient-to-br from-secondary/10 to-secondary/5">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center">
+            <Truck className="w-4 h-4 text-secondary" />
+          </div>
+          <span className="text-base font-bold text-foreground">Tipos de Serviço *</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
           {serviceOptions.map((service) => {
             const isSelected = selectedServices.includes(service.id);
             return (
@@ -433,15 +539,17 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
                 key={service.id}
                 type="button"
                 onClick={() => toggleService(service.id)}
-                className={`relative flex items-center justify-center gap-0.5 p-1.5 rounded-md border-2 transition-all duration-200 text-center ${
+                className={`relative flex items-center justify-between gap-2 p-3 rounded-lg border-2 transition-all duration-200 ${
                   isSelected
-                    ? 'border-secondary bg-secondary/10'
+                    ? 'border-secondary bg-secondary/20 shadow-lg shadow-secondary/20'
                     : 'border-border hover:border-secondary/50 hover:bg-muted'
                 }`}
               >
-                <span className="font-medium text-[9px]">{service.label}</span>
+                <span className={`font-semibold text-sm ${isSelected ? 'text-secondary' : 'text-foreground'}`}>
+                  {service.label}
+                </span>
                 {isSelected && (
-                  <CheckCircle2 className="w-2.5 h-2.5 text-secondary" />
+                  <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0" />
                 )}
               </button>
             );
