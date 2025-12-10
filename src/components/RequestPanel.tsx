@@ -10,64 +10,136 @@ import { useProviders, Provider } from '@/hooks/useProviders';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { ProviderUnavailableModal } from '@/components/ProviderUnavailableModal';
-
 type VehicleType = 'carro' | 'moto' | 'caminhonete' | 'caminhao' | 'outros';
 type VehicleCondition = 'pane' | 'seca' | 'capotado' | 'subsolo' | 'roda_travada' | 'volante_travado' | 'precisa_patins' | 'outros';
 type PaymentMethod = 'pix' | 'dinheiro' | 'credito' | 'debito';
-
-const vehicleTypes = [
-  { id: 'carro' as VehicleType, label: 'Carro', icon: Car, bgColor: 'bg-blue-500', gradientFrom: 'from-blue-500', gradientTo: 'to-blue-600' },
-  { id: 'moto' as VehicleType, label: 'Moto', icon: Bike, bgColor: 'bg-purple-500', gradientFrom: 'from-purple-500', gradientTo: 'to-purple-600' },
-  { id: 'caminhonete' as VehicleType, label: 'Utilitários', icon: Car, bgColor: 'bg-emerald-500', gradientFrom: 'from-emerald-500', gradientTo: 'to-emerald-600' },
-  { id: 'caminhao' as VehicleType, label: 'Caminhão', icon: Truck, bgColor: 'bg-orange-500', gradientFrom: 'from-orange-500', gradientTo: 'to-orange-600' },
-];
-
+const vehicleTypes = [{
+  id: 'carro' as VehicleType,
+  label: 'Carro',
+  icon: Car,
+  bgColor: 'bg-blue-500',
+  gradientFrom: 'from-blue-500',
+  gradientTo: 'to-blue-600'
+}, {
+  id: 'moto' as VehicleType,
+  label: 'Moto',
+  icon: Bike,
+  bgColor: 'bg-purple-500',
+  gradientFrom: 'from-purple-500',
+  gradientTo: 'to-purple-600'
+}, {
+  id: 'caminhonete' as VehicleType,
+  label: 'Utilitários',
+  icon: Car,
+  bgColor: 'bg-emerald-500',
+  gradientFrom: 'from-emerald-500',
+  gradientTo: 'to-emerald-600'
+}, {
+  id: 'caminhao' as VehicleType,
+  label: 'Caminhão',
+  icon: Truck,
+  bgColor: 'bg-orange-500',
+  gradientFrom: 'from-orange-500',
+  gradientTo: 'to-orange-600'
+}];
 const PATINS_REQUIRED_CONDITIONS: VehicleCondition[] = ['subsolo', 'roda_travada', 'volante_travado', 'precisa_patins'];
-
-const vehicleConditions = [
-  { id: 'pane' as VehicleCondition, label: 'Pane Mecânica', icon: AlertTriangle, color: 'text-amber-500', needsPatins: false },
-  { id: 'seca' as VehicleCondition, label: 'Sem Combustível', icon: Fuel, color: 'text-red-500', needsPatins: false },
-  { id: 'capotado' as VehicleCondition, label: 'Capotado', icon: RotateCcw, color: 'text-orange-500', needsPatins: false },
-  { id: 'subsolo' as VehicleCondition, label: 'Subsolo', icon: Building2, color: 'text-blue-500', needsPatins: true },
-  { id: 'roda_travada' as VehicleCondition, label: 'Roda Travada', icon: AlertTriangle, color: 'text-purple-500', needsPatins: true },
-  { id: 'volante_travado' as VehicleCondition, label: 'Volante Travado', icon: AlertTriangle, color: 'text-indigo-500', needsPatins: true },
-  { id: 'precisa_patins' as VehicleCondition, label: 'Precisa Patins', icon: Building2, color: 'text-cyan-500', needsPatins: true },
-  { id: 'outros' as VehicleCondition, label: 'Outros', icon: AlertTriangle, color: 'text-gray-500', needsPatins: false },
-];
-
-const paymentMethods = [
-  { id: 'pix' as PaymentMethod, label: 'PIX', icon: QrCode, color: 'text-teal-500' },
-  { id: 'dinheiro' as PaymentMethod, label: 'Dinheiro', icon: Banknote, color: 'text-green-500' },
-  { id: 'credito' as PaymentMethod, label: 'Crédito', icon: CreditCard, color: 'text-blue-500' },
-  { id: 'debito' as PaymentMethod, label: 'Débito', icon: Landmark, color: 'text-purple-500' },
-];
-
+const vehicleConditions = [{
+  id: 'pane' as VehicleCondition,
+  label: 'Pane Mecânica',
+  icon: AlertTriangle,
+  color: 'text-amber-500',
+  needsPatins: false
+}, {
+  id: 'seca' as VehicleCondition,
+  label: 'Sem Combustível',
+  icon: Fuel,
+  color: 'text-red-500',
+  needsPatins: false
+}, {
+  id: 'capotado' as VehicleCondition,
+  label: 'Capotado',
+  icon: RotateCcw,
+  color: 'text-orange-500',
+  needsPatins: false
+}, {
+  id: 'subsolo' as VehicleCondition,
+  label: 'Subsolo',
+  icon: Building2,
+  color: 'text-blue-500',
+  needsPatins: true
+}, {
+  id: 'roda_travada' as VehicleCondition,
+  label: 'Roda Travada',
+  icon: AlertTriangle,
+  color: 'text-purple-500',
+  needsPatins: true
+}, {
+  id: 'volante_travado' as VehicleCondition,
+  label: 'Volante Travado',
+  icon: AlertTriangle,
+  color: 'text-indigo-500',
+  needsPatins: true
+}, {
+  id: 'precisa_patins' as VehicleCondition,
+  label: 'Precisa Patins',
+  icon: Building2,
+  color: 'text-cyan-500',
+  needsPatins: true
+}, {
+  id: 'outros' as VehicleCondition,
+  label: 'Outros',
+  icon: AlertTriangle,
+  color: 'text-gray-500',
+  needsPatins: false
+}];
+const paymentMethods = [{
+  id: 'pix' as PaymentMethod,
+  label: 'PIX',
+  icon: QrCode,
+  color: 'text-teal-500'
+}, {
+  id: 'dinheiro' as PaymentMethod,
+  label: 'Dinheiro',
+  icon: Banknote,
+  color: 'text-green-500'
+}, {
+  id: 'credito' as PaymentMethod,
+  label: 'Crédito',
+  icon: CreditCard,
+  color: 'text-blue-500'
+}, {
+  id: 'debito' as PaymentMethod,
+  label: 'Débito',
+  icon: Landmark,
+  color: 'text-purple-500'
+}];
 interface RequestPanelProps {
   filterProviderId?: string; // Para modo white-label: mostrar apenas este prestador
   hideProviderSelection?: boolean; // Ocultar seleção de prestadores
 }
-
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
-
-const RequestPanel: React.FC<RequestPanelProps> = ({ 
+const RequestPanel: React.FC<RequestPanelProps> = ({
   filterProviderId,
-  hideProviderSelection = false 
+  hideProviderSelection = false
 }) => {
-  const { location, refreshLocation } = useLocation();
-  const { providers: allProviders, loading: providersLoading } = useProviders();
-  
+  const {
+    location,
+    refreshLocation
+  } = useLocation();
+  const {
+    providers: allProviders,
+    loading: providersLoading
+  } = useProviders();
+
   // Filtra prestadores se filterProviderId for fornecido
-  const providers = filterProviderId 
-    ? allProviders.filter(p => p.id === filterProviderId)
-    : allProviders;
-  
+  const providers = filterProviderId ? allProviders.filter(p => p.id === filterProviderId) : allProviders;
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [destination, setDestination] = useState('');
@@ -89,45 +161,42 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
       }
     }
   }, [filterProviderId, providers, selectedProvider]);
-
   const needsPatins = selectedCondition ? PATINS_REQUIRED_CONDITIONS.includes(selectedCondition) : false;
-  const tripDistanceKm = destinationCoords && location.latitude && location.longitude
-    ? calculateDistance(location.latitude, location.longitude, destinationCoords.latitude, destinationCoords.longitude)
-    : 0;
-
+  const tripDistanceKm = destinationCoords && location.latitude && location.longitude ? calculateDistance(location.latitude, location.longitude, destinationCoords.latitude, destinationCoords.longitude) : 0;
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
     if (numbers.length <= 11) return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
     return value;
   };
-
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => setPhone(formatPhone(e.target.value));
   const handleDestinationChange = (value: string, coordinates?: DestinationCoordinates) => {
     setDestination(value);
     setDestinationCoords(coordinates || null);
   };
-
-  const getCurrentTime = () => new Date().toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-
+  const getCurrentTime = () => new Date().toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
   const calculateTotalPrice = (provider: Provider) => {
     const basePrice = provider.base_price || 50;
     const pricePerKm = provider.price_per_km || 5;
-    let total = basePrice + (tripDistanceKm * pricePerKm);
+    let total = basePrice + tripDistanceKm * pricePerKm;
     if (needsPatins && provider.has_patins) total += provider.patins_extra_price || 30;
     return total;
   };
-
   const canSubmit = name.trim().length >= 2 && phone.replace(/\D/g, '').length >= 10 && destination.trim().length >= 3 && selectedVehicle && selectedCondition && selectedPayment;
-
   const getWhatsAppUrl = () => {
     const vehicleLabel = vehicleTypes.find(v => v.id === selectedVehicle)?.label || '';
     const conditionLabel = vehicleConditions.find(c => c.id === selectedCondition)?.label || '';
     const paymentLabel = paymentMethods.find(p => p.id === selectedPayment)?.label || '';
     const defaultWhatsApp = '5562994389675';
-    
-    let providerInfo = '', priceInfo = '', tripInfo = '';
+    let providerInfo = '',
+      priceInfo = '',
+      tripInfo = '';
     if (tripDistanceKm > 0) tripInfo = `\n📏 *Distância do Trajeto:* ${tripDistanceKm.toFixed(1)} km\n`;
-    
     if (selectedProvider) {
       const totalPrice = calculateTotalPrice(selectedProvider);
       providerInfo = `\n🚚 *Prestador:* ${selectedProvider.name}\n`;
@@ -135,17 +204,11 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
     }
 
     // Link do Google Maps com a localização em tempo real do cliente
-    const originMapLink = location.latitude && location.longitude 
-      ? `https://www.google.com/maps?q=${location.latitude},${location.longitude}`
-      : '';
-    
+    const originMapLink = location.latitude && location.longitude ? `https://www.google.com/maps?q=${location.latitude},${location.longitude}` : '';
+
     // Link do Google Maps para o destino
-    const destMapLink = destinationCoords 
-      ? `https://www.google.com/maps?q=${destinationCoords.latitude},${destinationCoords.longitude}`
-      : '';
-    
+    const destMapLink = destinationCoords ? `https://www.google.com/maps?q=${destinationCoords.latitude},${destinationCoords.longitude}` : '';
     const messageText = `🚗 *GUINCHO FÁCIL 24HS*\n\n👤 *Cliente:* ${name}\n📱 *WhatsApp:* ${phone}\n\n🚙 *Veículo:* ${vehicleLabel}\n⚠️ *Situação:* ${conditionLabel}\n💳 *Pagamento:* ${paymentLabel}\n\n📍 *ORIGEM (Localização Atual):*\n${location.address}\n🗺️ *Ver no Mapa:* ${originMapLink}\n\n🏁 *DESTINO:*\n${destination}${destMapLink ? `\n🗺️ *Ver no Mapa:* ${destMapLink}` : ''}\n${tripInfo}${providerInfo}${priceInfo}\n🕐 *Horário:* ${getCurrentTime()}`;
-    
     const message = encodeURIComponent(messageText);
     const whatsappNumber = selectedProvider ? selectedProvider.whatsapp.replace(/\D/g, '') : defaultWhatsApp;
     const formattedNumber = whatsappNumber.startsWith('55') ? whatsappNumber : `55${whatsappNumber}`;
@@ -159,37 +222,37 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
       window.open(getWhatsAppUrl(), '_blank');
       return;
     }
-
     setIsSendingToWhatsApp(true);
-
     try {
       // Incrementar corrida do prestador
-      const { data, error } = await supabase.functions.invoke('increment-provider-rides', {
-        body: { provider_id: selectedProvider.id },
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('increment-provider-rides', {
+        body: {
+          provider_id: selectedProvider.id
+        }
       });
-
       if (error) throw error;
-
       if (data?.blocked) {
         // Prestador indisponível - mostrar modal para o cliente
         setUnavailableProviderName(selectedProvider.name);
         setShowUnavailableModal(true);
         setSelectedProvider(null); // Limpar seleção para escolher outro
-        
+
         toast({
           title: 'Prestador indisponível',
           description: 'Por favor, escolha outro prestador da lista.',
-          variant: 'destructive',
+          variant: 'destructive'
         });
         return;
       }
 
       // Sucesso - abrir WhatsApp
       window.open(getWhatsAppUrl(), '_blank');
-      
       toast({
         title: 'Solicitação enviada!',
-        description: `Mensagem enviada para ${selectedProvider.name}`,
+        description: `Mensagem enviada para ${selectedProvider.name}`
       });
     } catch (err: any) {
       console.error('Error incrementing ride:', err);
@@ -199,9 +262,7 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
       setIsSendingToWhatsApp(false);
     }
   };
-
-  return (
-    <div className="bg-card rounded-xl border border-border shadow-2xl overflow-hidden">
+  return <div className="bg-card rounded-xl border border-border shadow-2xl overflow-hidden">
       {/* Header */}
       <div className="bg-primary p-3 text-primary-foreground">
         <div className="text-center">
@@ -239,19 +300,17 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
                 Para onde levar o veículo? *
               </label>
               <AddressAutocomplete value={destination} onChange={handleDestinationChange} placeholder="Ex: Oficina do João, Rua das Flores, 123" />
-              {tripDistanceKm > 0 && (
-                <div className="flex items-center gap-1 mt-1 text-[10px] text-green-600">
+              {tripDistanceKm > 0 && <div className="flex items-center gap-1 mt-1 text-[10px] text-green-600">
                   <Route className="w-3 h-3" />
                   <span>Distância: <strong>{tripDistanceKm.toFixed(1)} km</strong></span>
-                </div>
-              )}
+                </div>}
             </div>
 
             {/* Name/Phone */}
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="block text-xs font-medium mb-1">Seu nome *</label>
-                <Input placeholder="Nome completo" value={name} onChange={(e) => setName(e.target.value)} className="h-9 text-sm" />
+                <Input placeholder="Nome completo" value={name} onChange={e => setName(e.target.value)} className="h-9 text-sm" />
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">WhatsApp *</label>
@@ -271,37 +330,21 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
             <div>
               <label className="block text-sm font-bold mb-2 text-foreground">Tipo de veículo *</label>
               <div className="grid grid-cols-4 gap-2">
-                {vehicleTypes.map((vehicle) => {
-                  const Icon = vehicle.icon;
-                  const isSelected = selectedVehicle === vehicle.id;
-                  return (
-                    <button
-                      key={vehicle.id}
-                      onClick={() => setSelectedVehicle(vehicle.id)}
-                      className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all shadow-sm hover:shadow-lg hover:scale-105 ${
-                        isSelected 
-                          ? 'border-white/50 shadow-lg scale-105' 
-                          : 'border-transparent hover:border-white/30'
-                      } bg-gradient-to-br ${vehicle.gradientFrom} ${vehicle.gradientTo}`}
-                    >
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                        isSelected 
-                          ? 'bg-white/30 shadow-inner' 
-                          : 'bg-white/20'
-                      }`}>
+                {vehicleTypes.map(vehicle => {
+                const Icon = vehicle.icon;
+                const isSelected = selectedVehicle === vehicle.id;
+                return <button key={vehicle.id} onClick={() => setSelectedVehicle(vehicle.id)} className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all shadow-sm hover:shadow-lg hover:scale-105 ${isSelected ? 'border-white/50 shadow-lg scale-105' : 'border-transparent hover:border-white/30'} bg-gradient-to-br ${vehicle.gradientFrom} ${vehicle.gradientTo}`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isSelected ? 'bg-white/30 shadow-inner' : 'bg-white/20'}`}>
                         <Icon className="w-6 h-6 text-white" />
                       </div>
                       <span className="font-bold text-xs text-center leading-tight text-white">
                         {vehicle.label}
                       </span>
-                      {isSelected && (
-                        <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-lg">
+                      {isSelected && <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-lg">
                           <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
+                        </div>}
+                    </button>;
+              })}
               </div>
             </div>
 
@@ -309,38 +352,22 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
             <div>
               <label className="block text-sm font-bold mb-2 text-foreground">Situação do veículo *</label>
               <div className="grid grid-cols-4 gap-1.5">
-                {vehicleConditions.map((condition) => {
-                  const Icon = condition.icon;
-                  const isSelected = selectedCondition === condition.id;
-                  return (
-                    <button
-                      key={condition.id}
-                      onClick={() => setSelectedCondition(condition.id)}
-                      className={`relative flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all shadow-sm hover:shadow-md ${
-                        isSelected 
-                          ? 'border-secondary bg-gradient-to-br from-secondary/20 to-secondary/5 shadow-secondary/20' 
-                          : 'border-border/50 hover:border-secondary/50 hover:bg-muted/50 bg-card'
-                      }`}
-                    >
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                        isSelected ? 'bg-white shadow-md' : 'bg-muted/50'
-                      }`}>
+                {vehicleConditions.map(condition => {
+                const Icon = condition.icon;
+                const isSelected = selectedCondition === condition.id;
+                return <button key={condition.id} onClick={() => setSelectedCondition(condition.id)} className={`relative flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all shadow-sm hover:shadow-md ${isSelected ? 'border-secondary bg-gradient-to-br from-secondary/20 to-secondary/5 shadow-secondary/20' : 'border-border/50 hover:border-secondary/50 hover:bg-muted/50 bg-card'}`}>
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isSelected ? 'bg-white shadow-md' : 'bg-muted/50'}`}>
                         <Icon className={`w-5 h-5 ${condition.color}`} />
                       </div>
                       <span className={`font-bold text-[9px] text-center leading-tight ${isSelected ? 'text-secondary' : 'text-foreground'}`}>
                         {condition.label}
                       </span>
-                      {condition.needsPatins && (
-                        <span className="text-[7px] font-bold text-cyan-600 bg-cyan-100 px-1.5 py-0.5 rounded-full">+patins</span>
-                      )}
-                      {isSelected && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full flex items-center justify-center shadow-lg">
+                      {condition.needsPatins && <span className="text-[7px] font-bold text-cyan-600 bg-cyan-100 px-1.5 py-0.5 rounded-full">+patins</span>}
+                      {isSelected && <div className="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full flex items-center justify-center shadow-lg">
                           <CheckCircle2 className="w-3 h-3 text-white" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
+                        </div>}
+                    </button>;
+              })}
               </div>
             </div>
 
@@ -351,35 +378,21 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
                 Forma de pagamento *
               </label>
               <div className="grid grid-cols-4 gap-1.5">
-                {paymentMethods.map((payment) => {
-                  const Icon = payment.icon;
-                  const isSelected = selectedPayment === payment.id;
-                  return (
-                    <button
-                      key={payment.id}
-                      onClick={() => setSelectedPayment(payment.id)}
-                      className={`relative flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all shadow-sm hover:shadow-md ${
-                        isSelected 
-                          ? 'border-secondary bg-gradient-to-br from-secondary/20 to-secondary/5 shadow-secondary/20' 
-                          : 'border-border/50 hover:border-secondary/50 hover:bg-muted/50 bg-card'
-                      }`}
-                    >
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                        isSelected ? 'bg-white shadow-md' : 'bg-muted/50'
-                      }`}>
+                {paymentMethods.map(payment => {
+                const Icon = payment.icon;
+                const isSelected = selectedPayment === payment.id;
+                return <button key={payment.id} onClick={() => setSelectedPayment(payment.id)} className={`relative flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all shadow-sm hover:shadow-md ${isSelected ? 'border-secondary bg-gradient-to-br from-secondary/20 to-secondary/5 shadow-secondary/20' : 'border-border/50 hover:border-secondary/50 hover:bg-muted/50 bg-card'}`}>
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isSelected ? 'bg-white shadow-md' : 'bg-muted/50'}`}>
                         <Icon className={`w-5 h-5 ${payment.color}`} />
                       </div>
                       <span className={`font-bold text-[9px] text-center leading-tight ${isSelected ? 'text-secondary' : 'text-foreground'}`}>
                         {payment.label}
                       </span>
-                      {isSelected && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full flex items-center justify-center shadow-lg">
+                      {isSelected && <div className="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full flex items-center justify-center shadow-lg">
                           <CheckCircle2 className="w-3 h-3 text-white" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
+                        </div>}
+                    </button>;
+              })}
               </div>
             </div>
           </div>
@@ -387,41 +400,23 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
           {/* Column 3: Providers + Submit */}
           <div className="space-y-3">
             {/* Providers - Ocultar se hideProviderSelection for true */}
-            {!hideProviderSelection && (
-              <div>
-                <label className="flex items-center gap-1 text-xs font-medium mb-2">
+            {!hideProviderSelection && <div>
+                <label className="flex items-center gap-1 text-xs mb-2 bg-secondary text-emerald-900 font-bold">
                   <Users className="w-3 h-3" />
-                  Prestadores disponíveis
+                               Selecionar  Prestadores disponíveis
                 </label>
-                {providersLoading ? (
-                  <div className="flex items-center justify-center py-4">
+                {providersLoading ? <div className="flex items-center justify-center py-4">
                     <RefreshCw className="w-5 h-5 animate-spin text-muted-foreground" />
-                  </div>
-                ) : providers.length === 0 ? (
-                  <div className="text-center py-4 bg-muted rounded-lg">
+                  </div> : providers.length === 0 ? <div className="text-center py-4 bg-muted rounded-lg">
                     <Users className="w-6 h-6 text-muted-foreground mx-auto mb-1" />
                     <p className="text-xs text-muted-foreground">Nenhum prestador na região</p>
-                  </div>
-                ) : (
-                  <div className="space-y-1.5 max-h-[140px] overflow-y-auto">
-                    {providers.slice(0, 4).map((provider) => (
-                      <ProviderCard
-                        key={provider.id}
-                        provider={provider}
-                        isSelected={selectedProvider?.id === provider.id}
-                        onSelect={() => setSelectedProvider(provider)}
-                        needsPatins={needsPatins}
-                        tripDistanceKm={tripDistanceKm}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+                  </div> : <div className="space-y-1.5 max-h-[140px] overflow-y-auto">
+                    {providers.slice(0, 4).map(provider => <ProviderCard key={provider.id} provider={provider} isSelected={selectedProvider?.id === provider.id} onSelect={() => setSelectedProvider(provider)} needsPatins={needsPatins} tripDistanceKm={tripDistanceKm} className="bg-secondary" />)}
+                  </div>}
+              </div>}
 
             {/* Price Summary */}
-            {selectedProvider && tripDistanceKm > 0 && (
-              <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+            {selectedProvider && tripDistanceKm > 0 && <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
                 <div className="flex items-center gap-1.5">
                   <DollarSign className="w-4 h-4 text-green-600" />
                   <span className="text-xs font-medium text-green-700 dark:text-green-400">Valor estimado:</span>
@@ -429,46 +424,26 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
                 <span className="text-lg font-bold text-green-700 dark:text-green-400">
                   R$ {calculateTotalPrice(selectedProvider).toFixed(2)}
                 </span>
-              </div>
-            )}
+              </div>}
 
             {/* Validation */}
-            {!canSubmit && (
-              <p className="text-[10px] text-amber-600 text-center">
-                {!destination ? '⚠️ Informe o destino' : 
-                 !name ? '⚠️ Informe seu nome' :
-                 !phone || phone.replace(/\D/g, '').length < 10 ? '⚠️ Informe seu WhatsApp' :
-                 !selectedVehicle ? '⚠️ Selecione o veículo' :
-                 !selectedCondition ? '⚠️ Selecione a situação' :
-                 !selectedPayment ? '⚠️ Selecione forma de pagamento' : ''}
-              </p>
-            )}
+            {!canSubmit && <p className="text-[10px] text-center text-secondary-foreground">
+                {!destination ? '⚠️ Informe o destino' : !name ? '⚠️ Informe seu nome' : !phone || phone.replace(/\D/g, '').length < 10 ? '⚠️ Informe seu WhatsApp' : !selectedVehicle ? '⚠️ Selecione o veículo' : !selectedCondition ? '⚠️ Selecione a situação' : !selectedPayment ? '⚠️ Selecione forma de pagamento' : ''}
+              </p>}
 
             {/* Submit */}
-            {canSubmit ? (
-              <button
-                onClick={handleSendToWhatsApp}
-                disabled={isSendingToWhatsApp}
-                className="flex items-center justify-center gap-2 w-full h-11 rounded-lg font-bold text-sm bg-green-600 text-white hover:bg-green-700 shadow-lg transition-colors disabled:opacity-70"
-              >
-                {isSendingToWhatsApp ? (
-                  <>
+            {canSubmit ? <button onClick={handleSendToWhatsApp} disabled={isSendingToWhatsApp} className="flex items-center justify-center gap-2 w-full h-11 rounded-lg font-bold text-sm bg-green-600 text-white hover:bg-green-700 shadow-lg transition-colors disabled:opacity-70">
+                {isSendingToWhatsApp ? <>
                     <Loader2 className="w-5 h-5 animate-spin" />
                     ENVIANDO...
-                  </>
-                ) : (
-                  <>
+                  </> : <>
                     <MessageCircle className="w-5 h-5" />
                     ENVIAR PARA WHATSAPP
-                  </>
-                )}
-              </button>
-            ) : (
-              <div className="flex items-center justify-center gap-2 w-full h-11 rounded-lg font-semibold text-sm bg-muted text-muted-foreground cursor-not-allowed">
+                  </>}
+              </button> : <div className="flex items-center justify-center gap-2 w-full h-11 rounded-lg font-semibold text-sm cursor-not-allowed bg-emerald-800 text-primary-foreground">
                 <MessageCircle className="w-4 h-4" />
                 Preencha todos os campos
-              </div>
-            )}
+              </div>}
 
             {/* Footer */}
             <div className="flex items-center justify-center gap-1.5 pt-2 border-t border-border">
@@ -480,13 +455,7 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
       </div>
 
       {/* Modal de prestador indisponível para o cliente */}
-      <ProviderUnavailableModal
-        open={showUnavailableModal}
-        onOpenChange={setShowUnavailableModal}
-        providerName={unavailableProviderName}
-      />
-    </div>
-  );
+      <ProviderUnavailableModal open={showUnavailableModal} onOpenChange={setShowUnavailableModal} providerName={unavailableProviderName} />
+    </div>;
 };
-
 export default RequestPanel;
