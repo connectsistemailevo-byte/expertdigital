@@ -57,13 +57,31 @@ serve(async (req) => {
           .from('providers')
           .select(`
             *,
-            provider_subscriptions (*)
+            provider_subscriptions (
+              id,
+              plano,
+              adesao_paga,
+              trial_ativo,
+              trial_corridas_restantes,
+              corridas_usadas,
+              limite_corridas,
+              mensalidade_atual,
+              updated_at
+            )
           `)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
 
-        logStep("Listed providers", { count: providers?.length });
+        // Log detalhado dos providers para debug
+        logStep("Listed providers", { 
+          count: providers?.length,
+          details: providers?.map((p: any) => ({
+            name: p.name,
+            trial_restante: p.provider_subscriptions?.[0]?.trial_corridas_restantes,
+            trial_ativo: p.provider_subscriptions?.[0]?.trial_ativo,
+          }))
+        });
 
         return new Response(JSON.stringify({ providers }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
