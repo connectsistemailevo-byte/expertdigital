@@ -63,14 +63,14 @@ Seu Guincho    Aki 24hs
             <br />
               <span className="text-secondary text-3xl">​</span>
             </h1>
-            <p className="text-sm md:text-base max-w-md mx-auto mb-4 md:mb-6 bg-transparent text-primary-foreground px-[25px]">
-              Conectamos você ao guincheiro mais próximo em poucos minutos. Sem complicação, com total transparência.
-            </p>
+            <p className="text-sm md:text-base max-w-md mx-auto mb-4 md:mb-6 px-[25px] bg-transparent text-primary-foreground">Conectamos você ao guincheiro mais próximo em poucos minutos. 
+
+          </p>
             
             {/* Location Display */}
             <div className="flex items-center justify-center gap-2 mb-4 md:mb-6">
               <MapPin className="w-4 h-4 text-secondary" />
-              <span className="font-medium bg-transparent text-secondary text-xs px-[50px]">
+              <span className="font-medium bg-transparent text-secondary text-xs py-0 px-[51px]">
                 {location.address || location.region || 'Obtendo localização...'}
               </span>
             </div>
