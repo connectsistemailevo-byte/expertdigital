@@ -401,7 +401,7 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
           <div className="space-y-3">
             {/* Providers - Ocultar se hideProviderSelection for true */}
             {!hideProviderSelection && <div>
-                <label className="flex items-center gap-1 text-xs mb-2 bg-secondary text-emerald-900 font-bold">
+                <label className="flex items-center gap-1 text-xs mb-2 font-bold text-primary-foreground bg-green-800">
                   <Users className="w-3 h-3" />
                                Selecionar  Prestadores disponíveis
                 </label>
