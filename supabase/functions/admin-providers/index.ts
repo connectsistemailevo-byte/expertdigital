@@ -24,16 +24,29 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { action, provider_id, data, admin_password } = await req.json();
+    const body = await req.json();
+    const { action, provider_id, data, admin_password } = body;
+    
+    logStep("Request received", { action, hasPassword: !!admin_password });
 
     // Verificar senha de admin (simples por enquanto)
-    const ADMIN_PASSWORD = Deno.env.get("ADMIN_PASSWORD") || "guincho2024admin";
-    if (admin_password !== ADMIN_PASSWORD) {
+    const ADMIN_PASSWORD = Deno.env.get("ADMIN_PASSWORD");
+    logStep("Password check", { envPasswordSet: !!ADMIN_PASSWORD, passwordMatch: admin_password === ADMIN_PASSWORD });
+    
+    if (!ADMIN_PASSWORD) {
+      logStep("ADMIN_PASSWORD env not set, using fallback");
+    }
+    
+    const validPassword = ADMIN_PASSWORD || "guincho2024admin";
+    if (admin_password !== validPassword) {
+      logStep("Password mismatch", { received: admin_password?.substring(0, 3) + '***' });
       return new Response(JSON.stringify({ error: "Acesso não autorizado" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 401,
       });
     }
+    
+    logStep("Password validated successfully");
 
     logStep("Action requested", { action, provider_id });
 
