@@ -7,6 +7,7 @@ interface ProviderCardProps {
   onSelect: () => void;
   needsPatins?: boolean;
   tripDistanceKm?: number; // Distance from client location to destination
+  className?: string;
 }
 const serviceLabels: Record<string, string> = {
   moto: 'Moto',
@@ -21,7 +22,8 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   isSelected,
   onSelect,
   needsPatins = false,
-  tripDistanceKm
+  tripDistanceKm,
+  className
 }) => {
   // Calculate price based on trip distance (client → destination), not provider distance
   const calculateTripPrice = () => {
@@ -36,7 +38,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   };
   const tripPrice = calculateTripPrice();
   const hasValidTripDistance = tripDistanceKm && tripDistanceKm > 0;
-  return <button type="button" onClick={onSelect} className={`relative w-full p-3 rounded-xl border-2 transition-all duration-200 text-left ${isSelected ? 'border-secondary bg-secondary/10' : 'border-border hover:border-secondary/50 hover:bg-muted'}`}>
+  return <button type="button" onClick={onSelect} className={`relative w-full p-3 rounded-xl border-2 transition-all duration-200 text-left ${isSelected ? 'border-secondary bg-secondary/10' : 'border-border hover:border-secondary/50 hover:bg-muted'} ${className || ''}`}>
       {isSelected && <CheckCircle className="w-4 h-4 text-secondary absolute top-2 right-2" />}
       
       <div className="flex items-start gap-2 text-secondary-foreground">
@@ -60,7 +62,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
           {/* Provider distance (how far provider is from client) */}
           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
             <div className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-primary-foreground" />
+              <MapPin className="w-3 h-3 text-foreground" />
               <span className="text-secondary-foreground">{provider.distance?.toFixed(1)} km de você</span>
             </div>
             <div className="flex items-center gap-1">
