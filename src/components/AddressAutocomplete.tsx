@@ -284,9 +284,9 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       </div>
 
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden max-h-[200px] overflow-y-auto">
-          <div className="px-3 py-1.5 bg-muted/50 border-b border-border">
-            <p className="text-[10px] text-muted-foreground">
+        <div className="absolute z-[100] w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-2xl overflow-hidden max-h-[280px] overflow-y-auto">
+          <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 sticky top-0">
+            <p className="text-xs text-gray-500 font-medium">
               Selecione ou continue digitando
             </p>
           </div>
@@ -294,18 +294,18 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
             <button
               key={suggestion.id || index}
               onClick={() => handleSuggestionClick(suggestion)}
-              className="w-full flex items-start gap-2 px-3 py-2 hover:bg-muted transition-colors text-left border-b border-border/30 last:border-b-0"
+              className="w-full flex items-start gap-3 px-3 py-3 hover:bg-blue-50 transition-colors text-left border-b border-gray-100 last:border-b-0"
             >
               {suggestion.isPOI ? (
-                <Building2 className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
+                <Building2 className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
               ) : (
-                <MapPin className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
+                <MapPin className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
               )}
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-foreground truncate">
+                <p className="text-sm font-semibold text-gray-900">
                   {suggestion.name}
                 </p>
-                <p className="text-[10px] text-muted-foreground line-clamp-2">
+                <p className="text-xs text-gray-500 mt-0.5">
                   {suggestion.full_address}
                 </p>
               </div>
