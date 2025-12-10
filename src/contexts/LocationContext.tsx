@@ -66,42 +66,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
   }, []);
 
   const getAddressFromCoordinates = useCallback(async (lat: number, lng: number): Promise<{ address: string; region: string }> => {
-    // Primeiro tenta com Mapbox se tiver token
-    if (mapboxToken) {
-      try {
-        const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxToken}&language=pt&types=address,poi,neighborhood,locality,place&limit=1`
-        );
-        const data = await response.json();
-        
-        if (data.features && data.features.length > 0) {
-          const place = data.features[0];
-          const context = place.context || [];
-          
-          const street = place.text || '';
-          const number = place.address || '';
-          const neighborhood = context.find((c: any) => c.id.includes('neighborhood'))?.text || '';
-          const locality = context.find((c: any) => c.id.includes('locality'))?.text || '';
-          const city = context.find((c: any) => c.id.includes('place'))?.text || '';
-          const state = context.find((c: any) => c.id.includes('region'))?.short_code?.replace('BR-', '') || '';
-          
-          // Monta endereço mais completo
-          let address = place.place_name || '';
-          if (!address && street) {
-            const parts = [street, number, neighborhood, city].filter(Boolean);
-            address = parts.join(', ');
-          }
-          
-          const region = city && state ? `${city}, ${state}` : (locality || neighborhood || 'Brasil');
-          
-          return { address, region };
-        }
-      } catch (error) {
-        console.error('Mapbox geocoding error:', error);
-      }
-    }
-    
-    // Fallback: usa API gratuita do Nominatim (OpenStreetMap)
+    // Primeiro tenta com Nominatim (OpenStreetMap) que retorna endereços mais completos no Brasil
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=pt-BR`,
@@ -120,15 +85,81 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
         const neighborhood = addr.suburb || addr.neighbourhood || addr.district || '';
         const city = addr.city || addr.town || addr.municipality || addr.village || '';
         const state = addr.state || '';
+        const postcode = addr.postcode || '';
         
-        const addressParts = [street, number, neighborhood, city].filter(Boolean);
-        const address = addressParts.length > 0 ? addressParts.join(', ') : data.display_name;
+        // Monta endereço completo com todos os detalhes
+        const addressParts = [];
+        
+        if (street) {
+          if (number) {
+            addressParts.push(`${street}, ${number}`);
+          } else {
+            addressParts.push(street);
+          }
+        }
+        
+        if (neighborhood) addressParts.push(neighborhood);
+        if (city) addressParts.push(city);
+        if (state) addressParts.push(state);
+        if (postcode) addressParts.push(`CEP: ${postcode}`);
+        
+        const address = addressParts.length > 0 ? addressParts.join(' - ') : data.display_name;
         const region = city && state ? `${city}, ${state}` : (city || state || 'Brasil');
+        
+        console.log('Endereço obtido (Nominatim):', { address, region, raw: addr });
         
         return { address, region };
       }
     } catch (error) {
       console.error('Nominatim geocoding error:', error);
+    }
+    
+    // Fallback: tenta com Mapbox se tiver token
+    if (mapboxToken) {
+      try {
+        const response = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxToken}&language=pt&types=address,poi,neighborhood,locality,place&limit=1`
+        );
+        const data = await response.json();
+        
+        if (data.features && data.features.length > 0) {
+          const place = data.features[0];
+          const context = place.context || [];
+          
+          const street = place.text || '';
+          const number = place.address || '';
+          const neighborhood = context.find((c: any) => c.id.includes('neighborhood'))?.text || '';
+          const locality = context.find((c: any) => c.id.includes('locality'))?.text || '';
+          const city = context.find((c: any) => c.id.includes('place'))?.text || '';
+          const state = context.find((c: any) => c.id.includes('region'))?.short_code?.replace('BR-', '') || '';
+          const postcode = context.find((c: any) => c.id.includes('postcode'))?.text || '';
+          
+          // Monta endereço completo
+          const addressParts = [];
+          
+          if (street) {
+            if (number) {
+              addressParts.push(`${street}, ${number}`);
+            } else {
+              addressParts.push(street);
+            }
+          }
+          
+          if (neighborhood) addressParts.push(neighborhood);
+          if (city) addressParts.push(city);
+          if (state) addressParts.push(state);
+          if (postcode) addressParts.push(`CEP: ${postcode}`);
+          
+          const address = addressParts.length > 0 ? addressParts.join(' - ') : place.place_name;
+          const region = city && state ? `${city}, ${state}` : (locality || neighborhood || 'Brasil');
+          
+          console.log('Endereço obtido (Mapbox):', { address, region });
+          
+          return { address, region };
+        }
+      } catch (error) {
+        console.error('Mapbox geocoding error:', error);
+      }
     }
     
     // Se nada funcionar, retorna coordenadas
