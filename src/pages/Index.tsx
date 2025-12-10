@@ -58,7 +58,7 @@ const Index: React.FC = () => {
             <span className="inline-block py-1.5 text-secondary rounded-full text-xs font-semibold mb-3 md:mb-4 md:text-lg bg-primary-foreground px-[26px]">
               Atendimento 24h em todo o Brasil
             </span>
-            <h1 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4">Seu Guincho 
+            <h1 className="font-display text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4">Seu Guincho  
 Aki 24hs<br />
               <span className="text-secondary text-3xl">Aki 24hs</span>
             </h1>
@@ -76,10 +76,7 @@ Aki 24hs<br />
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
-              <Button variant="hero" size="lg" onClick={() => window.open('https://wa.me/5562999999999', '_blank')} className="w-full sm:w-auto">
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Falar no WhatsApp
-              </Button>
+              
               <button onClick={() => setIsProviderModalOpen(true)} className="transition-colors underline underline-offset-4 text-secondary text-xl bg-secondary-foreground">
                 É guincheiro? Cadastre-se aqui
               </button>
