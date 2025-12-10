@@ -55,7 +55,7 @@ const Index: React.FC = () => {
           
           {/* Hero Card - Clean separated content */}
           <div className="w-full max-w-lg mx-auto mb-6 animate-fade-in">
-            <div className="bg-[#0d1320]/95 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/10 shadow-2xl">
+            <div className="backdrop-blur-xl rounded-2xl p-6 md:p-8 border shadow-2xl bg-secondary-foreground border-secondary border-solid">
               {/* Badge */}
               <div className="text-center mb-4">
                 <span className="inline-block py-2 px-4 text-secondary rounded-full text-xs md:text-sm font-semibold bg-primary-foreground">
@@ -107,7 +107,7 @@ const Index: React.FC = () => {
               <div className="absolute -inset-2 md:-inset-4 bg-gradient-to-b from-blue-500/30 via-transparent to-purple-600/30 rounded-[1.25rem] md:rounded-[2rem] blur-xl" />
               
               {/* Device frame */}
-              <div className="relative bg-[#0d1320]/95 backdrop-blur-md rounded-[1.25rem] md:rounded-[2rem] p-3 md:p-4 border border-white/10 shadow-2xl">
+              <div className="relative backdrop-blur-md md:rounded-[2rem] p-3 md:p-4 shadow-2xl border-0 border-primary-foreground rounded-3xl bg-secondary">
                 {/* Inner border glow */}
                 <div className="absolute inset-0 rounded-[1.25rem] md:rounded-[2rem] bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10 pointer-events-none" />
                 
