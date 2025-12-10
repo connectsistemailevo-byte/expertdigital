@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { useLocation } from '@/contexts/LocationContext';
-import { MapPin, Truck, RefreshCw, CheckCircle2, UserPlus, DollarSign, Search, Edit, ArrowLeft, Zap, Gift, AlertTriangle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { MapPin, Truck, RefreshCw, CheckCircle2, UserPlus, DollarSign, Search, Edit, ArrowLeft, Zap, Gift, AlertTriangle, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import MiniMap from '@/components/MiniMap';
@@ -52,6 +53,7 @@ type ModalMode = 'search' | 'register' | 'edit';
 
 const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ open, onOpenChange }) => {
   const { location, refreshLocation } = useLocation();
+  const navigate = useNavigate();
   const [mode, setMode] = useState<ModalMode>('search');
   const [searchPhone, setSearchPhone] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -456,10 +458,24 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
                   </p>
                 </>
               ) : subscription ? (
-                <>
-                  <p className="font-bold text-sm text-red-400">⚠️ Trial Expirado</p>
-                  <p className="text-sm text-foreground">Acesse seu painel para escolher um plano</p>
-                </>
+                <div className="flex items-center justify-between gap-2 w-full">
+                  <div>
+                    <p className="font-bold text-sm text-red-400">⚠️ Trial Expirado</p>
+                    <p className="text-sm text-foreground">Suas corridas acabaram</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-shrink-0 text-xs border-red-500/50 text-red-400 hover:bg-red-500/10"
+                    onClick={() => {
+                      onOpenChange(false);
+                      navigate('/painel-prestador');
+                    }}
+                  >
+                    <ExternalLink className="w-3 h-3 mr-1" />
+                    Planos
+                  </Button>
+                </div>
               ) : (
                 <>
                   <p className="font-bold text-sm text-amber-400">⏳ Carregando informações...</p>
