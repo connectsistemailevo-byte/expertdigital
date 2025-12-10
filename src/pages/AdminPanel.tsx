@@ -46,12 +46,15 @@ import {
   MapPin,
   TrendingUp,
   Ban,
+  Palette,
 } from 'lucide-react';
+import BrandingManager from '@/components/admin/BrandingManager';
 
 interface ProviderWithSubscription {
   id: string;
   name: string;
   whatsapp: string;
+  slug: string | null;
   address: string | null;
   region: string | null;
   created_at: string;
@@ -545,6 +548,17 @@ export default function AdminPanel() {
             )}
           </CardContent>
         </Card>
+
+        {/* Branding Manager */}
+        <BrandingManager 
+          providers={providers.map(p => ({
+            id: p.id,
+            name: p.name,
+            whatsapp: p.whatsapp,
+            slug: p.slug,
+          }))}
+          onUpdate={loadProviders}
+        />
       </div>
 
       {/* Modal: Set Trial Rides */}

@@ -34,7 +34,7 @@ serve(async (req) => {
         // Buscar providers
         const { data: providers, error: provError } = await supabaseClient
           .from('providers')
-          .select('id, name, whatsapp, address, region, created_at')
+          .select('id, name, whatsapp, slug, address, region, created_at')
           .order('created_at', { ascending: false });
 
         if (provError) throw provError;
