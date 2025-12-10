@@ -3,8 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { useLocation } from '@/contexts/LocationContext';
-import { MapPin, Truck, RefreshCw, CheckCircle2, UserPlus, DollarSign, Search, Edit, ArrowLeft } from 'lucide-react';
+import { MapPin, Truck, RefreshCw, CheckCircle2, UserPlus, DollarSign, Search, Edit, ArrowLeft, Zap, Gift } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import MiniMap from '@/components/MiniMap';
@@ -180,7 +181,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
         toast.success('Cadastro atualizado com sucesso!');
       } else {
         // Create new provider
-        const { error } = await supabase.from('providers').insert({
+        const { data: newProvider, error } = await supabase.from('providers').insert({
           name,
           whatsapp,
           has_patins: hasPatins,
@@ -192,12 +193,29 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
           base_price: parseFloat(basePrice) || 50,
           price_per_km: parseFloat(pricePerKm) || 5,
           patins_extra_price: parseFloat(patinsExtraPrice) || 30,
-        });
+        }).select().single();
 
         if (error) throw error;
 
+        // Criar subscription com trial automaticamente
+        if (newProvider) {
+          const { error: subError } = await supabase.from('provider_subscriptions').insert({
+            provider_id: newProvider.id,
+            trial_ativo: true,
+            trial_corridas_restantes: 10,
+            corridas_usadas: 0,
+            adesao_paga: false,
+            limite_corridas: 0,
+            mensalidade_atual: 0,
+          });
+
+          if (subError) {
+            console.error('Error creating subscription:', subError);
+          }
+        }
+
         toast.success('Cadastro realizado com sucesso!', {
-          description: 'Você já está disponível para receber solicitações na sua região.',
+          description: 'Você ganhou 10 corridas GRÁTIS para testar o sistema!',
         });
       }
 
@@ -222,6 +240,21 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
         <p className="text-xs sm:text-sm text-muted-foreground">
           Digite seu WhatsApp para acessar ou criar seu cadastro
         </p>
+      </div>
+
+      {/* Trial Banner */}
+      <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl p-3 sm:p-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+            <Gift className="w-5 h-5 text-green-500" />
+          </div>
+          <div>
+            <p className="font-semibold text-sm text-green-400">Teste Grátis!</p>
+            <p className="text-xs text-muted-foreground">
+              Novos prestadores ganham <span className="text-green-400 font-bold">10 corridas GRÁTIS</span> para testar
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-3 sm:space-y-4">
