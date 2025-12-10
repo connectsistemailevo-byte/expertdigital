@@ -117,27 +117,22 @@ const RequestPanel: React.FC = () => {
       <div className="p-3 md:p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           
-          {/* Column 1: Map + Location + Destination + Name/Phone */}
+          {/* Column 1: Inputs on TOP, Map below */}
           <div className="space-y-3">
-            {/* Map */}
-            <div className="rounded-xl overflow-hidden border border-border shadow-md">
-              <MiniMap className="h-24 w-full" />
-              <div className="p-2 bg-muted">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                    <Navigation className="w-3.5 h-3.5 text-secondary-foreground" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] text-muted-foreground">Sua localização</p>
-                    <p className="text-xs font-medium truncate">
-                      {location.loading ? 'Buscando...' : location.error || location.address}
-                    </p>
-                  </div>
-                  <Button variant="ghost" size="icon" onClick={refreshLocation} className="shrink-0 h-6 w-6" disabled={location.loading}>
-                    <RefreshCw className={`w-3 h-3 ${location.loading ? 'animate-spin' : ''}`} />
-                  </Button>
-                </div>
+            {/* Location display - compact */}
+            <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+              <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                <Navigation className="w-3 h-3 text-secondary-foreground" />
               </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] text-muted-foreground">Sua localização</p>
+                <p className="text-xs font-medium truncate">
+                  {location.loading ? 'Buscando...' : location.error || location.address}
+                </p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={refreshLocation} className="shrink-0 h-6 w-6" disabled={location.loading}>
+                <RefreshCw className={`w-3 h-3 ${location.loading ? 'animate-spin' : ''}`} />
+              </Button>
             </div>
 
             {/* Destination */}
@@ -165,6 +160,11 @@ const RequestPanel: React.FC = () => {
                 <label className="block text-xs font-medium mb-1">WhatsApp *</label>
                 <Input placeholder="(00) 00000-0000" value={phone} onChange={handlePhoneChange} maxLength={15} className="h-9 text-sm" />
               </div>
+            </div>
+
+            {/* Map - compact at bottom */}
+            <div className="rounded-lg overflow-hidden border border-border shadow-sm">
+              <MiniMap className="h-16 w-full" />
             </div>
           </div>
 
