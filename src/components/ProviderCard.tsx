@@ -43,12 +43,12 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
       
       <div className="flex items-start gap-2 text-secondary-foreground">
         <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-secondary text-secondary-foreground' : 'bg-muted'}`}>
-          <Truck className="w-5 h-5" />
+          <Truck className="w-5 h-5 bg-primary text-primary" />
         </div>
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="font-semibold text-sm truncate">{provider.name}</h4>
+            <h4 className="font-semibold text-sm truncate text-current">{provider.name}</h4>
             <div className="flex items-center gap-1.5 shrink-0">
               <span className="text-[9px] px-1 py-0.5 rounded bg-green-300 text-secondary-foreground">
                 R${provider.base_price?.toFixed(0) || 50} + R${provider.price_per_km?.toFixed(2) || '5.00'}/km
@@ -85,7 +85,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                   R$ {tripPrice.toFixed(2)}
                 </span>
               </div>
-            </div> : <div className="flex items-center gap-1 mt-1.5 p-1.5 bg-muted/50 rounded-md">
+            </div> : <div className="flex items-center gap-1 mt-1.5 p-1.5 rounded-md bg-primary-foreground">
               <Route className="w-3 h-3 text-green-600" />
               <span className="text-[10px] font-bold text-secondary-foreground">
                 Informe o destino para ver o valor
@@ -97,10 +97,10 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
             </p>}
           
           <div className="flex flex-wrap gap-1 mt-1.5">
-            {provider.has_patins && <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-400 text-secondary-foreground">
+            {provider.has_patins && <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium text-secondary-foreground bg-secondary">
                 Patins
               </span>}
-            {provider.service_types.slice(0, 2).map(type => <span key={type} className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium text-secondary-foreground bg-primary-foreground">
+            {provider.service_types.slice(0, 2).map(type => <span key={type} className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium text-secondary-foreground bg-secondary">
                 {serviceLabels[type] || type}
               </span>)}
           </div>

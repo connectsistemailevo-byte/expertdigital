@@ -401,7 +401,7 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
           <div className="space-y-3">
             {/* Providers - Ocultar se hideProviderSelection for true */}
             {!hideProviderSelection && <div>
-                <label className="flex items-center gap-1 text-xs mb-2 font-bold text-primary-foreground bg-green-800">
+                <label className="flex items-center gap-1 text-xs mb-2 text-primary-foreground bg-sidebar-ring font-extrabold">
                   <Users className="w-3 h-3" />
                                Selecionar  Prestadores disponíveis
                 </label>
@@ -411,7 +411,7 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
                     <Users className="w-6 h-6 text-muted-foreground mx-auto mb-1" />
                     <p className="text-xs text-muted-foreground">Nenhum prestador na região</p>
                   </div> : <div className="space-y-1.5 max-h-[140px] overflow-y-auto">
-                    {providers.slice(0, 4).map(provider => <ProviderCard key={provider.id} provider={provider} isSelected={selectedProvider?.id === provider.id} onSelect={() => setSelectedProvider(provider)} needsPatins={needsPatins} tripDistanceKm={tripDistanceKm} className="bg-secondary" />)}
+                    {providers.slice(0, 4).map(provider => <ProviderCard key={provider.id} provider={provider} isSelected={selectedProvider?.id === provider.id} onSelect={() => setSelectedProvider(provider)} needsPatins={needsPatins} tripDistanceKm={tripDistanceKm} className="bg-green-400 hover:bg-green-300" />)}
                   </div>}
               </div>}
 
