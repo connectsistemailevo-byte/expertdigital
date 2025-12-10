@@ -9,7 +9,7 @@ import AddressAutocomplete, { DestinationCoordinates } from '@/components/Addres
 import { useProviders, Provider } from '@/hooks/useProviders';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { TrialExhaustedModal } from '@/components/TrialExhaustedModal';
+import { ProviderUnavailableModal } from '@/components/ProviderUnavailableModal';
 
 type VehicleType = 'carro' | 'moto' | 'caminhonete' | 'caminhao' | 'outros';
 type VehicleCondition = 'pane' | 'seca' | 'capotado' | 'subsolo' | 'roda_travada' | 'volante_travado' | 'precisa_patins' | 'outros';
@@ -63,9 +63,8 @@ const RequestPanel: React.FC = () => {
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethod | null>(null);
   const [isSendingToWhatsApp, setIsSendingToWhatsApp] = useState(false);
-  const [showBlockedModal, setShowBlockedModal] = useState(false);
-  const [blockedReason, setBlockedReason] = useState<'trial_exhausted' | 'limit_reached' | 'no_plan'>('trial_exhausted');
-  const [blockedMessage, setBlockedMessage] = useState('');
+  const [showUnavailableModal, setShowUnavailableModal] = useState(false);
+  const [unavailableProviderName, setUnavailableProviderName] = useState('');
 
   const needsPatins = selectedCondition ? PATINS_REQUIRED_CONDITIONS.includes(selectedCondition) : false;
   const tripDistanceKm = destinationCoords && location.latitude && location.longitude
@@ -148,14 +147,14 @@ const RequestPanel: React.FC = () => {
       if (error) throw error;
 
       if (data?.blocked) {
-        // Prestador bloqueado
-        setBlockedReason(data.reason as any);
-        setBlockedMessage(data.message || '');
-        setShowBlockedModal(true);
+        // Prestador indisponível - mostrar modal para o cliente
+        setUnavailableProviderName(selectedProvider.name);
+        setShowUnavailableModal(true);
+        setSelectedProvider(null); // Limpar seleção para escolher outro
         
         toast({
-          title: 'Prestador com limite atingido',
-          description: 'Este prestador atingiu o limite de corridas. Tente outro prestador.',
+          title: 'Prestador indisponível',
+          description: 'Por favor, escolha outro prestador da lista.',
           variant: 'destructive',
         });
         return;
@@ -454,17 +453,12 @@ const RequestPanel: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal de bloqueio */}
-      {selectedProvider && (
-        <TrialExhaustedModal
-          open={showBlockedModal}
-          onOpenChange={setShowBlockedModal}
-          providerId={selectedProvider.id}
-          whatsapp={selectedProvider.whatsapp}
-          reason={blockedReason}
-          message={blockedMessage}
-        />
-      )}
+      {/* Modal de prestador indisponível para o cliente */}
+      <ProviderUnavailableModal
+        open={showUnavailableModal}
+        onOpenChange={setShowUnavailableModal}
+        providerName={unavailableProviderName}
+      />
     </div>
   );
 };
