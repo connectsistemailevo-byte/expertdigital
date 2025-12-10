@@ -90,7 +90,7 @@ Seu Guincho    Aki 24hs
         }}>
             {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => <div key={badge} className="flex items-center gap-1.5 md:gap-2">
                 <CheckCircle className="w-3.5 h-3.5 md:w-4 md:h-4 text-secondary" />
-                <span className="md:text-sm px-[11px] text-lg text-secondary bg-transparent">{badge}</span>
+                <span className="md:text-sm px-[11px] text-lg bg-transparent text-primary-foreground">{badge}</span>
               </div>)}
           </div>
 
