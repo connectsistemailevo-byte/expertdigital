@@ -20,7 +20,6 @@ const vehicleTypes = [
   { id: 'outros' as VehicleType, label: 'Outros', icon: Car },
 ];
 
-// Conditions that require patins (additional equipment)
 const PATINS_REQUIRED_CONDITIONS: VehicleCondition[] = ['subsolo', 'roda_travada', 'volante_travado', 'precisa_patins'];
 
 const vehicleConditions = [
@@ -34,9 +33,8 @@ const vehicleConditions = [
   { id: 'outros' as VehicleCondition, label: 'Outros', icon: AlertTriangle, color: 'text-gray-500', needsPatins: false },
 ];
 
-// Calculate distance between two points using Haversine formula
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Earth's radius in km
+  const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a = 
@@ -58,17 +56,10 @@ const RequestPanel: React.FC = () => {
   const [selectedCondition, setSelectedCondition] = useState<VehicleCondition | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
 
-  // Check if selected condition requires patins
   const needsPatins = selectedCondition ? PATINS_REQUIRED_CONDITIONS.includes(selectedCondition) : false;
 
-  // Calculate trip distance (client location → destination)
   const tripDistanceKm = destinationCoords && location.latitude && location.longitude
-    ? calculateDistance(
-        location.latitude,
-        location.longitude,
-        destinationCoords.latitude,
-        destinationCoords.longitude
-      )
+    ? calculateDistance(location.latitude, location.longitude, destinationCoords.latitude, destinationCoords.longitude)
     : 0;
 
   const formatPhone = (value: string) => {
@@ -90,20 +81,14 @@ const RequestPanel: React.FC = () => {
 
   const getCurrentTime = () => {
     return new Date().toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
     });
   };
 
-  // Calculate total price based on trip distance
   const calculateTotalPrice = (provider: Provider) => {
     const basePrice = provider.base_price || 50;
     const pricePerKm = provider.price_per_km || 5;
     let total = basePrice + (tripDistanceKm * pricePerKm);
-    
     if (needsPatins && provider.has_patins) {
       total += provider.patins_extra_price || 30;
     }
@@ -115,7 +100,6 @@ const RequestPanel: React.FC = () => {
   const getWhatsAppUrl = () => {
     const vehicleLabel = vehicleTypes.find(v => v.id === selectedVehicle)?.label || '';
     const conditionLabel = vehicleConditions.find(c => c.id === selectedCondition)?.label || '';
-    
     const defaultWhatsApp = '5562994389675';
     
     let providerInfo = '';
@@ -138,288 +122,228 @@ const RequestPanel: React.FC = () => {
         `   ${tripDistanceKm.toFixed(1)} km × R$ ${pricePerKm.toFixed(2)} = R$ ${(tripDistanceKm * pricePerKm).toFixed(2)}\n` +
         (patinsPrice > 0 ? `   Patins (subsolo): R$ ${patinsPrice.toFixed(2)}\n` : '') +
         `   *TOTAL: R$ ${totalPrice.toFixed(2)}*\n`;
-    } else if (tripDistanceKm > 0) {
-      // Show estimated price range without provider selected
-      const minPrice = 50 + (tripDistanceKm * 3);
-      const maxPrice = 100 + (tripDistanceKm * 8);
-      priceInfo = `\n💰 *Valor Estimado:* R$ ${minPrice.toFixed(0)} - R$ ${maxPrice.toFixed(0)} (selecione um prestador para valor exato)\n`;
     }
     
     const messageText = 
-      `🚗 *NOVA SOLICITAÇÃO - ACHEI GUINCHO*\n\n` +
+      `🚗 *NOVA SOLICITAÇÃO - GUINCHO FÁCIL 24HS*\n\n` +
       `👤 *Cliente:* ${name}\n` +
       `📱 *WhatsApp:* ${phone}\n\n` +
       `🚙 *Tipo de Veículo:* ${vehicleLabel}\n` +
       `⚠️ *Situação:* ${conditionLabel}\n\n` +
       `📍 *Localização do Cliente (ORIGEM):*\n${location.address}\n` +
-      `🗺️ *Região:* ${location.region}\n` +
-      `📐 *Coordenadas:* ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}\n\n` +
+      `🗺️ *Região:* ${location.region}\n\n` +
       `🏁 *Destino (PARA ONDE LEVAR):*\n${destination}\n` +
-      (destinationCoords ? `📐 *Coordenadas Destino:* ${destinationCoords.latitude.toFixed(6)}, ${destinationCoords.longitude.toFixed(6)}\n` : '') +
-      tripInfo +
-      providerInfo +
-      priceInfo +
+      tripInfo + providerInfo + priceInfo +
       `\n🕐 *Horário da Solicitação:* ${getCurrentTime()}\n\n` +
-      `🔗 *Ver no Mapa (Origem):*\nhttps://www.google.com/maps?q=${location.latitude},${location.longitude}` +
-      (destinationCoords ? `\n\n🔗 *Ver no Mapa (Destino):*\nhttps://www.google.com/maps?q=${destinationCoords.latitude},${destinationCoords.longitude}` : '');
+      `🔗 *Ver no Mapa (Origem):*\nhttps://www.google.com/maps?q=${location.latitude},${location.longitude}`;
     
     const message = encodeURIComponent(messageText);
-
-    const whatsappNumber = selectedProvider 
-      ? selectedProvider.whatsapp.replace(/\D/g, '') 
-      : defaultWhatsApp;
+    const whatsappNumber = selectedProvider ? selectedProvider.whatsapp.replace(/\D/g, '') : defaultWhatsApp;
     const formattedNumber = whatsappNumber.startsWith('55') ? whatsappNumber : `55${whatsappNumber}`;
     
     return `https://api.whatsapp.com/send?phone=${formattedNumber}&text=${message}`;
   };
 
   return (
-    <div className="bg-card rounded-xl sm:rounded-2xl border border-border shadow-2xl overflow-hidden max-h-[85vh] sm:max-h-none overflow-y-auto">
+    <div className="bg-card rounded-xl border border-border shadow-2xl overflow-hidden h-full flex flex-col">
       {/* Header */}
-      <div className="bg-primary p-2 sm:p-3 text-primary-foreground sticky top-0 z-10">
+      <div className="bg-primary p-2 text-primary-foreground shrink-0">
         <div className="text-center">
-          <h2 className="text-sm sm:text-base font-display font-bold">
-            Solicitar Guincho
-          </h2>
-          <p className="text-primary-foreground/80 text-[10px] sm:text-xs">
-            Preencha os dados abaixo
-          </p>
+          <h2 className="text-sm md:text-base font-display font-bold">Solicitar Guincho</h2>
+          <p className="text-primary-foreground/80 text-[10px]">Preencha os dados abaixo</p>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-2 sm:p-3 space-y-2 sm:space-y-3">
-        {/* Map with Location - Compact */}
-        <div className="rounded-lg sm:rounded-xl overflow-hidden border border-border shadow-md">
-          <MiniMap className="h-[80px] sm:h-[100px] w-full" />
+      {/* Content - HORIZONTAL Grid Layout on desktop */}
+      <div className="p-2 md:p-3 flex-1 overflow-y-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
           
-          <div className="p-1.5 sm:p-2 bg-muted">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                <Navigation className="w-3 h-3 sm:w-4 sm:h-4 text-secondary-foreground" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[9px] sm:text-[10px] text-muted-foreground">Sua localização</p>
-                <p className="text-[10px] sm:text-xs font-medium truncate">
-                  {location.loading ? 'Buscando...' : location.error || location.address}
-                </p>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={refreshLocation}
-                className="shrink-0 h-6 w-6 sm:h-7 sm:w-7"
-                disabled={location.loading}
-              >
-                <RefreshCw className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${location.loading ? 'animate-spin' : ''}`} />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Destination Input */}
-        <div>
-          <label className="flex items-center gap-1 text-[10px] sm:text-xs font-medium mb-1">
-            <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-secondary" />
-            Para onde levar o veículo? *
-          </label>
-          <AddressAutocomplete
-            value={destination}
-            onChange={handleDestinationChange}
-            placeholder="Ex: Oficina do João, Rua das Flores, 123"
-          />
-          {tripDistanceKm > 0 && (
-            <div className="flex items-center gap-1 mt-1 text-[10px] text-green-600 dark:text-green-400">
-              <Route className="w-3 h-3" />
-              <span>Distância do trajeto: <strong>{tripDistanceKm.toFixed(1)} km</strong></span>
-            </div>
-          )}
-        </div>
-
-        {/* Personal Info - Compact */}
-        <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-          <div>
-            <label className="block text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1">Seu nome *</label>
-            <Input
-              placeholder="Nome completo"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="h-8 sm:h-9 text-xs sm:text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1">WhatsApp *</label>
-            <Input
-              placeholder="(00) 00000-0000"
-              value={phone}
-              onChange={handlePhoneChange}
-              maxLength={15}
-              className="h-8 sm:h-9 text-xs sm:text-sm"
-            />
-          </div>
-        </div>
-
-        {/* Vehicle Type - Compact */}
-        <div>
-          <label className="block text-[10px] sm:text-xs font-medium mb-1 sm:mb-2">Tipo de veículo *</label>
-          <div className="grid grid-cols-5 gap-0.5 sm:gap-1">
-            {vehicleTypes.map((vehicle) => {
-              const Icon = vehicle.icon;
-              const isSelected = selectedVehicle === vehicle.id;
-              return (
-                <button
-                  key={vehicle.id}
-                  onClick={() => setSelectedVehicle(vehicle.id)}
-                  className={`relative flex flex-col items-center gap-0.5 sm:gap-1 p-1 sm:p-2 rounded-md sm:rounded-lg border-2 transition-all duration-200 ${
-                    isSelected
-                      ? 'border-secondary bg-secondary/10'
-                      : 'border-border hover:border-secondary/50 hover:bg-muted'
-                  }`}
-                >
-                  <div className={`w-5 h-5 sm:w-7 sm:h-7 rounded-full flex items-center justify-center ${
-                    isSelected ? 'bg-secondary text-secondary-foreground' : 'bg-muted'
-                  }`}>
-                    <Icon className="w-3 h-3 sm:w-4 sm:h-4" />
+          {/* Column 1: Map + Location + Destination + Name/Phone */}
+          <div className="space-y-2">
+            {/* Map */}
+            <div className="rounded-lg overflow-hidden border border-border">
+              <MiniMap className="h-[60px] md:h-[70px] w-full" />
+              <div className="p-1.5 bg-muted">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-5 h-5 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                    <Navigation className="w-2.5 h-2.5 text-secondary-foreground" />
                   </div>
-                  <span className="font-medium text-[8px] sm:text-[10px] text-center leading-tight">{vehicle.label}</span>
-                  {isSelected && (
-                    <CheckCircle2 className="w-2 h-2 sm:w-3 sm:h-3 text-secondary absolute top-0 right-0" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Vehicle Condition - Compact */}
-        <div>
-          <label className="block text-[10px] sm:text-xs font-medium mb-1 sm:mb-2">Situação do veículo *</label>
-          <div className="grid grid-cols-4 gap-0.5 sm:gap-1">
-            {vehicleConditions.map((condition) => {
-              const Icon = condition.icon;
-              const isSelected = selectedCondition === condition.id;
-              return (
-                <button
-                  key={condition.id}
-                  onClick={() => setSelectedCondition(condition.id)}
-                  className={`relative flex flex-col items-center gap-0.5 p-1 sm:p-1.5 rounded-md sm:rounded-lg border-2 transition-all duration-200 ${
-                    isSelected
-                      ? 'border-secondary bg-secondary/10'
-                      : 'border-border hover:border-secondary/50 hover:bg-muted'
-                  }`}
-                >
-                  <Icon className={`w-3 h-3 sm:w-4 sm:h-4 ${condition.color} shrink-0`} />
-                  <span className="font-medium text-[7px] sm:text-[9px] text-center leading-tight">{condition.label}</span>
-                  {condition.needsPatins && (
-                    <span className="text-[6px] sm:text-[7px] text-cyan-600 dark:text-cyan-400 font-medium">+patins</span>
-                  )}
-                  {isSelected && (
-                    <CheckCircle2 className="w-2 h-2 sm:w-3 sm:h-3 text-secondary absolute top-0 right-0" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-          {needsPatins && (
-            <div className="mt-1.5 p-1.5 rounded-md bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800">
-              <p className="text-[9px] sm:text-[10px] text-cyan-700 dark:text-cyan-300 flex items-center gap-1">
-                <Building2 className="w-3 h-3" />
-                <span><strong>Patins necessários:</strong> Será adicionado valor extra conforme tabela do prestador</span>
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Available Providers - Compact */}
-        <div>
-          <label className="flex items-center gap-1 text-[10px] sm:text-xs font-medium mb-1 sm:mb-2">
-            <Users className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-            Prestadores disponíveis
-          </label>
-          {providersLoading ? (
-            <div className="flex items-center justify-center py-3 sm:py-4">
-              <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin text-muted-foreground" />
-            </div>
-          ) : providers.length === 0 ? (
-            <div className="text-center py-2 sm:py-3 px-2 sm:px-3 bg-muted rounded-lg">
-              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground mx-auto mb-1" />
-              <p className="text-[9px] sm:text-[10px] text-muted-foreground">
-                Nenhum prestador na região
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-1 sm:gap-1.5 max-h-[140px] sm:max-h-[180px] overflow-y-auto pr-1">
-              {providers.slice(0, 5).map((provider) => (
-                <ProviderCard
-                  key={provider.id}
-                  provider={provider}
-                  isSelected={selectedProvider?.id === provider.id}
-                  onSelect={() => setSelectedProvider(provider)}
-                  needsPatins={needsPatins}
-                  tripDistanceKm={tripDistanceKm}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Selected Provider Price Summary */}
-        {selectedProvider && tripDistanceKm > 0 && (
-          <div className="flex items-center justify-between p-2 sm:p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
-            <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-1.5">
-                <Route className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
-                <span className="text-[10px] sm:text-xs font-medium text-green-700 dark:text-green-400">
-                  Trajeto: {tripDistanceKm.toFixed(1)} km
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
-                <span className="text-[10px] sm:text-xs font-medium text-green-700 dark:text-green-400">
-                  Valor estimado:
-                </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[8px] text-muted-foreground">Sua localização</p>
+                    <p className="text-[9px] font-medium truncate">
+                      {location.loading ? 'Buscando...' : location.error || location.address}
+                    </p>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={refreshLocation} className="shrink-0 h-5 w-5" disabled={location.loading}>
+                    <RefreshCw className={`w-2 h-2 ${location.loading ? 'animate-spin' : ''}`} />
+                  </Button>
+                </div>
               </div>
             </div>
-            <span className="text-base sm:text-lg font-bold text-green-700 dark:text-green-400">
-              R$ {calculateTotalPrice(selectedProvider).toFixed(2)}
-            </span>
-          </div>
-        )}
 
-        {/* Submit Button - Always visible */}
-        {!canSubmit && (
-          <p className="text-[9px] text-amber-600 dark:text-amber-400 text-center">
-            {!destination || destination.trim().length < 3 ? '⚠️ Informe o destino' : 
-             !name || name.trim().length < 2 ? '⚠️ Informe seu nome' :
-             !phone || phone.replace(/\D/g, '').length < 10 ? '⚠️ Informe seu WhatsApp' :
-             !selectedVehicle ? '⚠️ Selecione o tipo de veículo' :
-             !selectedCondition ? '⚠️ Selecione a situação' : ''}
-          </p>
-        )}
-        
-        {canSubmit ? (
-          <a
-            href={getWhatsAppUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full h-12 rounded-lg font-bold text-base bg-green-600 text-white hover:bg-green-700 active:bg-green-800 cursor-pointer shadow-lg"
-          >
-            <MessageCircle className="w-5 h-5" />
-            ENVIAR PARA WHATSAPP
-          </a>
-        ) : (
-          <div className="flex items-center justify-center gap-2 w-full h-10 rounded-lg font-semibold text-sm bg-muted text-muted-foreground cursor-not-allowed">
-            <MessageCircle className="w-4 h-4" />
-            Preencha todos os campos
-          </div>
-        )}
+            {/* Destination */}
+            <div>
+              <label className="flex items-center gap-1 text-[9px] font-medium mb-0.5">
+                <MapPin className="w-2 h-2 text-secondary" />
+                Para onde levar? *
+              </label>
+              <AddressAutocomplete value={destination} onChange={handleDestinationChange} placeholder="Ex: Oficina, Rua..." />
+              {tripDistanceKm > 0 && (
+                <div className="flex items-center gap-1 mt-0.5 text-[8px] text-green-600">
+                  <Route className="w-2 h-2" />
+                  <span>Distância: <strong>{tripDistanceKm.toFixed(1)} km</strong></span>
+                </div>
+              )}
+            </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-center gap-1 pt-1.5 sm:pt-2 border-t border-border">
-          <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground" />
-          <span className="text-[9px] sm:text-[10px] text-muted-foreground">
-            Atendimento 24h em todo o Brasil
-          </span>
+            {/* Name/Phone */}
+            <div className="grid grid-cols-2 gap-1">
+              <div>
+                <label className="block text-[9px] font-medium mb-0.5">Seu nome *</label>
+                <Input placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} className="h-6 text-[10px]" />
+              </div>
+              <div>
+                <label className="block text-[9px] font-medium mb-0.5">WhatsApp *</label>
+                <Input placeholder="(00) 00000-0000" value={phone} onChange={handlePhoneChange} maxLength={15} className="h-6 text-[10px]" />
+              </div>
+            </div>
+          </div>
+
+          {/* Column 2: Vehicle Type + Condition */}
+          <div className="space-y-2">
+            {/* Vehicle Type */}
+            <div>
+              <label className="block text-[9px] font-medium mb-1">Tipo de veículo *</label>
+              <div className="grid grid-cols-5 gap-0.5">
+                {vehicleTypes.map((vehicle) => {
+                  const Icon = vehicle.icon;
+                  const isSelected = selectedVehicle === vehicle.id;
+                  return (
+                    <button
+                      key={vehicle.id}
+                      onClick={() => setSelectedVehicle(vehicle.id)}
+                      className={`relative flex flex-col items-center gap-0.5 p-1 rounded-md border-2 transition-all ${
+                        isSelected ? 'border-secondary bg-secondary/10' : 'border-border hover:border-secondary/50'
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded-full flex items-center justify-center ${isSelected ? 'bg-secondary text-secondary-foreground' : 'bg-muted'}`}>
+                        <Icon className="w-2.5 h-2.5" />
+                      </div>
+                      <span className="font-medium text-[7px] text-center leading-tight">{vehicle.label}</span>
+                      {isSelected && <CheckCircle2 className="w-2 h-2 text-secondary absolute top-0 right-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Vehicle Condition */}
+            <div>
+              <label className="block text-[9px] font-medium mb-1">Situação do veículo *</label>
+              <div className="grid grid-cols-4 gap-0.5">
+                {vehicleConditions.map((condition) => {
+                  const Icon = condition.icon;
+                  const isSelected = selectedCondition === condition.id;
+                  return (
+                    <button
+                      key={condition.id}
+                      onClick={() => setSelectedCondition(condition.id)}
+                      className={`relative flex flex-col items-center gap-0.5 p-1 rounded-md border-2 transition-all ${
+                        isSelected ? 'border-secondary bg-secondary/10' : 'border-border hover:border-secondary/50'
+                      }`}
+                    >
+                      <Icon className={`w-2.5 h-2.5 ${condition.color}`} />
+                      <span className="font-medium text-[6px] text-center leading-tight">{condition.label}</span>
+                      {condition.needsPatins && <span className="text-[5px] text-cyan-600">+patins</span>}
+                      {isSelected && <CheckCircle2 className="w-2 h-2 text-secondary absolute top-0 right-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Column 3: Providers + Submit */}
+          <div className="space-y-2">
+            {/* Providers */}
+            <div>
+              <label className="flex items-center gap-1 text-[9px] font-medium mb-1">
+                <Users className="w-2 h-2" />
+                Prestadores disponíveis
+              </label>
+              {providersLoading ? (
+                <div className="flex items-center justify-center py-2">
+                  <RefreshCw className="w-4 h-4 animate-spin text-muted-foreground" />
+                </div>
+              ) : providers.length === 0 ? (
+                <div className="text-center py-2 bg-muted rounded-lg">
+                  <Users className="w-4 h-4 text-muted-foreground mx-auto mb-0.5" />
+                  <p className="text-[8px] text-muted-foreground">Nenhum prestador na região</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-1 max-h-[100px] overflow-y-auto">
+                  {providers.slice(0, 3).map((provider) => (
+                    <ProviderCard
+                      key={provider.id}
+                      provider={provider}
+                      isSelected={selectedProvider?.id === provider.id}
+                      onSelect={() => setSelectedProvider(provider)}
+                      needsPatins={needsPatins}
+                      tripDistanceKm={tripDistanceKm}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Price Summary */}
+            {selectedProvider && tripDistanceKm > 0 && (
+              <div className="flex items-center justify-between p-1.5 bg-green-50 dark:bg-green-950/30 rounded-md border border-green-200 dark:border-green-800">
+                <div className="flex items-center gap-1">
+                  <DollarSign className="w-3 h-3 text-green-600" />
+                  <span className="text-[9px] font-medium text-green-700 dark:text-green-400">Valor estimado:</span>
+                </div>
+                <span className="text-sm font-bold text-green-700 dark:text-green-400">
+                  R$ {calculateTotalPrice(selectedProvider).toFixed(2)}
+                </span>
+              </div>
+            )}
+
+            {/* Validation Message */}
+            {!canSubmit && (
+              <p className="text-[8px] text-amber-600 text-center">
+                {!destination ? '⚠️ Informe o destino' : 
+                 !name ? '⚠️ Informe seu nome' :
+                 !phone || phone.replace(/\D/g, '').length < 10 ? '⚠️ Informe seu WhatsApp' :
+                 !selectedVehicle ? '⚠️ Selecione o veículo' :
+                 !selectedCondition ? '⚠️ Selecione a situação' : ''}
+              </p>
+            )}
+
+            {/* Submit Button */}
+            {canSubmit ? (
+              <a
+                href={getWhatsAppUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1.5 w-full h-8 rounded-lg font-bold text-xs bg-green-600 text-white hover:bg-green-700 shadow-lg"
+              >
+                <MessageCircle className="w-4 h-4" />
+                ENVIAR PARA WHATSAPP
+              </a>
+            ) : (
+              <div className="flex items-center justify-center gap-1.5 w-full h-8 rounded-lg font-semibold text-xs bg-muted text-muted-foreground cursor-not-allowed">
+                <MessageCircle className="w-3 h-3" />
+                Preencha todos os campos
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="flex items-center justify-center gap-1 pt-1 border-t border-border">
+              <Clock className="w-2 h-2 text-muted-foreground" />
+              <span className="text-[8px] text-muted-foreground">Atendimento 24h em todo o Brasil</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
