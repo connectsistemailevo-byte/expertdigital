@@ -14,6 +14,150 @@ export type Database = {
   }
   public: {
     Tables: {
+      provider_customization: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          custom_domain: string | null
+          id: string
+          logo_url: string | null
+          primary_color: string | null
+          provider_id: string
+          secondary_color: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          custom_domain?: string | null
+          id?: string
+          logo_url?: string | null
+          primary_color?: string | null
+          provider_id: string
+          secondary_color?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          custom_domain?: string | null
+          id?: string
+          logo_url?: string | null
+          primary_color?: string | null
+          provider_id?: string
+          secondary_color?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_customization_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: true
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      provider_payments: {
+        Row: {
+          created_at: string
+          id: string
+          provider_id: string
+          status: string
+          stripe_payment_intent_id: string | null
+          tipo: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          provider_id: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          tipo: string
+          valor: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          provider_id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          tipo?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_payments_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      provider_subscriptions: {
+        Row: {
+          adesao_paga: boolean
+          adesao_paga_em: string | null
+          corridas_usadas: number
+          created_at: string
+          id: string
+          limite_corridas: number | null
+          mensalidade_atual: number | null
+          plano: Database["public"]["Enums"]["provider_plan"] | null
+          provider_id: string
+          proxima_cobranca: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          trial_ativo: boolean
+          trial_corridas_restantes: number
+          updated_at: string
+        }
+        Insert: {
+          adesao_paga?: boolean
+          adesao_paga_em?: string | null
+          corridas_usadas?: number
+          created_at?: string
+          id?: string
+          limite_corridas?: number | null
+          mensalidade_atual?: number | null
+          plano?: Database["public"]["Enums"]["provider_plan"] | null
+          provider_id: string
+          proxima_cobranca?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ativo?: boolean
+          trial_corridas_restantes?: number
+          updated_at?: string
+        }
+        Update: {
+          adesao_paga?: boolean
+          adesao_paga_em?: string | null
+          corridas_usadas?: number
+          created_at?: string
+          id?: string
+          limite_corridas?: number | null
+          mensalidade_atual?: number | null
+          plano?: Database["public"]["Enums"]["provider_plan"] | null
+          provider_id?: string
+          proxima_cobranca?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ativo?: boolean
+          trial_corridas_restantes?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_subscriptions_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: true
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       providers: {
         Row: {
           address: string | null
@@ -73,7 +217,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      provider_plan: "basico" | "profissional" | "pro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -200,6 +344,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      provider_plan: ["basico", "profissional", "pro"],
+    },
   },
 } as const
