@@ -557,77 +557,77 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
       </div>
 
       {/* Personal Info */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="min-w-0">
           <label className="block text-sm font-semibold mb-1.5 text-foreground">Nome *</label>
           <Input
             placeholder="Seu nome"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="h-10 text-base font-medium"
+            className="h-10 text-base font-medium w-full"
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="block text-sm font-semibold mb-1.5 text-foreground">WhatsApp *</label>
           <Input
             placeholder="(00) 00000-0000"
             value={whatsapp}
             onChange={(e) => handlePhoneChange(e)}
             maxLength={15}
-            className="h-10 text-base font-medium"
+            className="h-10 text-base font-medium w-full"
           />
         </div>
       </div>
 
       {/* Pricing Section - Enhanced visibility */}
-      <div className="p-4 rounded-xl border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-emerald-500/5">
+      <div className="p-3 sm:p-4 rounded-xl border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-emerald-500/5 overflow-hidden">
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
             <DollarSign className="w-4 h-4 text-green-400" />
           </div>
-          <span className="text-base font-bold text-foreground">Tabela de Preços</span>
+          <span className="text-sm sm:text-base font-bold text-foreground">Tabela de Preços</span>
         </div>
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <label className="block text-xs font-semibold text-foreground mb-1">Valor Base</label>
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="min-w-0">
+            <label className="block text-[10px] sm:text-xs font-semibold text-foreground mb-1">Valor Base</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-green-400">R$</span>
+              <span className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-bold text-green-400">R$</span>
               <Input
                 type="number"
                 placeholder="50"
                 value={basePrice}
                 onChange={(e) => setBasePrice(e.target.value)}
-                className="h-10 text-base font-bold pl-10"
+                className="h-9 sm:h-10 text-sm sm:text-base font-bold pl-8 sm:pl-10 w-full"
                 min="0"
                 step="0.01"
               />
             </div>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-foreground mb-1">Por KM</label>
+          <div className="min-w-0">
+            <label className="block text-[10px] sm:text-xs font-semibold text-foreground mb-1">Por KM</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-green-400">R$</span>
+              <span className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-bold text-green-400">R$</span>
               <Input
                 type="number"
                 placeholder="5"
                 value={pricePerKm}
                 onChange={(e) => setPricePerKm(e.target.value)}
-                className="h-10 text-base font-bold pl-10"
+                className="h-9 sm:h-10 text-sm sm:text-base font-bold pl-8 sm:pl-10 w-full"
                 min="0"
                 step="0.01"
               />
             </div>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-foreground mb-1">+ Patins</label>
+          <div className="min-w-0">
+            <label className="block text-[10px] sm:text-xs font-semibold text-foreground mb-1">+ Patins</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-green-400">R$</span>
+              <span className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-bold text-green-400">R$</span>
               <Input
                 type="number"
                 placeholder="30"
                 value={patinsExtraPrice}
                 onChange={(e) => setPatinsExtraPrice(e.target.value)}
-                className="h-10 text-base font-bold pl-10"
+                className="h-9 sm:h-10 text-sm sm:text-base font-bold pl-8 sm:pl-10 w-full"
                 min="0"
                 step="0.01"
               />
@@ -637,16 +637,16 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
       </div>
 
       {/* Has Patins */}
-      <div className="flex items-center space-x-3 p-3 rounded-xl border-2 border-border bg-muted/50">
+      <div className="flex items-start space-x-3 p-3 rounded-xl border-2 border-border bg-muted/50">
         <Checkbox
           id="hasPatins"
           checked={hasPatins}
           onCheckedChange={(checked) => setHasPatins(checked === true)}
-          className="w-5 h-5"
+          className="w-5 h-5 flex-shrink-0 mt-0.5"
         />
         <label
           htmlFor="hasPatins"
-          className="text-sm font-semibold cursor-pointer text-foreground"
+          className="text-xs sm:text-sm font-semibold cursor-pointer text-foreground leading-tight"
         >
           Possui patins para remoção de veículos travados
         </label>
@@ -708,7 +708,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[500px] max-h-[85vh] overflow-y-auto bg-card border-border p-0 animate-scale-in mx-auto">
+      <DialogContent className="w-[95vw] max-w-[500px] max-h-[90vh] overflow-y-auto overflow-x-hidden bg-card border-border p-0 animate-scale-in mx-auto">
         {/* Header */}
         <div className="bg-primary p-3 text-primary-foreground sticky top-0 z-10">
           <DialogHeader>
