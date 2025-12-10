@@ -85,9 +85,9 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                   R$ {tripPrice.toFixed(2)}
                 </span>
               </div>
-            </div> : <div className="flex items-center gap-1 mt-1.5 p-1.5 rounded-md bg-primary-foreground">
-              <Route className="w-3 h-3 text-green-600" />
-              <span className="text-[10px] font-bold text-secondary-foreground">
+            </div> : <div className="flex items-center gap-1 mt-1.5 p-1.5 rounded-md text-primary-foreground bg-rose-500">
+              <Route className="w-3 h-3 text-primary" />
+              <span className="text-[10px] font-bold text-primary-foreground">
                 Informe o destino para ver o valor
               </span>
             </div>}
@@ -100,7 +100,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
             {provider.has_patins && <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium text-secondary-foreground bg-secondary">
                 Patins
               </span>}
-            {provider.service_types.slice(0, 2).map(type => <span key={type} className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium text-secondary-foreground bg-secondary">
+            {provider.service_types.slice(0, 2).map(type => <span key={type} className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-secondary text-secondary-foreground">
                 {serviceLabels[type] || type}
               </span>)}
           </div>
