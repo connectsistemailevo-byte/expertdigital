@@ -114,18 +114,25 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
 
     setIsSearching(true);
     try {
-      const { data, error } = await supabase
+      // Buscar prestador por diferentes formatos de telefone
+      // Usar limit(1) ao invés de maybeSingle() para evitar erro quando há duplicados
+      const { data: providers, error } = await supabase
         .from('providers')
         .select('*')
-        .or(`whatsapp.eq.${searchPhone},whatsapp.eq.${cleanPhone},whatsapp.eq.55${cleanPhone}`)
-        .maybeSingle();
+        .or(`whatsapp.eq.${searchPhone},whatsapp.eq.${cleanPhone},whatsapp.eq.55${cleanPhone},whatsapp.ilike.%${cleanPhone.slice(-8)}%`)
+        .order('created_at', { ascending: false })
+        .limit(1);
 
       if (error) throw error;
 
+      const data = providers && providers.length > 0 ? providers[0] : null;
+
       if (data) {
         const providerData = data as ProviderData;
+        console.log('Provider found:', providerData);
         setExistingProvider(providerData);
-        // Populate form with existing data
+        
+        // Populate form with existing data from database
         setName(providerData.name);
         setWhatsapp(providerData.whatsapp);
         setHasPatins(providerData.has_patins);
@@ -139,14 +146,17 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
           .from('provider_subscriptions')
           .select('*')
           .eq('provider_id', providerData.id)
-          .maybeSingle();
+          .limit(1);
         
-        if (subData) {
-          setSubscription(subData as SubscriptionData);
+        if (subData && subData.length > 0) {
+          console.log('Subscription found:', subData[0]);
+          setSubscription(subData[0] as SubscriptionData);
+        } else {
+          setSubscription(null);
         }
         
         setMode('edit');
-        toast.success('Cadastro encontrado!');
+        toast.success(`Bem-vindo de volta, ${providerData.name}!`);
       } else {
         // No provider found, go to registration
         setWhatsapp(searchPhone);
