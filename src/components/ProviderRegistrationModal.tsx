@@ -214,6 +214,22 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
 
         toast.success('Cadastro atualizado com sucesso!');
       } else {
+        // Verificar se já existe um prestador com este WhatsApp antes de criar
+        const cleanPhone = whatsapp.replace(/\D/g, '');
+        const { data: existingCheck } = await supabase
+          .from('providers')
+          .select('id, name')
+          .or(`whatsapp.eq.${whatsapp},whatsapp.eq.${cleanPhone},whatsapp.ilike.%${cleanPhone.slice(-8)}%`)
+          .limit(1);
+
+        if (existingCheck && existingCheck.length > 0) {
+          toast.error('Este número de WhatsApp já está cadastrado!', {
+            description: `Prestador: ${existingCheck[0].name}. Use a busca para acessar seu cadastro.`,
+          });
+          setIsLoading(false);
+          return;
+        }
+
         // Create new provider
         const { data: newProvider, error } = await supabase.from('providers').insert({
           name,
@@ -229,7 +245,17 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
           patins_extra_price: parseFloat(patinsExtraPrice) || 30,
         }).select().single();
 
-        if (error) throw error;
+        if (error) {
+          // Verificar se é erro de duplicidade
+          if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
+            toast.error('Este número de WhatsApp já está cadastrado!', {
+              description: 'Use a busca para acessar seu cadastro existente.',
+            });
+            setIsLoading(false);
+            return;
+          }
+          throw error;
+        }
 
         // Criar subscription com trial automaticamente
         if (newProvider) {
