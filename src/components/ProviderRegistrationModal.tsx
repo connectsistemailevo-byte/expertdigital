@@ -400,64 +400,69 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
         Voltar
       </button>
 
-      {/* Trial/Subscription Banner */}
-      {mode === 'edit' && subscription && (
+      {/* Trial/Subscription Banner - Sempre mostra no modo edit */}
+      {mode === 'edit' && (
         <div className={`rounded-xl p-3 border ${
-          subscription.trial_ativo 
-            ? subscription.trial_corridas_restantes <= 3 
+          subscription?.trial_ativo 
+            ? (subscription?.trial_corridas_restantes ?? 0) <= 3 
               ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-amber-500/40'
               : 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/40'
-            : subscription.adesao_paga
+            : subscription?.adesao_paga
               ? 'bg-gradient-to-r from-blue-500/20 to-indigo-500/20 border-blue-500/40'
               : 'bg-gradient-to-r from-red-500/20 to-rose-500/20 border-red-500/40'
         }`}>
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-              subscription.trial_ativo 
-                ? subscription.trial_corridas_restantes <= 3 ? 'bg-amber-500/30' : 'bg-green-500/30'
-                : subscription.adesao_paga ? 'bg-blue-500/30' : 'bg-red-500/30'
+              subscription?.trial_ativo 
+                ? (subscription?.trial_corridas_restantes ?? 0) <= 3 ? 'bg-amber-500/30' : 'bg-green-500/30'
+                : subscription?.adesao_paga ? 'bg-blue-500/30' : 'bg-red-500/30'
             }`}>
-              {subscription.trial_ativo ? (
-                subscription.trial_corridas_restantes <= 3 ? (
+              {subscription?.trial_ativo ? (
+                (subscription?.trial_corridas_restantes ?? 0) <= 3 ? (
                   <AlertTriangle className="w-5 h-5 text-amber-400" />
                 ) : (
                   <Gift className="w-5 h-5 text-green-400" />
                 )
-              ) : subscription.adesao_paga ? (
+              ) : subscription?.adesao_paga ? (
                 <CheckCircle2 className="w-5 h-5 text-blue-400" />
               ) : (
                 <AlertTriangle className="w-5 h-5 text-red-400" />
               )}
             </div>
             <div className="flex-1">
-              {subscription.trial_ativo ? (
+              {subscription?.trial_ativo ? (
                 <>
-                  <p className={`font-bold text-sm ${subscription.trial_corridas_restantes <= 3 ? 'text-amber-400' : 'text-green-400'}`}>
-                    Período de Teste
+                  <p className={`font-bold text-sm ${(subscription?.trial_corridas_restantes ?? 0) <= 3 ? 'text-amber-400' : 'text-green-400'}`}>
+                    🎁 Período de Teste Ativo
                   </p>
-                  <p className="text-xs text-foreground">
-                    Você tem <span className={`font-bold ${subscription.trial_corridas_restantes <= 3 ? 'text-amber-400' : 'text-green-400'}`}>
-                      {subscription.trial_corridas_restantes} solicitações
-                    </span> restantes no trial
+                  <p className="text-sm text-foreground font-medium">
+                    Você tem <span className={`font-bold text-lg ${(subscription?.trial_corridas_restantes ?? 0) <= 3 ? 'text-amber-400' : 'text-green-400'}`}>
+                      {subscription?.trial_corridas_restantes ?? 0}
+                    </span> solicitações restantes no trial
                   </p>
                 </>
-              ) : subscription.adesao_paga ? (
+              ) : subscription?.adesao_paga ? (
                 <>
                   <p className="font-bold text-sm text-blue-400">
-                    Plano {subscription.plano?.charAt(0).toUpperCase()}{subscription.plano?.slice(1)}
+                    ✓ Plano {subscription?.plano?.charAt(0).toUpperCase()}{subscription?.plano?.slice(1)}
                   </p>
-                  <p className="text-xs text-foreground">
-                    {subscription.plano === 'pro' ? (
+                  <p className="text-sm text-foreground font-medium">
+                    {subscription?.plano === 'pro' ? (
                       <span className="text-blue-400 font-bold">Solicitações ilimitadas</span>
                     ) : (
-                      <>Usadas: <span className="font-bold">{subscription.corridas_usadas}</span> / {subscription.limite_corridas}</>
+                      <>Usadas: <span className="font-bold text-lg">{subscription?.corridas_usadas ?? 0}</span> / {subscription?.limite_corridas ?? 0}</>
                     )}
                   </p>
                 </>
+              ) : subscription ? (
+                <>
+                  <p className="font-bold text-sm text-red-400">⚠️ Trial Expirado</p>
+                  <p className="text-sm text-foreground">Acesse seu painel para escolher um plano</p>
+                </>
               ) : (
                 <>
-                  <p className="font-bold text-sm text-red-400">Trial Expirado</p>
-                  <p className="text-xs text-foreground">Acesse seu painel para escolher um plano</p>
+                  <p className="font-bold text-sm text-amber-400">⏳ Carregando informações...</p>
+                  <p className="text-sm text-foreground">Aguarde enquanto buscamos seus dados</p>
                 </>
               )}
             </div>
