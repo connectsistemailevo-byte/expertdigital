@@ -43,7 +43,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
       
       <div className="flex items-start gap-2 text-secondary-foreground">
         <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-secondary text-secondary-foreground' : 'bg-muted'}`}>
-          <Truck className="w-5 h-5 bg-primary text-primary" />
+          <Truck className="w-5 h-5 text-primary-foreground bg-transparent" />
         </div>
         
         <div className="flex-1 min-w-0">
