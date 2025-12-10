@@ -92,6 +92,7 @@ export default function AdminPanel() {
 
   const loadProviders = async () => {
     setLoading(true);
+    console.log('[AdminPanel] Loading providers...');
     try {
       const storedPassword = localStorage.getItem('admin_password');
       if (!storedPassword) {
@@ -108,7 +109,7 @@ export default function AdminPanel() {
 
       // Handle edge function error (non-2xx status)
       if (error) {
-        console.error('Edge function error:', error);
+        console.error('[AdminPanel] Edge function error:', error);
         // If it's an auth error, clear the password and show login
         setIsAuthenticated(false);
         localStorage.removeItem('admin_password');
@@ -126,9 +127,23 @@ export default function AdminPanel() {
         throw new Error(data.error);
       }
 
-      setProviders(data.providers || []);
+      console.log('[AdminPanel] Loaded providers:', data.providers?.length, data.providers?.map((p: any) => ({
+        name: p.name,
+        trial_restante: p.provider_subscriptions?.[0]?.trial_corridas_restantes
+      })));
+      
+      const newProviders = data.providers || [];
+      setProviders(newProviders);
+      
+      // Atualizar selectedProvider se existir para refletir os novos dados
+      if (selectedProvider) {
+        const updatedProvider = newProviders.find((p: ProviderWithSubscription) => p.id === selectedProvider.id);
+        if (updatedProvider) {
+          setSelectedProvider(updatedProvider);
+        }
+      }
     } catch (err: any) {
-      console.error('Error loading providers:', err);
+      console.error('[AdminPanel] Error loading providers:', err);
       // Clear auth on any error to allow re-login
       setIsAuthenticated(false);
       localStorage.removeItem('admin_password');
@@ -144,6 +159,7 @@ export default function AdminPanel() {
 
   const executeAction = async (action: string, providerId: string, data?: any) => {
     setActionLoading(providerId);
+    console.log('[AdminPanel] Executing action:', { action, providerId, data });
     try {
       const { data: result, error } = await supabase.functions.invoke('admin-providers', {
         body: {
@@ -154,12 +170,19 @@ export default function AdminPanel() {
         },
       });
 
+      console.log('[AdminPanel] Action result:', { result, error });
+
       if (error) throw error;
       if (result?.error) throw new Error(result.error);
 
       toast({ title: 'Ação executada com sucesso!' });
+      
+      // Força um pequeno delay antes de recarregar para garantir que o banco atualizou
+      await new Promise(resolve => setTimeout(resolve, 500));
       await loadProviders();
+      console.log('[AdminPanel] Providers reloaded after action');
     } catch (err: any) {
+      console.error('[AdminPanel] Action error:', err);
       toast({
         title: 'Erro',
         description: err.message,
@@ -558,14 +581,24 @@ export default function AdminPanel() {
             </div>
             <Button
               className="w-full bg-emerald-600 hover:bg-emerald-700"
-              onClick={() => {
+              disabled={actionLoading === selectedProvider?.id}
+              onClick={async () => {
                 if (selectedProvider) {
-                  executeAction('set_trial_rides', selectedProvider.id, { rides: parseInt(ridesInput) });
+                  const rides = parseInt(ridesInput);
+                  console.log('[AdminPanel] Saving trial rides:', { providerId: selectedProvider.id, rides });
+                  await executeAction('set_trial_rides', selectedProvider.id, { rides });
                   setShowSetRidesModal(false);
                 }
               }}
             >
-              Salvar Corridas do Trial
+              {actionLoading === selectedProvider?.id ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                'Salvar Corridas do Trial'
+              )}
             </Button>
           </div>
         </DialogContent>
