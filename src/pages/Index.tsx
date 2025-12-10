@@ -7,13 +7,13 @@ import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
 import RequestPanel from '@/components/RequestPanel';
 import { MapPin, Phone, ArrowRight, CheckCircle, Truck, Navigation, Settings, MessageCircle } from 'lucide-react';
-
 const Index: React.FC = () => {
   const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
-  const { location, mapboxToken } = useLocation();
-
-  return (
-    <div className="min-h-screen bg-[#0a0f1a]">
+  const {
+    location,
+    mapboxToken
+  } = useLocation();
+  return <div className="min-h-screen bg-[#0a0f1a]">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0f1a]/90 backdrop-blur-lg border-b border-white/10">
         <div className="container mx-auto px-4">
@@ -58,46 +58,41 @@ const Index: React.FC = () => {
             <div className="bg-[#0d1320]/95 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/10 shadow-2xl">
               {/* Badge */}
               <div className="text-center mb-4">
-                <span className="inline-block py-2 px-4 bg-secondary/20 text-secondary rounded-full text-xs md:text-sm font-semibold">
+                <span className="inline-block py-2 px-4 text-secondary rounded-full text-xs md:text-sm font-semibold bg-primary-foreground">
                   Atendimento 24h em todo o Brasil
                 </span>
               </div>
               
               {/* Title */}
-              <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-4 text-secondary">
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-center mb-4 text-secondary md:text-6xl">
                 Seu Guincho Aki 24hs
               </h1>
               
               {/* Description */}
-              <p className="text-sm md:text-base text-center text-white/80 mb-5">
+              <p className="text-sm text-center mb-5 md:text-sm text-primary-foreground font-medium">
                 Conectamos você ao guincheiro mais próximo em poucos minutos.
               </p>
               
               {/* Location Display */}
-              <div className="flex items-center justify-center gap-2 py-3 px-4 bg-white/5 rounded-xl mb-5">
+              <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl mb-5 bg-green-600 text-primary-foreground border border-primary-foreground shadow-md">
                 <MapPin className="w-4 h-4 text-secondary flex-shrink-0" />
                 <span className="font-medium text-white text-sm truncate">
-                  {location.loading ? 'Buscando sua localização...' : (location.address || location.region || 'Localização não disponível')}
+                  {location.loading ? 'Buscando sua localização...' : location.address || location.region || 'Localização não disponível'}
                 </span>
               </div>
 
               {/* Trust badges */}
               <div className="flex flex-wrap justify-center items-center gap-3 mb-5">
-                {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => (
-                  <div key={badge} className="flex items-center gap-1.5">
+                {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => <div key={badge} className="flex items-center gap-1.5">
                     <CheckCircle className="w-3.5 h-3.5 text-green-400" />
-                    <span className="text-xs text-white/70">{badge}</span>
-                  </div>
-                ))}
+                    <span className="text-xs text-primary-foreground">{badge}</span>
+                  </div>)}
               </div>
 
               {/* CTA for providers */}
               <div className="text-center pt-3 border-t border-white/10">
-                <button 
-                  onClick={() => setIsProviderModalOpen(true)} 
-                  className="text-secondary hover:text-secondary/80 transition-colors text-sm font-medium"
-                >
-                  É guincheiro? <span className="underline underline-offset-2">Cadastre-se aqui</span>
+                <button onClick={() => setIsProviderModalOpen(true)} className="transition-colors font-medium bg-transparent text-primary-foreground text-lg shadow-md">
+                  É guincheiro? <span className="underline underline-offset-2 font-thin text-center">Cadastre-se aqui</span>
                 </button>
               </div>
             </div>
@@ -149,29 +144,24 @@ const Index: React.FC = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {[
-              {
-                title: 'Informe sua localização',
-                desc: 'Capturamos automaticamente sua localização para agilizar o atendimento',
-                icon: Navigation,
-                color: 'from-blue-400 to-cyan-400'
-              },
-              {
-                title: 'Escolha o serviço',
-                desc: 'Selecione o tipo de veículo e a situação em que ele se encontra',
-                icon: Settings,
-                color: 'from-amber-400 to-orange-400'
-              },
-              {
-                title: 'Receba atendimento',
-                desc: 'O guincheiro mais próximo entra em contato pelo WhatsApp',
-                icon: MessageCircle,
-                color: 'from-green-400 to-emerald-400'
-              }
-            ].map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <div key={index} className="text-center group">
+            {[{
+            title: 'Informe sua localização',
+            desc: 'Capturamos automaticamente sua localização para agilizar o atendimento',
+            icon: Navigation,
+            color: 'from-blue-400 to-cyan-400'
+          }, {
+            title: 'Escolha o serviço',
+            desc: 'Selecione o tipo de veículo e a situação em que ele se encontra',
+            icon: Settings,
+            color: 'from-amber-400 to-orange-400'
+          }, {
+            title: 'Receba atendimento',
+            desc: 'O guincheiro mais próximo entra em contato pelo WhatsApp',
+            icon: MessageCircle,
+            color: 'from-green-400 to-emerald-400'
+          }].map((item, index) => {
+            const Icon = item.icon;
+            return <div key={index} className="text-center group">
                   <div className="relative mx-auto mb-6 w-24 h-24">
                     {/* Glow effect */}
                     <div className={`absolute inset-0 bg-gradient-to-br ${item.color} rounded-3xl blur-lg opacity-50 group-hover:opacity-80 transition-opacity`} />
@@ -186,9 +176,8 @@ const Index: React.FC = () => {
                   <p className="text-white/70 text-sm leading-relaxed">
                     {item.desc}
                   </p>
-                </div>
-              );
-            })}
+                </div>;
+          })}
           </div>
         </div>
       </section>
@@ -206,7 +195,10 @@ const Index: React.FC = () => {
           <p className="text-white/80 mb-8 max-w-xl mx-auto">
             Não fique na mão! Solicite um guincho em poucos segundos e tenha atendimento rápido e seguro.
           </p>
-          <Button variant="hero" size="xl" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <Button variant="hero" size="xl" onClick={() => window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        })}>
             Solicitar Guincho
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
@@ -218,8 +210,6 @@ const Index: React.FC = () => {
       
       {/* Provider Registration Modal */}
       <ProviderRegistrationModal open={isProviderModalOpen} onOpenChange={setIsProviderModalOpen} />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
