@@ -13,10 +13,10 @@ type VehicleCondition = 'pane' | 'seca' | 'capotado' | 'subsolo' | 'roda_travada
 type PaymentMethod = 'pix' | 'dinheiro' | 'credito' | 'debito';
 
 const vehicleTypes = [
-  { id: 'carro' as VehicleType, label: 'Carro', icon: Car },
-  { id: 'moto' as VehicleType, label: 'Moto', icon: Bike },
-  { id: 'caminhonete' as VehicleType, label: 'Utilitários', icon: Car },
-  { id: 'caminhao' as VehicleType, label: 'Caminhão', icon: Truck },
+  { id: 'carro' as VehicleType, label: 'Carro', icon: Car, bgColor: 'bg-blue-500', gradientFrom: 'from-blue-500', gradientTo: 'to-blue-600' },
+  { id: 'moto' as VehicleType, label: 'Moto', icon: Bike, bgColor: 'bg-purple-500', gradientFrom: 'from-purple-500', gradientTo: 'to-purple-600' },
+  { id: 'caminhonete' as VehicleType, label: 'Utilitários', icon: Car, bgColor: 'bg-emerald-500', gradientFrom: 'from-emerald-500', gradientTo: 'to-emerald-600' },
+  { id: 'caminhao' as VehicleType, label: 'Caminhão', icon: Truck, bgColor: 'bg-orange-500', gradientFrom: 'from-orange-500', gradientTo: 'to-orange-600' },
 ];
 
 const PATINS_REQUIRED_CONDITIONS: VehicleCondition[] = ['subsolo', 'roda_travada', 'volante_travado', 'precisa_patins'];
@@ -190,25 +190,25 @@ const RequestPanel: React.FC = () => {
                     <button
                       key={vehicle.id}
                       onClick={() => setSelectedVehicle(vehicle.id)}
-                      className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all shadow-sm hover:shadow-md ${
+                      className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all shadow-sm hover:shadow-lg hover:scale-105 ${
                         isSelected 
-                          ? 'border-secondary bg-gradient-to-br from-secondary/20 to-secondary/5 shadow-secondary/20' 
-                          : 'border-border/50 hover:border-secondary/50 hover:bg-muted/50 bg-card'
-                      }`}
+                          ? 'border-white/50 shadow-lg scale-105' 
+                          : 'border-transparent hover:border-white/30'
+                      } bg-gradient-to-br ${vehicle.gradientFrom} ${vehicle.gradientTo}`}
                     >
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
                         isSelected 
-                          ? 'bg-gradient-to-br from-secondary to-amber-500 text-white shadow-lg shadow-secondary/30' 
-                          : 'bg-gradient-to-br from-muted to-muted/50'
+                          ? 'bg-white/30 shadow-inner' 
+                          : 'bg-white/20'
                       }`}>
-                        <Icon className="w-6 h-6" />
+                        <Icon className="w-6 h-6 text-white" />
                       </div>
-                      <span className={`font-bold text-xs text-center leading-tight ${isSelected ? 'text-secondary' : 'text-foreground'}`}>
+                      <span className="font-bold text-xs text-center leading-tight text-white">
                         {vehicle.label}
                       </span>
                       {isSelected && (
-                        <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-secondary rounded-full flex items-center justify-center shadow-lg">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                        <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-lg">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
                         </div>
                       )}
                     </button>
