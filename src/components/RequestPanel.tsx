@@ -110,8 +110,18 @@ const RequestPanel: React.FC = () => {
       providerInfo = `\n🚚 *Prestador:* ${selectedProvider.name}\n`;
       priceInfo = `\n💰 *TOTAL: R$ ${totalPrice.toFixed(2)}*\n`;
     }
+
+    // Link do Google Maps com a localização em tempo real do cliente
+    const originMapLink = location.latitude && location.longitude 
+      ? `https://www.google.com/maps?q=${location.latitude},${location.longitude}`
+      : '';
     
-    const messageText = `🚗 *GUINCHO FÁCIL 24HS*\n\n👤 *Cliente:* ${name}\n📱 *WhatsApp:* ${phone}\n\n🚙 *Veículo:* ${vehicleLabel}\n⚠️ *Situação:* ${conditionLabel}\n💳 *Pagamento:* ${paymentLabel}\n\n📍 *Origem:*\n${location.address}\n\n🏁 *Destino:*\n${destination}\n${tripInfo}${providerInfo}${priceInfo}\n🕐 *Horário:* ${getCurrentTime()}`;
+    // Link do Google Maps para o destino
+    const destMapLink = destinationCoords 
+      ? `https://www.google.com/maps?q=${destinationCoords.latitude},${destinationCoords.longitude}`
+      : '';
+    
+    const messageText = `🚗 *GUINCHO FÁCIL 24HS*\n\n👤 *Cliente:* ${name}\n📱 *WhatsApp:* ${phone}\n\n🚙 *Veículo:* ${vehicleLabel}\n⚠️ *Situação:* ${conditionLabel}\n💳 *Pagamento:* ${paymentLabel}\n\n📍 *ORIGEM (Localização Atual):*\n${location.address}\n🗺️ *Ver no Mapa:* ${originMapLink}\n\n🏁 *DESTINO:*\n${destination}${destMapLink ? `\n🗺️ *Ver no Mapa:* ${destMapLink}` : ''}\n${tripInfo}${providerInfo}${priceInfo}\n🕐 *Horário:* ${getCurrentTime()}`;
     
     const message = encodeURIComponent(messageText);
     const whatsappNumber = selectedProvider ? selectedProvider.whatsapp.replace(/\D/g, '') : defaultWhatsApp;
