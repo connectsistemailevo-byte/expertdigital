@@ -2,3 +2,15 @@ project_id = "rydwxrfbsoosmcpqaqid"
 
 [functions.get-mapbox-token]
 verify_jwt = false
+
+[functions.create-provider-checkout]
+verify_jwt = false
+
+[functions.verify-provider-payment]
+verify_jwt = false
+
+[functions.increment-provider-rides]
+verify_jwt = false
+
+[functions.get-provider-subscription]
+verify_jwt = false
