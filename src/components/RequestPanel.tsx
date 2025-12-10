@@ -183,7 +183,7 @@ const RequestPanel: React.FC = () => {
             {/* Vehicle Type */}
             <div>
               <label className="block text-xs font-medium mb-2">Tipo de veículo *</label>
-              <div className="grid grid-cols-5 gap-1">
+              <div className="grid grid-cols-5 gap-1.5">
                 {vehicleTypes.map((vehicle) => {
                   const Icon = vehicle.icon;
                   const isSelected = selectedVehicle === vehicle.id;
@@ -191,15 +191,27 @@ const RequestPanel: React.FC = () => {
                     <button
                       key={vehicle.id}
                       onClick={() => setSelectedVehicle(vehicle.id)}
-                      className={`relative flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all ${
-                        isSelected ? 'border-secondary bg-secondary/10' : 'border-border hover:border-secondary/50 hover:bg-muted'
+                      className={`relative flex flex-col items-center gap-1.5 p-2.5 rounded-xl border-2 transition-all shadow-sm hover:shadow-md ${
+                        isSelected 
+                          ? 'border-secondary bg-gradient-to-br from-secondary/20 to-secondary/5 shadow-secondary/20' 
+                          : 'border-border/50 hover:border-secondary/50 hover:bg-muted/50 bg-card'
                       }`}
                     >
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isSelected ? 'bg-secondary text-secondary-foreground' : 'bg-muted'}`}>
-                        <Icon className="w-3.5 h-3.5" />
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                        isSelected 
+                          ? 'bg-gradient-to-br from-secondary to-amber-500 text-white shadow-lg shadow-secondary/30' 
+                          : 'bg-gradient-to-br from-muted to-muted/50'
+                      }`}>
+                        <Icon className="w-5 h-5" />
                       </div>
-                      <span className="font-medium text-[9px] text-center leading-tight">{vehicle.label}</span>
-                      {isSelected && <CheckCircle2 className="w-3 h-3 text-secondary absolute -top-1 -right-1" />}
+                      <span className={`font-semibold text-[10px] text-center leading-tight ${isSelected ? 'text-secondary' : ''}`}>
+                        {vehicle.label}
+                      </span>
+                      {isSelected && (
+                        <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-secondary rounded-full flex items-center justify-center shadow-lg">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                        </div>
+                      )}
                     </button>
                   );
                 })}
@@ -209,7 +221,7 @@ const RequestPanel: React.FC = () => {
             {/* Vehicle Condition */}
             <div>
               <label className="block text-xs font-medium mb-2">Situação do veículo *</label>
-              <div className="grid grid-cols-4 gap-1">
+              <div className="grid grid-cols-4 gap-1.5">
                 {vehicleConditions.map((condition) => {
                   const Icon = condition.icon;
                   const isSelected = selectedCondition === condition.id;
@@ -217,14 +229,28 @@ const RequestPanel: React.FC = () => {
                     <button
                       key={condition.id}
                       onClick={() => setSelectedCondition(condition.id)}
-                      className={`relative flex flex-col items-center gap-0.5 p-1.5 rounded-lg border-2 transition-all ${
-                        isSelected ? 'border-secondary bg-secondary/10' : 'border-border hover:border-secondary/50 hover:bg-muted'
+                      className={`relative flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all shadow-sm hover:shadow-md ${
+                        isSelected 
+                          ? 'border-secondary bg-gradient-to-br from-secondary/20 to-secondary/5 shadow-secondary/20' 
+                          : 'border-border/50 hover:border-secondary/50 hover:bg-muted/50 bg-card'
                       }`}
                     >
-                      <Icon className={`w-4 h-4 ${condition.color}`} />
-                      <span className="font-medium text-[8px] text-center leading-tight">{condition.label}</span>
-                      {condition.needsPatins && <span className="text-[7px] text-cyan-600">+patins</span>}
-                      {isSelected && <CheckCircle2 className="w-2.5 h-2.5 text-secondary absolute -top-0.5 -right-0.5" />}
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        isSelected ? 'bg-white shadow-md' : 'bg-muted/50'
+                      }`}>
+                        <Icon className={`w-5 h-5 ${condition.color}`} />
+                      </div>
+                      <span className={`font-semibold text-[8px] text-center leading-tight ${isSelected ? 'text-secondary' : ''}`}>
+                        {condition.label}
+                      </span>
+                      {condition.needsPatins && (
+                        <span className="text-[7px] font-medium text-cyan-600 bg-cyan-100 px-1.5 py-0.5 rounded-full">+patins</span>
+                      )}
+                      {isSelected && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full flex items-center justify-center shadow-lg">
+                          <CheckCircle2 className="w-3 h-3 text-white" />
+                        </div>
+                      )}
                     </button>
                   );
                 })}
@@ -237,7 +263,7 @@ const RequestPanel: React.FC = () => {
                 <CreditCard className="w-3 h-3 text-secondary" />
                 Forma de pagamento *
               </label>
-              <div className="grid grid-cols-4 gap-1">
+              <div className="grid grid-cols-4 gap-1.5">
                 {paymentMethods.map((payment) => {
                   const Icon = payment.icon;
                   const isSelected = selectedPayment === payment.id;
@@ -245,13 +271,25 @@ const RequestPanel: React.FC = () => {
                     <button
                       key={payment.id}
                       onClick={() => setSelectedPayment(payment.id)}
-                      className={`relative flex flex-col items-center gap-0.5 p-1.5 rounded-lg border-2 transition-all ${
-                        isSelected ? 'border-secondary bg-secondary/10' : 'border-border hover:border-secondary/50 hover:bg-muted'
+                      className={`relative flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all shadow-sm hover:shadow-md ${
+                        isSelected 
+                          ? 'border-secondary bg-gradient-to-br from-secondary/20 to-secondary/5 shadow-secondary/20' 
+                          : 'border-border/50 hover:border-secondary/50 hover:bg-muted/50 bg-card'
                       }`}
                     >
-                      <Icon className={`w-4 h-4 ${payment.color}`} />
-                      <span className="font-medium text-[8px] text-center leading-tight">{payment.label}</span>
-                      {isSelected && <CheckCircle2 className="w-2.5 h-2.5 text-secondary absolute -top-0.5 -right-0.5" />}
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        isSelected ? 'bg-white shadow-md' : 'bg-muted/50'
+                      }`}>
+                        <Icon className={`w-5 h-5 ${payment.color}`} />
+                      </div>
+                      <span className={`font-semibold text-[9px] text-center leading-tight ${isSelected ? 'text-secondary' : ''}`}>
+                        {payment.label}
+                      </span>
+                      {isSelected && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full flex items-center justify-center shadow-lg">
+                          <CheckCircle2 className="w-3 h-3 text-white" />
+                        </div>
+                      )}
                     </button>
                   );
                 })}

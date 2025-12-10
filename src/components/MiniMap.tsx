@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useLocation } from '@/contexts/LocationContext';
 import { Crosshair } from 'lucide-react';
+import showtimeLogo from '@/assets/showtime-logo.png';
 
 interface MiniMapProps {
   className?: string;
@@ -42,11 +43,6 @@ const MiniMap: React.FC<MiniMapProps> = ({ className }) => {
         doubleClickZoom: true,
         attributionControl: false,
       });
-
-      // Add custom attribution
-      map.current.addControl(new mapboxgl.AttributionControl({
-        customAttribution: '© ShowTime Creative'
-      }), 'bottom-right');
 
       map.current.on('load', () => {
         setMapReady(true);
@@ -194,7 +190,10 @@ const MiniMap: React.FC<MiniMapProps> = ({ className }) => {
             </svg>
           </div>
           <p className="text-sm font-medium text-foreground">Mapa indisponível</p>
-          <p className="text-xs text-muted-foreground mt-1">ShowTime Creative</p>
+          <div className="flex items-center justify-center gap-1.5 mt-2">
+            <img src={showtimeLogo} alt="ShowTime Creative" className="w-4 h-4" />
+            <span className="text-xs text-muted-foreground">ShowTime Creative</span>
+          </div>
         </div>
       </div>
     );
@@ -225,6 +224,12 @@ const MiniMap: React.FC<MiniMapProps> = ({ className }) => {
       >
         <Crosshair className="w-4 h-4 text-blue-600" />
       </button>
+      
+      {/* ShowTime Creative Branding */}
+      <div className="absolute bottom-1 left-1 z-10 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded shadow-sm">
+        <img src={showtimeLogo} alt="ShowTime Creative" className="w-3.5 h-3.5" />
+        <span className="text-[8px] font-medium text-gray-700">ShowTime Creative</span>
+      </div>
       
       {isDragging && (
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs px-3 py-1 rounded-full z-10">
