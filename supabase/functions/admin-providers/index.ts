@@ -119,15 +119,41 @@ serve(async (req) => {
           throw new Error("provider_id e rides são obrigatórios");
         }
 
-        const { error } = await supabaseClient
+        // Primeiro verifica se já existe subscription
+        const { data: existingSub } = await supabaseClient
           .from('provider_subscriptions')
-          .upsert({
-            provider_id,
-            trial_ativo: true,
-            trial_corridas_restantes: data.rides,
-          }, { onConflict: 'provider_id' });
+          .select('*')
+          .eq('provider_id', provider_id)
+          .maybeSingle();
 
-        if (error) throw error;
+        if (existingSub) {
+          // Atualiza apenas os campos de trial, mantendo os outros
+          const { error } = await supabaseClient
+            .from('provider_subscriptions')
+            .update({
+              trial_ativo: true,
+              trial_corridas_restantes: data.rides,
+            })
+            .eq('provider_id', provider_id);
+
+          if (error) throw error;
+        } else {
+          // Cria nova subscription com trial
+          const { error } = await supabaseClient
+            .from('provider_subscriptions')
+            .insert({
+              provider_id,
+              trial_ativo: true,
+              trial_corridas_restantes: data.rides,
+              corridas_usadas: 0,
+              adesao_paga: false,
+              limite_corridas: 0,
+              mensalidade_atual: 0,
+            });
+
+          if (error) throw error;
+        }
+
         logStep("Set trial rides", { provider_id, rides: data.rides });
 
         return new Response(JSON.stringify({ success: true }), {
