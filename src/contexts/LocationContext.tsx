@@ -17,9 +17,15 @@ interface DestinationData {
   address: string;
 }
 
+interface RouteInfo {
+  distanceKm: number;
+  durationMin: number;
+}
+
 interface LocationContextType {
   location: LocationData;
   destination: DestinationData | null;
+  routeInfo: RouteInfo | null;
   refreshLocation: () => void;
   updateLocation: (lat: number, lng: number) => Promise<void>;
   setDestination: (dest: DestinationData | null) => void;
@@ -43,6 +49,7 @@ interface LocationProviderProps {
 export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) => {
   const [mapboxToken, setMapboxToken] = useState('');
   const [destination, setDestination] = useState<DestinationData | null>(null);
+  const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
 
   const [location, setLocation] = useState<LocationData>({
     latitude: 0,
@@ -264,8 +271,40 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     fetchLocation();
   }, [fetchLocation]);
 
+  // Calculate route info when destination changes
+  useEffect(() => {
+    const calculateRoute = async () => {
+      if (!destination || !location.latitude || !location.longitude || !mapboxToken) {
+        setRouteInfo(null);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `https://api.mapbox.com/directions/v5/mapbox/driving/${location.longitude},${location.latitude};${destination.longitude},${destination.latitude}?geometries=geojson&access_token=${mapboxToken}`
+        );
+        const data = await response.json();
+
+        if (data.routes && data.routes.length > 0) {
+          const route = data.routes[0];
+          const distanceKm = route.distance / 1000;
+          const durationMin = Math.round(route.duration / 60);
+          setRouteInfo({ distanceKm, durationMin });
+          console.log('Route info calculated:', { distanceKm, durationMin });
+        } else {
+          setRouteInfo(null);
+        }
+      } catch (error) {
+        console.error('Error calculating route:', error);
+        setRouteInfo(null);
+      }
+    };
+
+    calculateRoute();
+  }, [destination, location.latitude, location.longitude, mapboxToken]);
+
   return (
-    <LocationContext.Provider value={{ location, destination, refreshLocation: fetchLocation, updateLocation, setDestination, mapboxToken }}>
+    <LocationContext.Provider value={{ location, destination, routeInfo, refreshLocation: fetchLocation, updateLocation, setDestination, mapboxToken }}>
       {children}
     </LocationContext.Provider>
   );

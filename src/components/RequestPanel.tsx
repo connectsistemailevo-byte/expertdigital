@@ -116,14 +116,6 @@ interface RequestPanelProps {
   filterProviderId?: string; // Para modo white-label: mostrar apenas este prestador
   hideProviderSelection?: boolean; // Ocultar seleção de prestadores
 }
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
 const RequestPanel: React.FC<RequestPanelProps> = ({
   filterProviderId,
   hideProviderSelection = false
@@ -131,6 +123,7 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
   const {
     location,
     refreshLocation,
+    routeInfo,
     setDestination: setContextDestination
   } = useLocation();
   const {
@@ -162,7 +155,8 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
     }
   }, [filterProviderId, providers, selectedProvider]);
   const needsPatins = selectedCondition ? PATINS_REQUIRED_CONDITIONS.includes(selectedCondition) : false;
-  const tripDistanceKm = destinationCoords && location.latitude && location.longitude ? calculateDistance(location.latitude, location.longitude, destinationCoords.latitude, destinationCoords.longitude) : 0;
+  // Use route distance from context (Mapbox driving distance) instead of Haversine
+  const tripDistanceKm = routeInfo?.distanceKm || 0;
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
     if (numbers.length <= 11) return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
@@ -192,10 +186,10 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
     minute: '2-digit'
   });
   const calculateTotalPrice = (provider: Provider) => {
-    const basePrice = provider.base_price || 50;
-    const pricePerKm = provider.price_per_km || 5;
+    const basePrice = provider.base_price ?? 0;
+    const pricePerKm = provider.price_per_km ?? 0;
     let total = basePrice + tripDistanceKm * pricePerKm;
-    if (needsPatins && provider.has_patins) total += provider.patins_extra_price || 30;
+    if (needsPatins && provider.has_patins) total += provider.patins_extra_price ?? 0;
     return total;
   };
   const canSubmit = name.trim().length >= 2 && phone.replace(/\D/g, '').length >= 10 && destinationText.trim().length >= 3 && selectedVehicle && selectedCondition && selectedPayment;

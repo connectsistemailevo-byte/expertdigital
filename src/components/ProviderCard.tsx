@@ -26,13 +26,14 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   className
 }) => {
   // Calculate price based on trip distance (client → destination), not provider distance
+  // Use actual values from DB without fallbacks that could hide wrong data
   const calculateTripPrice = () => {
-    const basePrice = provider.base_price || 50;
-    const pricePerKm = provider.price_per_km || 5;
+    const basePrice = provider.base_price ?? 0;
+    const pricePerKm = provider.price_per_km ?? 0;
     const distance = tripDistanceKm || 0;
     let total = basePrice + distance * pricePerKm;
     if (needsPatins && provider.has_patins) {
-      total += provider.patins_extra_price || 30;
+      total += provider.patins_extra_price ?? 0;
     }
     return total;
   };
@@ -51,7 +52,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
             <h4 className="font-semibold text-sm truncate text-secondary-foreground">{provider.name}</h4>
             <div className="flex items-center gap-1.5 shrink-0">
               <span className="text-[9px] px-1 py-0.5 rounded bg-green-300 text-secondary-foreground">
-                R${provider.base_price?.toFixed(0) || 50} + R${provider.price_per_km?.toFixed(2) || '5.00'}/km
+                R${provider.base_price ?? 0} + R${(provider.price_per_km ?? 0).toFixed(2)}/km
               </span>
               <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-sidebar-accent bg-[sidebar-accent-foreground] text-teal-800">
                 Disponível
@@ -93,7 +94,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
             </div>}
 
           {needsPatins && provider.has_patins && hasValidTripDistance && <p className="text-[10px] text-muted-foreground mt-0.5">
-              (inclui R$ {(provider.patins_extra_price || 30).toFixed(2)} de patins)
+              (inclui R$ {(provider.patins_extra_price ?? 0).toFixed(2)} de patins)
             </p>}
           
           <div className="flex flex-wrap gap-1 mt-1.5">
