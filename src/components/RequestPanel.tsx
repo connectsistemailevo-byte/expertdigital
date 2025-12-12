@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLocation } from '@/contexts/LocationContext';
 import { Car, Truck, Bike, Clock, AlertTriangle, Fuel, RotateCcw, Building2, CheckCircle2, RefreshCw, MessageCircle, Navigation, Users, DollarSign, MapPin, Route, CreditCard, Banknote, QrCode, Landmark, Loader2 } from 'lucide-react';
-import MiniMap from '@/components/MiniMap';
 import ProviderCard from '@/components/ProviderCard';
 import AddressAutocomplete, { DestinationCoordinates } from '@/components/AddressAutocomplete';
 import { useProviders, Provider } from '@/hooks/useProviders';
@@ -317,12 +316,8 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
                 <Input placeholder="(00) 00000-0000" value={phone} onChange={handlePhoneChange} maxLength={15} className="h-9 text-sm" />
               </div>
             </div>
-
-            {/* Map - compact at bottom */}
-            <div className="rounded-lg overflow-hidden border border-border shadow-sm">
-              <MiniMap className="h-16 w-full" />
-            </div>
           </div>
+
 
           {/* Column 2: Vehicle Type + Condition */}
           <div className="space-y-3">
