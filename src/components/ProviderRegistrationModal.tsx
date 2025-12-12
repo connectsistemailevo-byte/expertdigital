@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import MiniMap from '@/components/MiniMap';
 import { PlanSelectionModal } from '@/components/PlanSelectionModal';
+import ProviderTrackingButton from '@/components/ProviderTrackingButton';
 
 interface ProviderRegistrationModalProps {
   open: boolean;
@@ -714,6 +715,19 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
           })}
         </div>
       </div>
+
+      {/* Provider Tracking Button - Only show for existing providers */}
+      {mode === 'edit' && existingProvider && (
+        <div className="pt-2 border-t border-border">
+          <p className="text-xs text-muted-foreground text-center mb-2">
+            Ative o rastreamento para receber solicitações de clientes
+          </p>
+          <ProviderTrackingButton 
+            providerId={existingProvider.id} 
+            providerName={existingProvider.name} 
+          />
+        </div>
+      )}
 
       {/* Submit Button */}
       <Button
