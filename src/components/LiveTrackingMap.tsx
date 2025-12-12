@@ -47,11 +47,10 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
   const routeLayerId = 'route-layer';
   const destinationRouteLayerId = 'destination-route-layer';
   
-  const { location, destination, mapboxToken, updateLocation } = useLocation();
+  const { location, destination, routeInfo, mapboxToken, updateLocation } = useLocation();
   const [mapError, setMapError] = useState(false);
   const [onlineProviders, setOnlineProviders] = useState<OnlineProvider[]>([]);
   const [nearestProvider, setNearestProvider] = useState<OnlineProvider | null>(null);
-  const [destinationInfo, setDestinationInfo] = useState<{ distance: number; duration: number } | null>(null);
 
   // Fetch online providers
   const fetchOnlineProviders = useCallback(async () => {
@@ -143,7 +142,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
     }
   }, [location.latitude, location.longitude, mapboxToken]);
 
-  // Draw route to destination
+  // Draw route to destination (visual only, routeInfo is calculated in context)
   const drawDestinationRoute = useCallback(async (destLat: number, destLng: number) => {
     if (!map.current || !mapboxToken) return;
 
@@ -156,11 +155,6 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
       if (data.routes && data.routes.length > 0) {
         const route = data.routes[0];
         const routeGeometry = route.geometry;
-        
-        // Store distance (in km) and duration (in minutes)
-        const distanceKm = route.distance / 1000;
-        const durationMin = Math.round(route.duration / 60);
-        setDestinationInfo({ distance: distanceKm, duration: durationMin });
 
         // Remove existing destination route layer and source if they exist
         if (map.current.getLayer(destinationRouteLayerId)) {
@@ -198,7 +192,6 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
       }
     } catch (err) {
       console.error('Error drawing destination route:', err);
-      setDestinationInfo(null);
     }
   }, [location.latitude, location.longitude, mapboxToken]);
 
@@ -533,9 +526,9 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
                 <MapPin className="w-2.5 h-2.5 text-white" />
               </div>
               <span className="text-white/80">Destino</span>
-              {destinationInfo && (
+              {routeInfo && (
                 <span className="text-emerald-400 font-semibold ml-1">
-                  {destinationInfo.distance.toFixed(1)} km • {destinationInfo.duration} min
+                  {routeInfo.distanceKm.toFixed(1)} km • {routeInfo.durationMin} min
                 </span>
               )}
             </div>
