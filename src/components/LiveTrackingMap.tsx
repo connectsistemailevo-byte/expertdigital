@@ -258,32 +258,49 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
       
       if (existingMarker) {
         existingMarker.setLngLat([provider.longitude, provider.latitude]);
-        // Update popup content
-        existingMarker.getPopup()?.setHTML(`
-          <div style="padding: 8px; text-align: center;">
-            <strong style="color: #1a1a2e;">${provider.name}</strong><br/>
-            <span style="color: #22c55e; font-weight: bold;">${provider.distance?.toFixed(1)} km</span><br/>
-            <span style="color: #666;">~${provider.estimatedTime} min</span>
-          </div>
-        `);
+        // Update label content
+        const labelEl = existingMarker.getElement().querySelector('.provider-label');
+        if (labelEl) {
+          labelEl.innerHTML = `
+            <span style="color: #22c55e; font-weight: 700;">${provider.distance?.toFixed(1)} km</span>
+            <span style="color: #94a3b8;">~${provider.estimatedTime} min</span>
+          `;
+        }
       } else {
-        // Create new marker
+        // Create new marker with visible label
         const el = document.createElement('div');
         el.className = 'provider-marker';
+        el.style.cssText = 'position: relative; display: flex; flex-direction: column; align-items: center;';
         el.innerHTML = `
+          <div class="provider-label" style="
+            background: rgba(10, 15, 26, 0.95);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          ">
+            <span style="color: #22c55e; font-weight: 700;">${provider.distance?.toFixed(1)} km</span>
+            <span style="color: #94a3b8;">~${provider.estimatedTime} min</span>
+          </div>
           <div style="
-            position: relative;
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             background: linear-gradient(135deg, #f59e0b, #d97706);
             border-radius: 50%;
-            border: 3px solid white;
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.5);
+            border: 2px solid white;
+            box-shadow: 0 3px 12px rgba(245, 158, 11, 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
           ">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
               <path d="M9 17a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM19 17a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
               <path d="M13 16V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10"/>
               <path d="M17 16V8a1 1 0 0 0-1-1h-1"/>
@@ -291,35 +308,10 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
               <path d="M16 8h3l2 4v4h-5"/>
             </svg>
           </div>
-          <div style="
-            position: absolute;
-            top: -35px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(26, 26, 46, 0.95);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-size: 11px;
-            white-space: nowrap;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-          ">
-            <span style="color: #22c55e; font-weight: bold;">${provider.distance?.toFixed(1)} km</span>
-            <span style="margin-left: 6px; color: #94a3b8;">~${provider.estimatedTime} min</span>
-          </div>
         `;
 
-        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
-          <div style="padding: 8px; text-align: center;">
-            <strong style="color: #1a1a2e;">${provider.name}</strong><br/>
-            <span style="color: #22c55e; font-weight: bold;">${provider.distance?.toFixed(1)} km</span><br/>
-            <span style="color: #666;">~${provider.estimatedTime} min</span>
-          </div>
-        `);
-
-        const marker = new mapboxgl.Marker({ element: el })
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
           .setLngLat([provider.longitude, provider.latitude])
-          .setPopup(popup)
           .addTo(map.current!);
 
         providerMarkers.current.set(provider.id, marker);
