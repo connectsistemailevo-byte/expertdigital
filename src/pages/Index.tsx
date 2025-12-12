@@ -6,6 +6,7 @@ import ProviderRegistrationModal from '@/components/ProviderRegistrationModal';
 import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
 import RequestPanel from '@/components/RequestPanel';
+import MiniMap from '@/components/MiniMap';
 import { MapPin, Phone, ArrowRight, CheckCircle, Truck, Navigation, Settings, MessageCircle } from 'lucide-react';
 const Index: React.FC = () => {
   const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
@@ -63,15 +64,19 @@ const Index: React.FC = () => {
                 </span>
               </div>
               
-              {/* Map Container Inside Card */}
-              <div className="relative w-full h-[280px] md:h-[320px] rounded-xl overflow-hidden mb-4">
+              {/* Mini Map Container Inside Card - Simple location only */}
+              <div className="relative w-full h-[180px] md:h-[200px] rounded-xl overflow-hidden mb-4">
                 {mapboxToken ? (
-                  <LiveTrackingMap className="w-full h-full" />
+                  <MiniMap className="w-full h-full" />
                 ) : (
                   <div className="w-full h-full bg-[#1a1f2e] flex items-center justify-center">
                     <span className="text-white/50 text-sm">Carregando mapa...</span>
                   </div>
                 )}
+                {/* Drag instruction overlay */}
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-md">
+                  <span className="text-xs text-gray-700 font-medium">Arraste para ajustar</span>
+                </div>
               </div>
               
               {/* Location Display */}
