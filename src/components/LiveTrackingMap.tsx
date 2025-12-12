@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useLocation } from '@/contexts/LocationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Truck, User } from 'lucide-react';
+import { Truck, User, MapPin } from 'lucide-react';
 
 interface OnlineProvider {
   id: string;
@@ -42,9 +42,11 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
   const map = useRef<mapboxgl.Map | null>(null);
   const clientMarker = useRef<mapboxgl.Marker | null>(null);
   const providerMarkers = useRef<Map<string, mapboxgl.Marker>>(new Map());
+  const destinationMarker = useRef<mapboxgl.Marker | null>(null);
   const routeLayerId = 'route-layer';
+  const destinationRouteLayerId = 'destination-route-layer';
   
-  const { location, mapboxToken, updateLocation } = useLocation();
+  const { location, destination, mapboxToken, updateLocation } = useLocation();
   const [mapError, setMapError] = useState(false);
   const [onlineProviders, setOnlineProviders] = useState<OnlineProvider[]>([]);
   const [nearestProvider, setNearestProvider] = useState<OnlineProvider | null>(null);
@@ -136,6 +138,58 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
       }
     } catch (err) {
       console.error('Error drawing route:', err);
+    }
+  }, [location.latitude, location.longitude, mapboxToken]);
+
+  // Draw route to destination
+  const drawDestinationRoute = useCallback(async (destLat: number, destLng: number) => {
+    if (!map.current || !mapboxToken) return;
+
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/directions/v5/mapbox/driving/${location.longitude},${location.latitude};${destLng},${destLat}?geometries=geojson&access_token=${mapboxToken}`
+      );
+      const data = await response.json();
+
+      if (data.routes && data.routes.length > 0) {
+        const route = data.routes[0].geometry;
+
+        // Remove existing destination route layer and source if they exist
+        if (map.current.getLayer(destinationRouteLayerId)) {
+          map.current.removeLayer(destinationRouteLayerId);
+        }
+        if (map.current.getSource('destination-route')) {
+          map.current.removeSource('destination-route');
+        }
+
+        // Add new destination route
+        map.current.addSource('destination-route', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: route,
+          },
+        });
+
+        map.current.addLayer({
+          id: destinationRouteLayerId,
+          type: 'line',
+          source: 'destination-route',
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round',
+          },
+          paint: {
+            'line-color': '#3b82f6',
+            'line-width': 5,
+            'line-opacity': 0.9,
+            'line-dasharray': [2, 1],
+          },
+        });
+      }
+    } catch (err) {
+      console.error('Error drawing destination route:', err);
     }
   }, [location.latitude, location.longitude, mapboxToken]);
 
@@ -324,6 +378,87 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
     }
   }, [onlineProviders, nearestProvider, mapError, drawRoute]);
 
+  // Handle destination marker and route
+  useEffect(() => {
+    if (!map.current || mapError) return;
+
+    if (destination) {
+      // Create or update destination marker
+      if (destinationMarker.current) {
+        destinationMarker.current.setLngLat([destination.longitude, destination.latitude]);
+      } else {
+        const el = document.createElement('div');
+        el.className = 'destination-marker';
+        el.innerHTML = `
+          <div style="
+            position: relative;
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            border: 3px solid white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="transform: rotate(45deg);">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </div>
+          <div style="
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(239, 68, 68, 0.95);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+          ">
+            🏁 Destino
+          </div>
+        `;
+
+        destinationMarker.current = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+          .setLngLat([destination.longitude, destination.latitude])
+          .addTo(map.current);
+      }
+
+      // Draw route to destination
+      drawDestinationRoute(destination.latitude, destination.longitude);
+
+      // Fit map to show both origin and destination
+      const bounds = new mapboxgl.LngLatBounds();
+      bounds.extend([location.longitude, location.latitude]);
+      bounds.extend([destination.longitude, destination.latitude]);
+      
+      map.current.fitBounds(bounds, {
+        padding: { top: 80, bottom: 80, left: 50, right: 50 },
+        maxZoom: 14
+      });
+    } else {
+      // Remove destination marker and route if no destination
+      if (destinationMarker.current) {
+        destinationMarker.current.remove();
+        destinationMarker.current = null;
+      }
+      
+      if (map.current.getLayer(destinationRouteLayerId)) {
+        map.current.removeLayer(destinationRouteLayerId);
+      }
+      if (map.current.getSource('destination-route')) {
+        map.current.removeSource('destination-route');
+      }
+    }
+  }, [destination, mapError, drawDestinationRoute, location.longitude, location.latitude]);
+
   // Poll for online providers every 5 seconds
   useEffect(() => {
     if (location.loading) return;
@@ -383,6 +518,14 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
             </div>
             <span className="text-white/80">Online ({onlineProviders.length})</span>
           </div>
+          {destination && (
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 rounded-full bg-red-500 flex items-center justify-center">
+                <MapPin className="w-2.5 h-2.5 text-white" />
+              </div>
+              <span className="text-white/80">Destino</span>
+            </div>
+          )}
         </div>
       </div>
 
