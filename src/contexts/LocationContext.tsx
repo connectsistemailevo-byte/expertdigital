@@ -20,6 +20,7 @@ interface DestinationData {
 interface RouteInfo {
   distanceKm: number;
   durationMin: number;
+  loading: boolean;
 }
 
 interface LocationContextType {
@@ -279,6 +280,9 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
         return;
       }
 
+      // Set loading state
+      setRouteInfo(prev => prev ? { ...prev, loading: true } : { distanceKm: 0, durationMin: 0, loading: true });
+
       try {
         const response = await fetch(
           `https://api.mapbox.com/directions/v5/mapbox/driving/${location.longitude},${location.latitude};${destination.longitude},${destination.latitude}?geometries=geojson&access_token=${mapboxToken}`
@@ -289,7 +293,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
           const route = data.routes[0];
           const distanceKm = route.distance / 1000;
           const durationMin = Math.round(route.duration / 60);
-          setRouteInfo({ distanceKm, durationMin });
+          setRouteInfo({ distanceKm, durationMin, loading: false });
           console.log('Route info calculated:', { distanceKm, durationMin });
         } else {
           setRouteInfo(null);
