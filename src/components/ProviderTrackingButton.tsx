@@ -204,12 +204,18 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
               },
               (error) => {
                 console.error('Geolocation error:', error);
-                updateStatus('Erro de GPS', true);
+                let errorMsg = 'Erro de GPS';
+                switch(error.code) {
+                  case 1: errorMsg = 'GPS bloqueado - permita localização'; break;
+                  case 2: errorMsg = 'GPS indisponível - verifique sinal'; break;
+                  case 3: errorMsg = 'Tempo esgotado - tente novamente'; break;
+                }
+                updateStatus(errorMsg, true);
               },
               {
                 enableHighAccuracy: true,
                 maximumAge: 5000,
-                timeout: 10000
+                timeout: 15000
               }
             );
             

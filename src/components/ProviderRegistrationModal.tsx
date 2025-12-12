@@ -437,7 +437,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
   );
 
   const renderForm = () => (
-    <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+    <div className="p-2 sm:p-4 space-y-2 sm:space-y-4 overflow-x-hidden">
       {/* Back button */}
       <button
         onClick={() => setMode('search')}
@@ -610,54 +610,54 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
       </div>
 
       {/* Pricing Section - Enhanced visibility */}
-      <div className="p-2 sm:p-4 rounded-xl border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-emerald-500/5">
-        <div className="flex items-center gap-2 mb-2 sm:mb-3">
-          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-            <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 text-green-400" />
+      <div className="p-2 sm:p-3 rounded-xl border-2 border-green-500/30 bg-gradient-to-br from-green-500/10 to-emerald-500/5">
+        <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+          <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+            <DollarSign className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-green-400" />
           </div>
-          <span className="text-xs sm:text-base font-bold text-foreground">Tabela de Preços</span>
+          <span className="text-[11px] sm:text-sm font-bold text-foreground">Tabela de Preços</span>
         </div>
-        <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
+        <div className="grid grid-cols-3 gap-1 sm:gap-2">
           <div className="min-w-0">
-            <label className="block text-[9px] sm:text-xs font-semibold text-foreground mb-0.5 sm:mb-1 truncate">Valor Base</label>
+            <label className="block text-[8px] sm:text-xs font-semibold text-foreground mb-0.5 truncate">Valor Base</label>
             <div className="relative">
-              <span className="absolute left-1.5 sm:left-3 top-1/2 -translate-y-1/2 text-[10px] sm:text-sm font-bold text-green-400">R$</span>
+              <span className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 text-[8px] sm:text-xs font-bold text-green-400">R$</span>
               <Input
                 type="number"
                 placeholder="50"
                 value={basePrice}
                 onChange={(e) => setBasePrice(e.target.value)}
-                className="h-8 sm:h-10 text-xs sm:text-base font-bold pl-6 sm:pl-10 w-full"
+                className="h-7 sm:h-9 text-[11px] sm:text-sm font-bold pl-5 sm:pl-8 w-full"
                 min="0"
                 step="0.01"
               />
             </div>
           </div>
           <div className="min-w-0">
-            <label className="block text-[9px] sm:text-xs font-semibold text-foreground mb-0.5 sm:mb-1 truncate">Por KM</label>
+            <label className="block text-[8px] sm:text-xs font-semibold text-foreground mb-0.5 truncate">Por KM</label>
             <div className="relative">
-              <span className="absolute left-1.5 sm:left-3 top-1/2 -translate-y-1/2 text-[10px] sm:text-sm font-bold text-green-400">R$</span>
+              <span className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 text-[8px] sm:text-xs font-bold text-green-400">R$</span>
               <Input
                 type="number"
                 placeholder="5"
                 value={pricePerKm}
                 onChange={(e) => setPricePerKm(e.target.value)}
-                className="h-8 sm:h-10 text-xs sm:text-base font-bold pl-6 sm:pl-10 w-full"
+                className="h-7 sm:h-9 text-[11px] sm:text-sm font-bold pl-5 sm:pl-8 w-full"
                 min="0"
                 step="0.01"
               />
             </div>
           </div>
           <div className="min-w-0">
-            <label className="block text-[9px] sm:text-xs font-semibold text-foreground mb-0.5 sm:mb-1 truncate">+ Patins</label>
+            <label className="block text-[8px] sm:text-xs font-semibold text-foreground mb-0.5 truncate">+ Patins</label>
             <div className="relative">
-              <span className="absolute left-1.5 sm:left-3 top-1/2 -translate-y-1/2 text-[10px] sm:text-sm font-bold text-green-400">R$</span>
+              <span className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 text-[8px] sm:text-xs font-bold text-green-400">R$</span>
               <Input
                 type="number"
                 placeholder="30"
                 value={patinsExtraPrice}
                 onChange={(e) => setPatinsExtraPrice(e.target.value)}
-                className="h-8 sm:h-10 text-xs sm:text-base font-bold pl-6 sm:pl-10 w-full"
+                className="h-7 sm:h-9 text-[11px] sm:text-sm font-bold pl-5 sm:pl-8 w-full"
                 min="0"
                 step="0.01"
               />
@@ -683,14 +683,14 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
       </div>
 
       {/* Service Types - Enhanced visibility */}
-      <div className="p-2 sm:p-4 rounded-xl border-2 border-secondary/30 bg-gradient-to-br from-secondary/10 to-secondary/5">
-        <div className="flex items-center gap-2 mb-2 sm:mb-3">
-          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
-            <Truck className="w-3 h-3 sm:w-4 sm:h-4 text-secondary" />
+      <div className="p-2 sm:p-3 rounded-xl border-2 border-secondary/30 bg-gradient-to-br from-secondary/10 to-secondary/5">
+        <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+          <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
+            <Truck className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-secondary" />
           </div>
-          <span className="text-xs sm:text-base font-bold text-foreground">Tipos de Serviço *</span>
+          <span className="text-[11px] sm:text-sm font-bold text-foreground">Tipos de Serviço *</span>
         </div>
-        <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+        <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
           {serviceOptions.map((service) => {
             const isSelected = selectedServices.includes(service.id);
             return (
@@ -698,17 +698,17 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
                 key={service.id}
                 type="button"
                 onClick={() => toggleService(service.id)}
-                className={`relative flex items-center justify-between gap-1 p-2 sm:p-3 rounded-lg border-2 transition-all duration-200 ${
+                className={`relative flex items-center justify-between gap-0.5 p-1.5 sm:p-2.5 rounded-lg border-2 transition-all duration-200 ${
                   isSelected
                     ? 'border-secondary bg-secondary/20 shadow-lg shadow-secondary/20'
                     : 'border-border hover:border-secondary/50 hover:bg-muted'
                 }`}
               >
-                <span className={`font-semibold text-[11px] sm:text-sm leading-tight ${isSelected ? 'text-secondary' : 'text-foreground'}`}>
+                <span className={`font-semibold text-[10px] sm:text-sm leading-tight ${isSelected ? 'text-secondary' : 'text-foreground'}`}>
                   {service.label}
                 </span>
                 {isSelected && (
-                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-secondary flex-shrink-0" />
+                  <CheckCircle2 className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-secondary flex-shrink-0" />
                 )}
               </button>
             );
@@ -752,7 +752,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-16px)] sm:w-[95vw] max-w-[500px] max-h-[85vh] overflow-y-auto overflow-x-hidden bg-card border-border p-0 animate-scale-in mx-auto rounded-xl">
+      <DialogContent className="w-[calc(100vw-8px)] sm:w-[95vw] max-w-[500px] max-h-[90vh] overflow-y-auto overflow-x-hidden bg-card border-border p-0 animate-scale-in mx-auto rounded-xl">
         {/* Header */}
         <div className="bg-primary p-3 text-primary-foreground sticky top-0 z-10">
           <DialogHeader>

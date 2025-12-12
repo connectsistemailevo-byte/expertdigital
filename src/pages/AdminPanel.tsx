@@ -47,7 +47,10 @@ import {
   TrendingUp,
   Ban,
   Palette,
+  UserPlus,
+  Truck,
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import BrandingManager from '@/components/admin/BrandingManager';
 
 interface ProviderWithSubscription {
@@ -81,9 +84,20 @@ export default function AdminPanel() {
   // Modal states
   const [showSetRidesModal, setShowSetRidesModal] = useState(false);
   const [showActivatePlanModal, setShowActivatePlanModal] = useState(false);
+  const [showCreateProviderModal, setShowCreateProviderModal] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<ProviderWithSubscription | null>(null);
   const [ridesInput, setRidesInput] = useState('10');
   const [selectedPlan, setSelectedPlan] = useState<string>('basico');
+  
+  // New provider form state
+  const [newProviderName, setNewProviderName] = useState('');
+  const [newProviderWhatsapp, setNewProviderWhatsapp] = useState('');
+  const [newProviderHasPatins, setNewProviderHasPatins] = useState(false);
+  const [newProviderBasePrice, setNewProviderBasePrice] = useState('50');
+  const [newProviderPricePerKm, setNewProviderPricePerKm] = useState('5');
+  const [newProviderPatinsPrice, setNewProviderPatinsPrice] = useState('30');
+  const [newProviderServices, setNewProviderServices] = useState<string[]>(['guincho_completo']);
+  const [createLoading, setCreateLoading] = useState(false);
 
   const adminPassword = localStorage.getItem('admin_password') || '';
 
@@ -213,6 +227,67 @@ export default function AdminPanel() {
     }
   }, []);
 
+  const serviceOptions = [
+    { id: 'moto', label: 'Moto' },
+    { id: 'carro_popular', label: 'Carro Popular' },
+    { id: 'sedan', label: 'Sedan' },
+    { id: 'suv', label: 'SUVs' },
+    { id: 'utilitarios_pesados', label: 'Utilitários' },
+    { id: 'guincho_completo', label: 'Guincho Completo' },
+  ];
+
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 11) {
+      return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    }
+    return value;
+  };
+
+  const handleCreateProvider = async () => {
+    if (!newProviderName || !newProviderWhatsapp || newProviderServices.length === 0) {
+      toast({ title: 'Preencha todos os campos obrigatórios', variant: 'destructive' });
+      return;
+    }
+
+    setCreateLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-providers', {
+        body: {
+          action: 'create_provider',
+          admin_password: localStorage.getItem('admin_password'),
+          data: {
+            name: newProviderName,
+            whatsapp: newProviderWhatsapp,
+            has_patins: newProviderHasPatins,
+            service_types: newProviderServices,
+            base_price: parseFloat(newProviderBasePrice) || 50,
+            price_per_km: parseFloat(newProviderPricePerKm) || 5,
+            patins_extra_price: parseFloat(newProviderPatinsPrice) || 30,
+          },
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast({ title: 'Prestador criado com sucesso!' });
+      setShowCreateProviderModal(false);
+      setNewProviderName('');
+      setNewProviderWhatsapp('');
+      setNewProviderHasPatins(false);
+      setNewProviderBasePrice('50');
+      setNewProviderPricePerKm('5');
+      setNewProviderPatinsPrice('30');
+      setNewProviderServices(['guincho_completo']);
+      await loadProviders();
+    } catch (err: any) {
+      toast({ title: 'Erro ao criar prestador', description: err.message, variant: 'destructive' });
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
   const getSubscription = (provider: ProviderWithSubscription) => {
     return provider.provider_subscriptions?.[0] || null;
   };
@@ -312,7 +387,15 @@ export default function AdminPanel() {
               <p className="text-slate-400 text-sm">Gerenciar prestadores e planos</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="default"
+              onClick={() => setShowCreateProviderModal(true)}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              Novo Prestador
+            </Button>
             <Button
               variant="outline"
               onClick={loadProviders}
@@ -675,6 +758,142 @@ export default function AdminPanel() {
             >
               <Crown className="w-4 h-4 mr-2" />
               Ativar Plano
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Create Provider */}
+      <Dialog open={showCreateProviderModal} onOpenChange={setShowCreateProviderModal}>
+        <DialogContent className="bg-slate-900 border-slate-700 max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <UserPlus className="w-5 h-5" />
+              Novo Prestador
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Cadastre um novo prestador manualmente
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-slate-300">Nome *</Label>
+                <Input
+                  placeholder="Nome do prestador"
+                  value={newProviderName}
+                  onChange={(e) => setNewProviderName(e.target.value)}
+                  className="bg-slate-800 border-slate-600 text-white"
+                />
+              </div>
+              <div>
+                <Label className="text-slate-300">WhatsApp *</Label>
+                <Input
+                  placeholder="(00) 00000-0000"
+                  value={newProviderWhatsapp}
+                  onChange={(e) => setNewProviderWhatsapp(formatPhone(e.target.value))}
+                  maxLength={15}
+                  className="bg-slate-800 border-slate-600 text-white"
+                />
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+              <Label className="text-slate-300 mb-2 block">Tabela de Preços</Label>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-xs text-slate-400">Valor Base</Label>
+                  <Input
+                    type="number"
+                    value={newProviderBasePrice}
+                    onChange={(e) => setNewProviderBasePrice(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400">Por KM</Label>
+                  <Input
+                    type="number"
+                    value={newProviderPricePerKm}
+                    onChange={(e) => setNewProviderPricePerKm(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400">+ Patins</Label>
+                  <Input
+                    type="number"
+                    value={newProviderPatinsPrice}
+                    onChange={(e) => setNewProviderPatinsPrice(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white"
+                    min="0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="hasPatins"
+                checked={newProviderHasPatins}
+                onCheckedChange={(checked) => setNewProviderHasPatins(checked === true)}
+                className="border-slate-600"
+              />
+              <Label htmlFor="hasPatins" className="text-slate-300 cursor-pointer">
+                Possui patins para remoção de veículos travados
+              </Label>
+            </div>
+
+            <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+              <Label className="text-slate-300 mb-2 block flex items-center gap-2">
+                <Truck className="w-4 h-4" />
+                Tipos de Serviço *
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
+                {serviceOptions.map((service) => {
+                  const isSelected = newProviderServices.includes(service.id);
+                  return (
+                    <button
+                      key={service.id}
+                      type="button"
+                      onClick={() => {
+                        setNewProviderServices(prev =>
+                          prev.includes(service.id)
+                            ? prev.filter(s => s !== service.id)
+                            : [...prev, service.id]
+                        );
+                      }}
+                      className={`p-2 rounded border text-left text-sm transition-all ${
+                        isSelected
+                          ? 'border-green-500 bg-green-500/20 text-green-400'
+                          : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                      }`}
+                    >
+                      {service.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Button
+              className="w-full bg-green-600 hover:bg-green-700"
+              disabled={createLoading || !newProviderName || !newProviderWhatsapp || newProviderServices.length === 0}
+              onClick={handleCreateProvider}
+            >
+              {createLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Criando...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Criar Prestador
+                </>
+              )}
             </Button>
           </div>
         </DialogContent>
