@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.generate-provider-slugs]
 verify_jwt = false
+
+[functions.prestadores-online]
+verify_jwt = false
+
+[functions.atualizar-localizacao-prestador]
+verify_jwt = false

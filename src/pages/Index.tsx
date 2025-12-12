@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useLocation } from '@/contexts/LocationContext';
-import Map from '@/components/Map';
+import LiveTrackingMap from '@/components/LiveTrackingMap';
 import ProviderRegistrationModal from '@/components/ProviderRegistrationModal';
 import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
@@ -45,7 +45,7 @@ const Index: React.FC = () => {
       <section className="relative min-h-screen pt-20 overflow-hidden">
         {/* Full Map Background */}
         <div className="absolute inset-0 z-0">
-          {mapboxToken ? <Map className="w-full h-full" /> : <div className="w-full h-full bg-[#0a0f1a]" />}
+          {mapboxToken ? <LiveTrackingMap className="w-full h-full" /> : <div className="w-full h-full bg-[#0a0f1a]" />}
           {/* Dark overlay for readability */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#0a0f1a]/70 via-[#0a0f1a]/40 to-[#0a0f1a]/80" />
         </div>
