@@ -735,13 +735,7 @@ export default function AdminPanel() {
                   <SelectItem value="profissional">
                     <div className="flex items-center gap-2">
                       <Crown className="w-4 h-4 text-green-400" />
-                      Profissional (150 corridas - R$39/mês)
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="pro">
-                    <div className="flex items-center gap-2">
-                      <Rocket className="w-4 h-4 text-orange-400" />
-                      PRO (Ilimitado - R$19,90/mês)
+                      Profissional (150 corridas - R$97/mês)
                     </div>
                   </SelectItem>
                 </SelectContent>

@@ -304,8 +304,12 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
                 <MapPin className="w-3 h-3 text-secondary" />
                 Para onde levar o veículo? *
               </label>
-              <AddressAutocomplete value={destinationText} onChange={handleDestinationChange} placeholder="Ex: Oficina do João, Rua das Flores, 123" />
-              {tripDistanceKm > 0 && <div className="flex items-center gap-1 mt-1 text-[10px] text-green-600">
+            <AddressAutocomplete value={destinationText} onChange={handleDestinationChange} placeholder="Ex: Oficina do João, Rua das Flores, 123" />
+              {routeInfo?.loading && <div className="flex items-center gap-1 mt-1 text-[10px] text-muted-foreground">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <span>Calculando rota...</span>
+                </div>}
+              {tripDistanceKm > 0 && !routeInfo?.loading && <div className="flex items-center gap-1 mt-1 text-[10px] text-green-600">
                   <Route className="w-3 h-3" />
                   <span>Distância: <strong>{tripDistanceKm.toFixed(1)} km</strong></span>
                 </div>}
@@ -416,16 +420,44 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
                   </div>}
               </div>}
 
-            {/* Price Summary */}
-            {selectedProvider && tripDistanceKm > 0 && <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
-                <div className="flex items-center gap-1.5">
-                  <DollarSign className="w-4 h-4 text-green-600" />
-                  <span className="text-xs font-medium text-green-700 dark:text-green-400">Valor estimado:</span>
+            {/* Price Summary with Breakdown */}
+            {selectedProvider && tripDistanceKm > 0 && (() => {
+              const basePrice = selectedProvider.base_price ?? 0;
+              const pricePerKm = selectedProvider.price_per_km ?? 0;
+              const kmCost = tripDistanceKm * pricePerKm;
+              const patinsCost = (needsPatins && selectedProvider.has_patins) ? (selectedProvider.patins_extra_price ?? 0) : 0;
+              const total = basePrice + kmCost + patinsCost;
+              
+              return (
+                <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800 space-y-1">
+                  <div className="text-[10px] text-muted-foreground space-y-0.5">
+                    <div className="flex justify-between">
+                      <span>Base:</span>
+                      <span>R$ {basePrice.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>{tripDistanceKm.toFixed(1)} km × R$ {pricePerKm.toFixed(2)}:</span>
+                      <span>R$ {kmCost.toFixed(2)}</span>
+                    </div>
+                    {patinsCost > 0 && (
+                      <div className="flex justify-between text-cyan-600">
+                        <span>+ Patins:</span>
+                        <span>R$ {patinsCost.toFixed(2)}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between pt-1 border-t border-green-200 dark:border-green-700">
+                    <div className="flex items-center gap-1">
+                      <DollarSign className="w-4 h-4 text-green-600" />
+                      <span className="text-xs font-bold text-green-700 dark:text-green-400">TOTAL:</span>
+                    </div>
+                    <span className="text-lg font-bold text-green-700 dark:text-green-400">
+                      R$ {total.toFixed(2)}
+                    </span>
+                  </div>
                 </div>
-                <span className="text-lg font-bold text-green-700 dark:text-green-400">
-                  R$ {calculateTotalPrice(selectedProvider).toFixed(2)}
-                </span>
-              </div>}
+              );
+            })()}
 
             {/* Validation */}
             {!canSubmit && <p className="text-[10px] text-center text-secondary-foreground">
