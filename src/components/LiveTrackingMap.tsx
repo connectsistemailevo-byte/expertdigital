@@ -51,6 +51,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
   const [mapError, setMapError] = useState(false);
   const [onlineProviders, setOnlineProviders] = useState<OnlineProvider[]>([]);
   const [nearestProvider, setNearestProvider] = useState<OnlineProvider | null>(null);
+  const [destinationInfo, setDestinationInfo] = useState<{ distance: number; duration: number } | null>(null);
 
   // Fetch online providers
   const fetchOnlineProviders = useCallback(async () => {
@@ -153,7 +154,13 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
       const data = await response.json();
 
       if (data.routes && data.routes.length > 0) {
-        const route = data.routes[0].geometry;
+        const route = data.routes[0];
+        const routeGeometry = route.geometry;
+        
+        // Store distance (in km) and duration (in minutes)
+        const distanceKm = route.distance / 1000;
+        const durationMin = Math.round(route.duration / 60);
+        setDestinationInfo({ distance: distanceKm, duration: durationMin });
 
         // Remove existing destination route layer and source if they exist
         if (map.current.getLayer(destinationRouteLayerId)) {
@@ -169,7 +176,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
           data: {
             type: 'Feature',
             properties: {},
-            geometry: route,
+            geometry: routeGeometry,
           },
         });
 
@@ -191,6 +198,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
       }
     } catch (err) {
       console.error('Error drawing destination route:', err);
+      setDestinationInfo(null);
     }
   }, [location.latitude, location.longitude, mapboxToken]);
 
@@ -525,6 +533,11 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
                 <MapPin className="w-2.5 h-2.5 text-white" />
               </div>
               <span className="text-white/80">Destino</span>
+              {destinationInfo && (
+                <span className="text-emerald-400 font-semibold ml-1">
+                  {destinationInfo.distance.toFixed(1)} km • {destinationInfo.duration} min
+                </span>
+              )}
             </div>
           )}
         </div>
