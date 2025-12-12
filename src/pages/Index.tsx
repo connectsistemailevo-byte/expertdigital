@@ -41,47 +41,86 @@ const Index: React.FC = () => {
         </div>
       </header>
 
-      {/* Hero Section - Full Map with Bottom Card */}
+      {/* Hero Section - Map Background with Centered Content */}
       <section className="relative min-h-screen pt-20 overflow-hidden">
-        {/* Full Map Background - Interactive */}
+        {/* Full Map Background */}
         <div className="absolute inset-0 z-0">
           {mapboxToken ? <LiveTrackingMap className="w-full h-full" /> : <div className="w-full h-full bg-[#0a0f1a]" />}
+          {/* Dark overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0f1a]/70 via-[#0a0f1a]/40 to-[#0a0f1a]/80" />
         </div>
 
-        {/* Bottom Card Only - RequestPanel */}
-        <div className="absolute bottom-0 left-0 right-0 z-10 p-4 md:p-6">
-          <div className="container mx-auto">
-            <div className="w-full max-w-[95vw] md:max-w-[950px] lg:max-w-[1100px] mx-auto animate-slide-up">
-              {/* Outer glow effect */}
-              <div className="relative">
-                {/* Multi-layer glow */}
-                <div className="absolute -inset-3 md:-inset-5 bg-gradient-to-r from-blue-600/50 via-purple-500/40 to-blue-600/50 rounded-[1.5rem] md:rounded-[2.5rem] blur-2xl opacity-70" />
-                <div className="absolute -inset-2 md:-inset-4 bg-gradient-to-b from-blue-500/30 via-transparent to-purple-600/30 rounded-[1.25rem] md:rounded-[2rem] blur-xl" />
-                
-                {/* Device frame */}
-                <div className="relative backdrop-blur-md md:rounded-[2rem] p-3 md:p-4 shadow-2xl border-0 border-primary-foreground rounded-3xl bg-secondary">
-                  {/* Inner border glow */}
-                  <div className="absolute inset-0 rounded-[1.25rem] md:rounded-[2rem] bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10 pointer-events-none" />
-                  
-                  {/* Content */}
-                  <div className="relative overflow-hidden rounded-xl md:rounded-2xl">
-                    <RequestPanel />
+        {/* Centered Content */}
+        <div className="relative z-10 container mx-auto px-4 py-6 md:py-12 flex flex-col items-center justify-center min-h-[calc(100vh-5rem)]">
+          
+          {/* Hero Card with Map Inside */}
+          <div className="w-full max-w-lg mx-auto mb-6 animate-fade-in">
+            <div className="backdrop-blur-xl rounded-2xl p-4 md:p-6 border shadow-2xl bg-secondary-foreground border-secondary border-solid">
+              {/* Badge */}
+              <div className="text-center mb-3">
+                <span className="inline-block py-2 px-4 text-secondary rounded-full text-xs md:text-sm font-semibold bg-primary-foreground">
+                  Atendimento 24h em todo o Brasil
+                </span>
+              </div>
+              
+              {/* Map Container Inside Card */}
+              <div className="relative w-full h-[280px] md:h-[320px] rounded-xl overflow-hidden mb-4">
+                {mapboxToken ? (
+                  <LiveTrackingMap className="w-full h-full" />
+                ) : (
+                  <div className="w-full h-full bg-[#1a1f2e] flex items-center justify-center">
+                    <span className="text-white/50 text-sm">Carregando mapa...</span>
                   </div>
+                )}
+              </div>
+              
+              {/* Location Display */}
+              <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl mb-4 bg-green-600 text-primary-foreground border border-primary-foreground shadow-md">
+                <MapPin className="w-4 h-4 text-secondary flex-shrink-0" />
+                <span className="font-medium text-white text-sm truncate">
+                  {location.loading ? 'Buscando sua localização...' : location.address || location.region || 'Localização não disponível'}
+                </span>
+              </div>
+
+              {/* Trust badges */}
+              <div className="flex flex-wrap justify-center items-center gap-3 mb-4">
+                {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => (
+                  <div key={badge} className="flex items-center gap-1.5">
+                    <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                    <span className="text-xs text-primary-foreground">{badge}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA for providers */}
+              <div className="text-center pt-3 border-t border-white/10">
+                <button onClick={() => setIsProviderModalOpen(true)} className="transition-colors font-medium bg-transparent text-primary-foreground text-lg shadow-md">
+                  É guincheiro? <span className="underline underline-offset-2 font-thin text-center">Cadastre-se aqui</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Device Frame with Glow - HORIZONTAL */}
+          <div className="w-full max-w-[95vw] md:max-w-[950px] lg:max-w-[1100px] mx-auto animate-slide-up">
+            {/* Outer glow effect */}
+            <div className="relative">
+              {/* Multi-layer glow */}
+              <div className="absolute -inset-3 md:-inset-5 bg-gradient-to-r from-blue-600/50 via-purple-500/40 to-blue-600/50 rounded-[1.5rem] md:rounded-[2.5rem] blur-2xl opacity-70" />
+              <div className="absolute -inset-2 md:-inset-4 bg-gradient-to-b from-blue-500/30 via-transparent to-purple-600/30 rounded-[1.25rem] md:rounded-[2rem] blur-xl" />
+              
+              {/* Device frame */}
+              <div className="relative backdrop-blur-md md:rounded-[2rem] p-3 md:p-4 shadow-2xl border-0 border-primary-foreground rounded-3xl bg-secondary">
+                {/* Inner border glow */}
+                <div className="absolute inset-0 rounded-[1.25rem] md:rounded-[2rem] bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10 pointer-events-none" />
+                
+                {/* Content */}
+                <div className="relative overflow-hidden rounded-xl md:rounded-2xl">
+                  <RequestPanel />
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        {/* Provider Registration Link - Floating */}
-        <div className="absolute top-24 left-0 right-0 z-10 text-center">
-          <button 
-            onClick={() => setIsProviderModalOpen(true)} 
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0a0f1a]/80 backdrop-blur-sm border border-white/20 text-white/90 text-sm hover:bg-[#0a0f1a]/90 transition-colors"
-          >
-            <Truck className="w-4 h-4" />
-            É guincheiro? Cadastre-se aqui
-          </button>
         </div>
       </section>
 
