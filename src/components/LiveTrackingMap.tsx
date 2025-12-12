@@ -4,6 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { useLocation } from '@/contexts/LocationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Truck, User, MapPin } from 'lucide-react';
+import showtimeLogo from '@/assets/showtime-logo.png';
 
 interface OnlineProvider {
   id: string;
@@ -529,10 +530,22 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
         </div>
       </div>
 
+      {/* ShowTime Creative Branding */}
+      <div className="absolute bottom-2 left-2 z-10 flex items-center gap-1.5 bg-[#0a0f1a]/90 backdrop-blur-sm px-2 py-1 rounded-md shadow-lg">
+        <img src={showtimeLogo} alt="ShowTime Creative" className="w-4 h-4" />
+        <span className="text-[10px] font-semibold text-white">ShowTime Creative</span>
+      </div>
+
       <style>{`
         @keyframes pulse {
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.05); }
+        }
+        .mapboxgl-ctrl-logo {
+          display: none !important;
+        }
+        .mapboxgl-ctrl-attrib {
+          display: none !important;
         }
       `}</style>
     </div>
