@@ -130,7 +130,8 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
 }) => {
   const {
     location,
-    refreshLocation
+    refreshLocation,
+    setDestination: setContextDestination
   } = useLocation();
   const {
     providers: allProviders,
@@ -141,7 +142,7 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
   const providers = filterProviderId ? allProviders.filter(p => p.id === filterProviderId) : allProviders;
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [destination, setDestination] = useState('');
+  const [destinationText, setDestinationText] = useState('');
   const [destinationCoords, setDestinationCoords] = useState<DestinationCoordinates | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleType | null>(null);
   const [selectedCondition, setSelectedCondition] = useState<VehicleCondition | null>(null);
@@ -169,8 +170,19 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
   };
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => setPhone(formatPhone(e.target.value));
   const handleDestinationChange = (value: string, coordinates?: DestinationCoordinates) => {
-    setDestination(value);
+    setDestinationText(value);
     setDestinationCoords(coordinates || null);
+    
+    // Atualiza o contexto para o mapa do Card 1 mostrar a rota
+    if (coordinates) {
+      setContextDestination({
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude,
+        address: value
+      });
+    } else {
+      setContextDestination(null);
+    }
   };
   const getCurrentTime = () => new Date().toLocaleString('pt-BR', {
     day: '2-digit',
@@ -186,7 +198,7 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
     if (needsPatins && provider.has_patins) total += provider.patins_extra_price || 30;
     return total;
   };
-  const canSubmit = name.trim().length >= 2 && phone.replace(/\D/g, '').length >= 10 && destination.trim().length >= 3 && selectedVehicle && selectedCondition && selectedPayment;
+  const canSubmit = name.trim().length >= 2 && phone.replace(/\D/g, '').length >= 10 && destinationText.trim().length >= 3 && selectedVehicle && selectedCondition && selectedPayment;
   const getWhatsAppUrl = () => {
     const vehicleLabel = vehicleTypes.find(v => v.id === selectedVehicle)?.label || '';
     const conditionLabel = vehicleConditions.find(c => c.id === selectedCondition)?.label || '';
@@ -207,7 +219,7 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
 
     // Link do Google Maps para o destino
     const destMapLink = destinationCoords ? `https://www.google.com/maps?q=${destinationCoords.latitude},${destinationCoords.longitude}` : '';
-    const messageText = `🚗 *GUINCHO FÁCIL 24HS*\n\n👤 *Cliente:* ${name}\n📱 *WhatsApp:* ${phone}\n\n🚙 *Veículo:* ${vehicleLabel}\n⚠️ *Situação:* ${conditionLabel}\n💳 *Pagamento:* ${paymentLabel}\n\n📍 *ORIGEM (Localização Atual):*\n${location.address}\n🗺️ *Ver no Mapa:* ${originMapLink}\n\n🏁 *DESTINO:*\n${destination}${destMapLink ? `\n🗺️ *Ver no Mapa:* ${destMapLink}` : ''}\n${tripInfo}${providerInfo}${priceInfo}\n🕐 *Horário:* ${getCurrentTime()}`;
+    const messageText = `🚗 *GUINCHO FÁCIL 24HS*\n\n👤 *Cliente:* ${name}\n📱 *WhatsApp:* ${phone}\n\n🚙 *Veículo:* ${vehicleLabel}\n⚠️ *Situação:* ${conditionLabel}\n💳 *Pagamento:* ${paymentLabel}\n\n📍 *ORIGEM (Localização Atual):*\n${location.address}\n🗺️ *Ver no Mapa:* ${originMapLink}\n\n🏁 *DESTINO:*\n${destinationText}${destMapLink ? `\n🗺️ *Ver no Mapa:* ${destMapLink}` : ''}\n${tripInfo}${providerInfo}${priceInfo}\n🕐 *Horário:* ${getCurrentTime()}`;
     const message = encodeURIComponent(messageText);
     const whatsappNumber = selectedProvider ? selectedProvider.whatsapp.replace(/\D/g, '') : defaultWhatsApp;
     const formattedNumber = whatsappNumber.startsWith('55') ? whatsappNumber : `55${whatsappNumber}`;
@@ -298,7 +310,7 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
                 <MapPin className="w-3 h-3 text-secondary" />
                 Para onde levar o veículo? *
               </label>
-              <AddressAutocomplete value={destination} onChange={handleDestinationChange} placeholder="Ex: Oficina do João, Rua das Flores, 123" />
+              <AddressAutocomplete value={destinationText} onChange={handleDestinationChange} placeholder="Ex: Oficina do João, Rua das Flores, 123" />
               {tripDistanceKm > 0 && <div className="flex items-center gap-1 mt-1 text-[10px] text-green-600">
                   <Route className="w-3 h-3" />
                   <span>Distância: <strong>{tripDistanceKm.toFixed(1)} km</strong></span>
@@ -423,7 +435,7 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
 
             {/* Validation */}
             {!canSubmit && <p className="text-[10px] text-center text-secondary-foreground">
-                {!destination ? '⚠️ Informe o destino' : !name ? '⚠️ Informe seu nome' : !phone || phone.replace(/\D/g, '').length < 10 ? '⚠️ Informe seu WhatsApp' : !selectedVehicle ? '⚠️ Selecione o veículo' : !selectedCondition ? '⚠️ Selecione a situação' : !selectedPayment ? '⚠️ Selecione forma de pagamento' : ''}
+                {!destinationText ? '⚠️ Informe o destino' : !name ? '⚠️ Informe seu nome' : !phone || phone.replace(/\D/g, '').length < 10 ? '⚠️ Informe seu WhatsApp' : !selectedVehicle ? '⚠️ Selecione o veículo' : !selectedCondition ? '⚠️ Selecione a situação' : !selectedPayment ? '⚠️ Selecione forma de pagamento' : ''}
               </p>}
 
             {/* Submit */}

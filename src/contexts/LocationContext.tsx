@@ -11,10 +11,18 @@ interface LocationData {
   error: string | null;
 }
 
+interface DestinationData {
+  latitude: number;
+  longitude: number;
+  address: string;
+}
+
 interface LocationContextType {
   location: LocationData;
+  destination: DestinationData | null;
   refreshLocation: () => void;
   updateLocation: (lat: number, lng: number) => Promise<void>;
+  setDestination: (dest: DestinationData | null) => void;
   mapboxToken: string;
 }
 
@@ -34,6 +42,7 @@ interface LocationProviderProps {
 
 export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) => {
   const [mapboxToken, setMapboxToken] = useState('');
+  const [destination, setDestination] = useState<DestinationData | null>(null);
 
   const [location, setLocation] = useState<LocationData>({
     latitude: 0,
@@ -44,6 +53,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     loading: true,
     error: null,
   });
+
 
   // Busca o token do Mapbox da edge function
   useEffect(() => {
@@ -255,7 +265,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
   }, [fetchLocation]);
 
   return (
-    <LocationContext.Provider value={{ location, refreshLocation: fetchLocation, updateLocation, mapboxToken }}>
+    <LocationContext.Provider value={{ location, destination, refreshLocation: fetchLocation, updateLocation, setDestination, mapboxToken }}>
       {children}
     </LocationContext.Provider>
   );
