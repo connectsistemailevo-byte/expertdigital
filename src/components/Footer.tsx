@@ -7,10 +7,9 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* Brand */}
           <div>
-            <h3 className="font-display text-2xl font-bold mb-4">GUINCHO FÁCIL 24HS GUINCHO<span className="text-secondary"> GUINCHO</span>
-            </h3>
+            <h3 className="font-display text-2xl font-bold mb-4">ShowTime<span className="text-secondary"> Creative</span></h3>
             <p className="text-primary-foreground/70 text-sm mb-6">
-              Seu guincho de bolso. Conectamos você ao guincheiro mais próximo em toda região de São Paulo.
+              Soluções digitais personalizadas para o seu negócio.
             </p>
             <div className="flex items-center gap-2 text-sm">
               <Clock className="w-4 h-4 text-secondary" />
@@ -48,7 +47,7 @@ const Footer: React.FC = () => {
         {/* Bottom */}
         <div className="mt-12 pt-8 border-t border-primary-foreground/10 text-center">
           <p className="text-primary-foreground/50 text-sm">
-            © {new Date().getFullYear()} Achei Guincho. Todos os direitos reservados.
+            © {new Date().getFullYear()} ShowTime Creative. Todos os direitos reservados.
           </p>
         </div>
       </div>
