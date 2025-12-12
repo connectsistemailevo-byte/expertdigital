@@ -215,6 +215,85 @@ serve(async (req) => {
         });
       }
 
+      case "create_provider": {
+        if (!data?.name || !data?.whatsapp) {
+          throw new Error("Nome e WhatsApp são obrigatórios");
+        }
+
+        // Gerar slug
+        const baseSlug = data.name
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
+
+        let slug = baseSlug;
+        let slugCounter = 1;
+        
+        while (true) {
+          const { data: existingSlug } = await supabaseClient
+            .from('providers')
+            .select('id')
+            .eq('slug', slug)
+            .maybeSingle();
+          
+          if (!existingSlug) break;
+          slug = `${baseSlug}-${slugCounter}`;
+          slugCounter++;
+        }
+
+        // Criar provider
+        const { data: newProvider, error: provError } = await supabaseClient
+          .from('providers')
+          .insert({
+            name: data.name,
+            whatsapp: data.whatsapp,
+            slug,
+            has_patins: data.has_patins || false,
+            service_types: data.service_types || ['guincho_completo'],
+            latitude: data.latitude || -23.5505,
+            longitude: data.longitude || -46.6333,
+            address: data.address || null,
+            region: data.region || null,
+            base_price: data.base_price || 50,
+            price_per_km: data.price_per_km || 5,
+            patins_extra_price: data.patins_extra_price || 30,
+          })
+          .select()
+          .single();
+
+        if (provError) throw provError;
+
+        // Criar subscription com trial
+        await supabaseClient
+          .from('provider_subscriptions')
+          .insert({
+            provider_id: newProvider.id,
+            trial_ativo: true,
+            trial_corridas_restantes: 10,
+            corridas_usadas: 0,
+            adesao_paga: false,
+            limite_corridas: 0,
+            mensalidade_atual: 0,
+          });
+
+        // Criar customização padrão
+        await supabaseClient
+          .from('provider_customization')
+          .insert({
+            provider_id: newProvider.id,
+            company_name: data.name,
+          });
+
+        return new Response(JSON.stringify({ success: true, provider: newProvider }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
       default:
         throw new Error(`Ação desconhecida: ${action}`);
     }
