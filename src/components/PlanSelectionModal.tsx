@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Zap, Crown, Rocket, Loader2 } from 'lucide-react';
+import { Check, Zap, Crown, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import LiveTrackingMap from './LiveTrackingMap';
 
 interface PlanSelectionModalProps {
   open: boolean;
@@ -18,61 +19,44 @@ interface PlanSelectionModalProps {
 const PLANS = [
   {
     id: 'basico',
-    name: 'Básico',
+    name: 'Plano Essencial',
     icon: Zap,
     color: 'from-blue-500 to-blue-600',
     borderColor: 'border-blue-500',
-    adesao: 149,
-    mensalidade: 47,
-    limiteCorreidas: 50,
+    adesao: 79,
+    mensalidade: 37,
+    limiteCorreidas: 30,
     beneficios: [
-      'Sistema pronto para usar',
-      'Suporte básico',
-      '50 corridas por mês',
-    ],
-    naoInclui: [
-      'Sem personalização',
-      'Sem domínio próprio',
+      'Acesso completo à plataforma',
+      'Funcionalidades essenciais',
+      'Suporte de qualidade',
+      'Sistema leve (economiza bateria)',
+      'Sem taxa por solicitação',
+      'Autonomia para aprovar chamados',
+      'Solicitações direto no WhatsApp',
+      'Localização, distância e tempo em tempo real',
     ],
   },
   {
     id: 'profissional',
-    name: 'Profissional',
+    name: 'Plano Profissional',
     icon: Crown,
-    color: 'from-green-500 to-emerald-600',
-    borderColor: 'border-green-500',
-    adesao: 249,
-    taxaDominio: 40,
-    mensalidade: 39,
-    limiteCorreidas: 150,
+    color: 'from-amber-500 to-orange-600',
+    borderColor: 'border-amber-500',
+    adesao: 139,
+    mensalidade: 47,
+    limiteCorreidas: 50,
     popular: true,
     beneficios: [
-      'Logo do prestador no sistema',
-      'Cores personalizadas',
-      'Nome da empresa no topo',
-      'Link exclusivo com domínio próprio',
-      'Suporte WhatsApp',
-      '150 corridas por mês',
+      'Acesso completo à plataforma',
+      'Personalização com sua logo + domínio',
+      'Painel profissional e suporte avançado',
+      'Sistema mais leve e otimizado',
+      'Sem taxa por solicitação',
+      'Autonomia total: controle de chamadas e preços',
+      'Chamados diretos no WhatsApp + atualizações',
+      'Localização exata, KM, destino e tempo estimado',
     ],
-  },
-  {
-    id: 'pro',
-    name: 'Guincho PRO',
-    icon: Rocket,
-    color: 'from-orange-500 to-amber-600',
-    borderColor: 'border-orange-500',
-    adesao: 599,
-    mensalidade: 19.90,
-    limiteCorreidas: -1,
-    beneficios: [
-      'Personalização completa (logo, nome e cores)',
-      'Hospedagem premium',
-      'Domínio grátis',
-      'Suporte VIP',
-      'Google Ads configurado',
-      'Corridas ILIMITADAS',
-    ],
-    extra: 'Campanhas a partir de R$ 100,00',
   },
 ];
 
@@ -119,7 +103,7 @@ export function PlanSelectionModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-slate-700">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-slate-700">
         <DialogHeader className="text-center pb-4">
           <DialogTitle className="text-2xl md:text-3xl font-bold text-white">
             Escolha seu Plano
@@ -137,18 +121,25 @@ export function PlanSelectionModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid md:grid-cols-3 gap-4 py-4">
+        {/* Mapa de Rastreamento */}
+        <div className="rounded-xl overflow-hidden border border-white/10 mb-6">
+          <div className="h-[200px] md:h-[250px]">
+            <LiveTrackingMap />
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4 py-4">
           {PLANS.map((plan) => {
             const Icon = plan.icon;
             return (
               <div
                 key={plan.id}
                 className={`relative rounded-2xl border-2 ${plan.borderColor} bg-slate-800/50 p-5 transition-all hover:scale-105 hover:shadow-xl ${
-                  plan.popular ? 'ring-2 ring-green-500 ring-offset-2 ring-offset-slate-900' : ''
+                  plan.popular ? 'ring-2 ring-amber-500 ring-offset-2 ring-offset-slate-900' : ''
                 }`}
               >
                 {plan.popular && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white">
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-white">
                     Mais Popular
                   </Badge>
                 )}
@@ -161,30 +152,18 @@ export function PlanSelectionModal({
 
                 <div className="space-y-1 mb-4">
                   <p className="text-slate-400 text-sm">
-                    Adesão única:{' '}
+                    💳 Adesão:{' '}
                     <span className="text-white font-semibold">R$ {plan.adesao.toFixed(2)}</span>
                   </p>
-                  {plan.taxaDominio && (
-                    <p className="text-slate-400 text-sm">
-                      Taxa domínio:{' '}
-                      <span className="text-white font-semibold">R$ {plan.taxaDominio.toFixed(2)}</span>
-                    </p>
-                  )}
                   <p className="text-slate-400 text-sm">
-                    Mensalidade:{' '}
+                    📅 Mensalidade:{' '}
                     <span className="text-2xl text-white font-bold">
                       R$ {plan.mensalidade.toFixed(2)}
                     </span>
                     <span className="text-slate-500">/mês</span>
                   </p>
                   <p className="text-slate-400 text-sm">
-                    {plan.limiteCorreidas === -1 ? (
-                      <span className="text-green-400 font-semibold">Corridas ilimitadas</span>
-                    ) : (
-                      <>
-                        Limite: <span className="text-white">{plan.limiteCorreidas} corridas/mês</span>
-                      </>
-                    )}
+                    🚗 Limite: <span className="text-white">{plan.limiteCorreidas} corridas/mês</span>
                   </p>
                 </div>
 
@@ -195,16 +174,7 @@ export function PlanSelectionModal({
                       {beneficio}
                     </li>
                   ))}
-                  {plan.naoInclui?.map((item, i) => (
-                    <li key={`no-${i}`} className="flex items-start gap-2 text-sm text-slate-500 line-through">
-                      {item}
-                    </li>
-                  ))}
                 </ul>
-
-                {plan.extra && (
-                  <p className="text-xs text-amber-400 mb-4">{plan.extra}</p>
-                )}
 
                 <Button
                   className={`w-full bg-gradient-to-r ${plan.color} hover:opacity-90`}
