@@ -376,44 +376,23 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
     <div className={`${className} relative`}>
       <div ref={mapContainer} className="w-full h-full rounded-2xl overflow-hidden" />
       
-      {/* Legend */}
-      <div className="absolute top-3 left-3 z-10 bg-[#0a0f1a]/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-        <div className="flex flex-col gap-2 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
-              <User className="w-3 h-3 text-white" />
+      {/* Compact Legend */}
+      <div className="absolute top-2 left-2 z-10 bg-[#0a0f1a]/80 backdrop-blur-sm rounded-md px-2 py-1 shadow-lg">
+        <div className="flex items-center gap-3 text-[10px]">
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+              <User className="w-2.5 h-2.5 text-white" />
             </div>
-            <span className="text-white">Você (arraste para ajustar)</span>
+            <span className="text-white/80">Você</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center">
-              <Truck className="w-3 h-3 text-white" />
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center">
+              <Truck className="w-2.5 h-2.5 text-white" />
             </div>
-            <span className="text-white">Guincheiros online ({onlineProviders.length})</span>
+            <span className="text-white/80">Online ({onlineProviders.length})</span>
           </div>
         </div>
       </div>
-
-      {/* Nearest provider info */}
-      {nearestProvider && (
-        <div className="absolute bottom-3 left-3 right-3 z-10 bg-[#0a0f1a]/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
-                <Truck className="w-5 h-5 text-amber-500" />
-              </div>
-              <div>
-                <p className="text-white font-semibold text-sm">{nearestProvider.name}</p>
-                <p className="text-muted-foreground text-xs">Guincheiro mais próximo</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-green-400 font-bold">{nearestProvider.distance?.toFixed(1)} km</p>
-              <p className="text-muted-foreground text-xs">~{nearestProvider.estimatedTime} min</p>
-            </div>
-          </div>
-        </div>
-      )}
 
       <style>{`
         @keyframes pulse {
