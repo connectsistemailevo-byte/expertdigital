@@ -41,7 +41,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   return <button type="button" onClick={onSelect} className={`relative w-full p-3 rounded-xl border-2 transition-all duration-200 text-left ${isSelected ? 'border-secondary bg-secondary/10' : 'border-border hover:border-secondary/50 hover:bg-muted'} ${className || ''}`}>
       {isSelected && <CheckCircle className="w-4 h-4 text-secondary absolute top-2 right-2" />}
       
-      <div className="flex items-start gap-2 text-secondary-foreground">
+      <div className="flex items-start gap-2 text-secondary-foreground bg-primary-foreground">
         <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-secondary text-secondary-foreground' : 'bg-muted'}`}>
           <Truck className="w-5 h-5 bg-transparent text-secondary-foreground" />
         </div>

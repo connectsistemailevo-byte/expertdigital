@@ -418,7 +418,7 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
                     <Users className="w-6 h-6 text-muted-foreground mx-auto mb-1" />
                     <p className="text-xs text-muted-foreground">Nenhum prestador na região</p>
                   </div> : <div className="space-y-1.5 max-h-[140px] overflow-y-auto">
-                    {providers.slice(0, 4).map(provider => <ProviderCard key={provider.id} provider={provider} isSelected={selectedProvider?.id === provider.id} onSelect={() => setSelectedProvider(provider)} needsPatins={needsPatins} tripDistanceKm={tripDistanceKm} className="bg-inherit" />)}
+                    {providers.slice(0, 4).map(provider => <ProviderCard key={provider.id} provider={provider} isSelected={selectedProvider?.id === provider.id} onSelect={() => setSelectedProvider(provider)} needsPatins={needsPatins} tripDistanceKm={tripDistanceKm} className="bg-primary-foreground" />)}
                   </div>}
               </div>}
 
