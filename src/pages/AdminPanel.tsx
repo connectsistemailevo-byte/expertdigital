@@ -55,6 +55,7 @@ import {
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import BrandingManager from '@/components/admin/BrandingManager';
+import AdminProvidersMap from '@/components/admin/AdminProvidersMap';
 
 interface ProviderWithSubscription {
   id: string;
@@ -1162,27 +1163,39 @@ export default function AdminPanel() {
 
       {/* Modal: Provider Locations */}
       <Dialog open={showLocationsModal} onOpenChange={setShowLocationsModal}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-slate-900 border-slate-700 max-w-4xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <MapPinned className="w-5 h-5" />
-              Localizações dos Prestadores
+              Localizações dos Prestadores em Tempo Real
             </DialogTitle>
             <DialogDescription className="text-slate-400">
-              Prestadores com rastreamento ativo
+              {providerLocations.filter(l => l.is_online).length} prestador(es) online
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadLocations}
-              disabled={locationsLoading}
-              className="border-slate-600 text-slate-300"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${locationsLoading ? 'animate-spin' : ''}`} />
-              Atualizar
-            </Button>
+            <div className="flex items-center justify-between">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadLocations}
+                disabled={locationsLoading}
+                className="border-slate-600 text-slate-300"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${locationsLoading ? 'animate-spin' : ''}`} />
+                Atualizar
+              </Button>
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-slate-400">Online</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 bg-slate-500 rounded-full" />
+                  <span className="text-slate-400">Offline</span>
+                </div>
+              </div>
+            </div>
 
             {locationsLoading ? (
               <div className="flex items-center justify-center py-8">
@@ -1191,57 +1204,54 @@ export default function AdminPanel() {
             ) : providerLocations.length === 0 ? (
               <div className="text-center py-8 text-slate-400">
                 <Navigation className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>Nenhum prestador online no momento</p>
+                <p>Nenhum prestador com rastreamento ativo</p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {providerLocations.map((loc) => (
-                  <div
-                    key={loc.id}
-                    className={`p-4 rounded-lg border ${
-                      loc.is_online 
-                        ? 'bg-green-500/10 border-green-500/30' 
-                        : 'bg-slate-800/50 border-slate-700'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-semibold text-white flex items-center gap-2">
-                          {loc.provider_name}
-                          {loc.is_online && (
-                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                          )}
-                        </h4>
-                        <p className="text-sm text-slate-400">{loc.provider_whatsapp}</p>
-                      </div>
-                      <Badge className={loc.is_online ? 'bg-green-600' : 'bg-slate-600'}>
-                        {loc.is_online ? 'Online' : 'Offline'}
-                      </Badge>
-                    </div>
-                    <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <span className="text-slate-500">Latitude:</span>
-                        <span className="text-white ml-2 font-mono">{loc.latitude?.toFixed(6)}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500">Longitude:</span>
-                        <span className="text-white ml-2 font-mono">{loc.longitude?.toFixed(6)}</span>
-                      </div>
-                    </div>
-                    <div className="mt-2 text-xs text-slate-500">
-                      Última atualização: {new Date(loc.last_seen_at).toLocaleString('pt-BR')}
-                    </div>
-                    <a
-                      href={`https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 inline-flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300"
+              <div className="space-y-4">
+                {/* Map */}
+                <AdminProvidersMap 
+                  locations={providerLocations} 
+                  className="h-[350px] rounded-lg border border-slate-700"
+                />
+                
+                {/* Provider List */}
+                <div className="max-h-[200px] overflow-y-auto space-y-2">
+                  {providerLocations.map((loc) => (
+                    <div
+                      key={loc.id}
+                      className={`p-3 rounded-lg border flex items-center justify-between ${
+                        loc.is_online 
+                          ? 'bg-green-500/10 border-green-500/30' 
+                          : 'bg-slate-800/50 border-slate-700'
+                      }`}
                     >
-                      <MapPin className="w-3 h-3" />
-                      Ver no Google Maps
-                    </a>
-                  </div>
-                ))}
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          loc.is_online ? 'bg-green-500/20' : 'bg-slate-700'
+                        }`}>
+                          <Truck className={`w-4 h-4 ${loc.is_online ? 'text-green-400' : 'text-slate-400'}`} />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-white text-sm flex items-center gap-2">
+                            {loc.provider_name}
+                            {loc.is_online && (
+                              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                            )}
+                          </h4>
+                          <p className="text-xs text-slate-400">{loc.provider_whatsapp}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Badge className={`text-xs ${loc.is_online ? 'bg-green-600' : 'bg-slate-600'}`}>
+                          {loc.is_online ? 'Online' : 'Offline'}
+                        </Badge>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {new Date(loc.last_seen_at).toLocaleTimeString('pt-BR')}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
