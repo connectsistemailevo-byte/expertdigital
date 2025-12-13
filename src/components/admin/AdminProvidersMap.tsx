@@ -17,9 +17,10 @@ interface ProviderLocation {
 interface AdminProvidersMapProps {
   locations: ProviderLocation[];
   className?: string;
+  onToggleOnline?: (providerId: string, isOnline: boolean) => void;
 }
 
-const AdminProvidersMap: React.FC<AdminProvidersMapProps> = ({ locations, className }) => {
+const AdminProvidersMap: React.FC<AdminProvidersMapProps> = ({ locations, className, onToggleOnline }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<Map<string, mapboxgl.Marker>>(new Map());
@@ -135,18 +136,15 @@ const AdminProvidersMap: React.FC<AdminProvidersMapProps> = ({ locations, classN
           </div>
         `;
 
-        // Add popup
-        const popup = new mapboxgl.Popup({ 
-          offset: 25,
-          closeButton: false,
-          className: 'admin-provider-popup'
-        }).setHTML(`
+        // Add popup with toggle button
+        const popupContent = document.createElement('div');
+        popupContent.innerHTML = `
           <div style="
             background: #1e293b;
             padding: 12px;
             border-radius: 8px;
             color: white;
-            min-width: 180px;
+            min-width: 200px;
           ">
             <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">
               ${loc.provider_name}
@@ -162,14 +160,46 @@ const AdminProvidersMap: React.FC<AdminProvidersMapProps> = ({ locations, classN
               font-weight: 500;
               background: ${loc.is_online ? 'rgba(34, 197, 94, 0.2)' : 'rgba(100, 116, 139, 0.2)'};
               color: ${loc.is_online ? '#22c55e' : '#94a3b8'};
+              margin-bottom: 8px;
             ">
               ${loc.is_online ? '● Online' : '○ Offline'}
             </div>
-            <div style="font-size: 10px; color: #64748b; margin-top: 8px;">
-              Atualizado: ${new Date(loc.last_seen_at).toLocaleTimeString('pt-BR')}
+            <div style="font-size: 10px; color: #64748b; margin-bottom: 8px;">
+              ${loc.last_seen_at ? `Atualizado: ${new Date(loc.last_seen_at).toLocaleTimeString('pt-BR')}` : 'Sem registro'}
             </div>
+            <button 
+              id="toggle-btn-${loc.provider_id}"
+              style="
+                width: 100%;
+                padding: 6px 12px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 500;
+                cursor: pointer;
+                border: none;
+                background: ${loc.is_online ? '#ef4444' : '#22c55e'};
+                color: white;
+                transition: opacity 0.2s;
+              "
+            >
+              ${loc.is_online ? 'Colocar Offline' : 'Colocar Online'}
+            </button>
           </div>
-        `);
+        `;
+
+        // Add click handler for toggle button
+        const toggleBtn = popupContent.querySelector(`#toggle-btn-${loc.provider_id}`);
+        if (toggleBtn && onToggleOnline) {
+          toggleBtn.addEventListener('click', () => {
+            onToggleOnline(loc.provider_id, !loc.is_online);
+          });
+        }
+
+        const popup = new mapboxgl.Popup({ 
+          offset: 25,
+          closeButton: true,
+          className: 'admin-provider-popup'
+        }).setDOMContent(popupContent);
 
         const marker = new mapboxgl.Marker(el)
           .setLngLat([loc.longitude, loc.latitude])

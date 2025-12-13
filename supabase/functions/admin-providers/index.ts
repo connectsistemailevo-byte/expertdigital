@@ -332,9 +332,71 @@ serve(async (req) => {
         });
       }
 
+      case "toggle_provider_online": {
+        const { provider_id, is_online } = data;
+        
+        if (!provider_id) {
+          throw new Error("provider_id é obrigatório");
+        }
+
+        // Verificar se já existe registro de status
+        const { data: existingStatus } = await supabaseClient
+          .from('provider_online_status')
+          .select('id')
+          .eq('provider_id', provider_id)
+          .single();
+
+        if (existingStatus) {
+          // Atualizar status existente
+          const { error: updateError } = await supabaseClient
+            .from('provider_online_status')
+            .update({ 
+              is_online: is_online,
+              last_seen_at: new Date().toISOString()
+            })
+            .eq('provider_id', provider_id);
+
+          if (updateError) throw updateError;
+        } else {
+          // Buscar coordenadas do provider
+          const { data: provider } = await supabaseClient
+            .from('providers')
+            .select('latitude, longitude')
+            .eq('id', provider_id)
+            .single();
+
+          // Criar novo registro de status
+          const { error: insertError } = await supabaseClient
+            .from('provider_online_status')
+            .insert({
+              provider_id,
+              is_online: is_online,
+              latitude: provider?.latitude || 0,
+              longitude: provider?.longitude || 0,
+              last_seen_at: new Date().toISOString()
+            });
+
+          if (insertError) throw insertError;
+        }
+
+        console.log("Provider online status toggled:", provider_id, is_online);
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
       case "list_locations": {
-        // Buscar todas as localizações dos prestadores online
-        const { data: locations, error: locError } = await supabaseClient
+        // Buscar todos os providers cadastrados
+        const { data: providers, error: provError } = await supabaseClient
+          .from('providers')
+          .select('id, name, whatsapp, latitude, longitude');
+
+        if (provError) throw provError;
+
+        // Buscar status de online dos providers
+        const { data: statuses, error: statusError } = await supabaseClient
           .from('provider_online_status')
           .select(`
             id,
@@ -345,22 +407,20 @@ serve(async (req) => {
             last_seen_at
           `);
 
-        if (locError) throw locError;
+        if (statusError) throw statusError;
 
-        // Buscar informações básicas dos providers
-        const { data: providers, error: provError } = await supabaseClient
-          .from('providers')
-          .select('id, name, whatsapp');
-
-        if (provError) throw provError;
-
-        // Combinar dados
-        const result = locations?.map(loc => {
-          const provider = providers?.find(p => p.id === loc.provider_id);
+        // Combinar dados - todos os providers, com ou sem status
+        const result = providers?.map(provider => {
+          const status = statuses?.find(s => s.provider_id === provider.id);
           return {
-            ...loc,
-            provider_name: provider?.name || 'Desconhecido',
-            provider_whatsapp: provider?.whatsapp || '',
+            id: status?.id || provider.id,
+            provider_id: provider.id,
+            provider_name: provider.name,
+            provider_whatsapp: provider.whatsapp,
+            latitude: status?.latitude || provider.latitude,
+            longitude: status?.longitude || provider.longitude,
+            is_online: status?.is_online || false,
+            last_seen_at: status?.last_seen_at || null,
           };
         });
 

@@ -116,6 +116,7 @@ export default function AdminPanel() {
   // Provider locations
   const [providerLocations, setProviderLocations] = useState<ProviderLocation[]>([]);
   const [locationsLoading, setLocationsLoading] = useState(false);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
   
   // New provider form state
   const [newProviderName, setNewProviderName] = useState('');
@@ -384,6 +385,37 @@ export default function AdminPanel() {
       setLocationsLoading(false);
     }
   };
+
+  const toggleProviderOnline = async (providerId: string, isOnline: boolean) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-providers', {
+        body: {
+          action: 'toggle_provider_online',
+          admin_password: localStorage.getItem('admin_password'),
+          data: { provider_id: providerId, is_online: isOnline },
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast({ title: isOnline ? 'Prestador colocado online!' : 'Prestador colocado offline!' });
+      await loadLocations();
+    } catch (err: any) {
+      toast({ title: 'Erro ao alterar status', description: err.message, variant: 'destructive' });
+    }
+  };
+
+  // Auto-refresh locations every 10 seconds when modal is open
+  useEffect(() => {
+    if (!showLocationsModal || !autoRefreshEnabled) return;
+
+    const interval = setInterval(() => {
+      loadLocations();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [showLocationsModal, autoRefreshEnabled]);
 
   const openEditModal = (provider: ProviderWithSubscription) => {
     setSelectedProvider(provider);
@@ -1174,25 +1206,38 @@ export default function AdminPanel() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
-            <div className="flex items-center justify-between">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={loadLocations}
-                disabled={locationsLoading}
-                className="border-slate-600 text-slate-300"
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${locationsLoading ? 'animate-spin' : ''}`} />
-                Atualizar
-              </Button>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadLocations}
+                  disabled={locationsLoading}
+                  className="border-slate-600 text-slate-300"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${locationsLoading ? 'animate-spin' : ''}`} />
+                  Atualizar
+                </Button>
+                <button
+                  onClick={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                    autoRefreshEnabled 
+                      ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                      : 'bg-slate-800 text-slate-400 border border-slate-600'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${autoRefreshEnabled ? 'bg-green-500 animate-pulse' : 'bg-slate-500'}`} />
+                  Auto-refresh {autoRefreshEnabled ? 'ON' : 'OFF'}
+                </button>
+              </div>
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-slate-400">Online</span>
+                  <span className="text-slate-400">Online ({providerLocations.filter(l => l.is_online).length})</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 bg-slate-500 rounded-full" />
-                  <span className="text-slate-400">Offline</span>
+                  <span className="text-slate-400">Offline ({providerLocations.filter(l => !l.is_online).length})</span>
                 </div>
               </div>
             </div>
@@ -1212,6 +1257,7 @@ export default function AdminPanel() {
                 <AdminProvidersMap 
                   locations={providerLocations} 
                   className="h-[350px] rounded-lg border border-slate-700"
+                  onToggleOnline={toggleProviderOnline}
                 />
                 
                 {/* Provider List */}
@@ -1241,13 +1287,23 @@ export default function AdminPanel() {
                           <p className="text-xs text-slate-400">{loc.provider_whatsapp}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <Badge className={`text-xs ${loc.is_online ? 'bg-green-600' : 'bg-slate-600'}`}>
-                          {loc.is_online ? 'Online' : 'Offline'}
-                        </Badge>
-                        <p className="text-xs text-slate-500 mt-1">
-                          {new Date(loc.last_seen_at).toLocaleTimeString('pt-BR')}
-                        </p>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className={`text-xs ${loc.is_online ? 'border-red-500/50 text-red-400 hover:bg-red-500/10' : 'border-green-500/50 text-green-400 hover:bg-green-500/10'}`}
+                          onClick={() => toggleProviderOnline(loc.provider_id, !loc.is_online)}
+                        >
+                          {loc.is_online ? 'Desativar' : 'Ativar'}
+                        </Button>
+                        <div className="text-right">
+                          <Badge className={`text-xs ${loc.is_online ? 'bg-green-600' : 'bg-slate-600'}`}>
+                            {loc.is_online ? 'Online' : 'Offline'}
+                          </Badge>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {loc.last_seen_at ? new Date(loc.last_seen_at).toLocaleTimeString('pt-BR') : 'Sem registro'}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   ))}
