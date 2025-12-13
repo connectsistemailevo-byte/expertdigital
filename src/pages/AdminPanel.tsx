@@ -365,8 +365,9 @@ export default function AdminPanel() {
     }
   };
 
-  const loadLocations = async () => {
-    setLocationsLoading(true);
+  // Silent load - doesn't show loading state on refresh
+  const loadLocations = async (showLoading = true) => {
+    if (showLoading) setLocationsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('admin-providers', {
         body: {
@@ -380,9 +381,12 @@ export default function AdminPanel() {
 
       setProviderLocations(data.locations || []);
     } catch (err: any) {
-      toast({ title: 'Erro ao carregar localizações', description: err.message, variant: 'destructive' });
+      // Only show error toast on initial load, not on silent refresh
+      if (showLoading) {
+        toast({ title: 'Erro ao carregar localizações', description: err.message, variant: 'destructive' });
+      }
     } finally {
-      setLocationsLoading(false);
+      if (showLoading) setLocationsLoading(false);
     }
   };
 
@@ -400,18 +404,18 @@ export default function AdminPanel() {
       if (data?.error) throw new Error(data.error);
 
       toast({ title: isOnline ? 'Prestador colocado online!' : 'Prestador colocado offline!' });
-      await loadLocations();
+      await loadLocations(false); // Silent reload after toggle
     } catch (err: any) {
       toast({ title: 'Erro ao alterar status', description: err.message, variant: 'destructive' });
     }
   };
 
-  // Auto-refresh locations every 10 seconds when modal is open
+  // Auto-refresh locations every 10 seconds - SILENTLY without UI disruption
   useEffect(() => {
     if (!showLocationsModal || !autoRefreshEnabled) return;
 
     const interval = setInterval(() => {
-      loadLocations();
+      loadLocations(false); // Silent refresh - no loading state
     }, 10000);
 
     return () => clearInterval(interval);
@@ -1211,7 +1215,7 @@ export default function AdminPanel() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={loadLocations}
+                  onClick={() => loadLocations(true)}
                   disabled={locationsLoading}
                   className="border-slate-600 text-slate-300"
                 >
