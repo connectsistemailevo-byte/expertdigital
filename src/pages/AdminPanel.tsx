@@ -49,6 +49,9 @@ import {
   Palette,
   UserPlus,
   Truck,
+  Edit,
+  MapPinned,
+  Navigation,
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import BrandingManager from '@/components/admin/BrandingManager';
@@ -61,6 +64,13 @@ interface ProviderWithSubscription {
   address: string | null;
   region: string | null;
   created_at: string;
+  base_price?: number;
+  price_per_km?: number;
+  patins_extra_price?: number;
+  has_patins?: boolean;
+  service_types?: string[];
+  latitude?: number;
+  longitude?: number;
   provider_subscriptions: {
     id: string;
     plano: 'basico' | 'profissional' | 'pro' | null;
@@ -71,6 +81,17 @@ interface ProviderWithSubscription {
     limite_corridas: number;
     mensalidade_atual: number;
   }[] | null;
+}
+
+interface ProviderLocation {
+  id: string;
+  provider_id: string;
+  provider_name: string;
+  provider_whatsapp: string;
+  latitude: number;
+  longitude: number;
+  is_online: boolean;
+  last_seen_at: string;
 }
 
 export default function AdminPanel() {
@@ -85,9 +106,15 @@ export default function AdminPanel() {
   const [showSetRidesModal, setShowSetRidesModal] = useState(false);
   const [showActivatePlanModal, setShowActivatePlanModal] = useState(false);
   const [showCreateProviderModal, setShowCreateProviderModal] = useState(false);
+  const [showEditProviderModal, setShowEditProviderModal] = useState(false);
+  const [showLocationsModal, setShowLocationsModal] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<ProviderWithSubscription | null>(null);
   const [ridesInput, setRidesInput] = useState('10');
   const [selectedPlan, setSelectedPlan] = useState<string>('basico');
+  
+  // Provider locations
+  const [providerLocations, setProviderLocations] = useState<ProviderLocation[]>([]);
+  const [locationsLoading, setLocationsLoading] = useState(false);
   
   // New provider form state
   const [newProviderName, setNewProviderName] = useState('');
@@ -98,6 +125,16 @@ export default function AdminPanel() {
   const [newProviderPatinsPrice, setNewProviderPatinsPrice] = useState('30');
   const [newProviderServices, setNewProviderServices] = useState<string[]>(['guincho_completo']);
   const [createLoading, setCreateLoading] = useState(false);
+  
+  // Edit provider form state
+  const [editProviderName, setEditProviderName] = useState('');
+  const [editProviderWhatsapp, setEditProviderWhatsapp] = useState('');
+  const [editProviderHasPatins, setEditProviderHasPatins] = useState(false);
+  const [editProviderBasePrice, setEditProviderBasePrice] = useState('50');
+  const [editProviderPricePerKm, setEditProviderPricePerKm] = useState('5');
+  const [editProviderPatinsPrice, setEditProviderPatinsPrice] = useState('30');
+  const [editProviderServices, setEditProviderServices] = useState<string[]>([]);
+  const [editLoading, setEditLoading] = useState(false);
 
   const adminPassword = localStorage.getItem('admin_password') || '';
 
@@ -288,6 +325,77 @@ export default function AdminPanel() {
     }
   };
 
+  const handleEditProvider = async () => {
+    if (!selectedProvider || !editProviderName || !editProviderWhatsapp) {
+      toast({ title: 'Preencha os campos obrigatórios', variant: 'destructive' });
+      return;
+    }
+
+    setEditLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-providers', {
+        body: {
+          action: 'update_provider',
+          provider_id: selectedProvider.id,
+          admin_password: localStorage.getItem('admin_password'),
+          data: {
+            name: editProviderName,
+            whatsapp: editProviderWhatsapp,
+            has_patins: editProviderHasPatins,
+            service_types: editProviderServices,
+            base_price: parseFloat(editProviderBasePrice) || 50,
+            price_per_km: parseFloat(editProviderPricePerKm) || 5,
+            patins_extra_price: parseFloat(editProviderPatinsPrice) || 30,
+          },
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast({ title: 'Prestador atualizado com sucesso!' });
+      setShowEditProviderModal(false);
+      await loadProviders();
+    } catch (err: any) {
+      toast({ title: 'Erro ao atualizar prestador', description: err.message, variant: 'destructive' });
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const loadLocations = async () => {
+    setLocationsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-providers', {
+        body: {
+          action: 'list_locations',
+          admin_password: localStorage.getItem('admin_password'),
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setProviderLocations(data.locations || []);
+    } catch (err: any) {
+      toast({ title: 'Erro ao carregar localizações', description: err.message, variant: 'destructive' });
+    } finally {
+      setLocationsLoading(false);
+    }
+  };
+
+  const openEditModal = (provider: ProviderWithSubscription) => {
+    setSelectedProvider(provider);
+    setEditProviderName(provider.name);
+    setEditProviderWhatsapp(provider.whatsapp);
+    setEditProviderHasPatins(provider.has_patins || false);
+    setEditProviderBasePrice(String(provider.base_price || 50));
+    setEditProviderPricePerKm(String(provider.price_per_km || 5));
+    setEditProviderPatinsPrice(String(provider.patins_extra_price || 30));
+    setEditProviderServices(provider.service_types || []);
+    setShowEditProviderModal(true);
+  };
+
   const getSubscription = (provider: ProviderWithSubscription) => {
     return provider.provider_subscriptions?.[0] || null;
   };
@@ -395,6 +503,17 @@ export default function AdminPanel() {
             >
               <UserPlus className="w-4 h-4 mr-2" />
               Novo Prestador
+            </Button>
+            <Button
+              variant="default"
+              onClick={() => {
+                setShowLocationsModal(true);
+                loadLocations();
+              }}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <MapPinned className="w-4 h-4 mr-2" />
+              Localizações
             </Button>
             <Button
               variant="outline"
@@ -620,6 +739,18 @@ export default function AdminPanel() {
                                   <Ban className="w-3 h-3" />
                                 </Button>
                               )}
+
+                              {/* Edit Provider */}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-2 border-purple-600 text-purple-400"
+                                onClick={() => openEditModal(provider)}
+                                disabled={isLoading}
+                                title="Editar Prestador"
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -889,6 +1020,230 @@ export default function AdminPanel() {
                 </>
               )}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Edit Provider */}
+      <Dialog open={showEditProviderModal} onOpenChange={setShowEditProviderModal}>
+        <DialogContent className="bg-slate-900 border-slate-700 max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Edit className="w-5 h-5" />
+              Editar Prestador
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              {selectedProvider?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-slate-300">Nome *</Label>
+                <Input
+                  placeholder="Nome do prestador"
+                  value={editProviderName}
+                  onChange={(e) => setEditProviderName(e.target.value)}
+                  className="bg-slate-800 border-slate-600 text-white"
+                />
+              </div>
+              <div>
+                <Label className="text-slate-300">WhatsApp *</Label>
+                <Input
+                  placeholder="(00) 00000-0000"
+                  value={editProviderWhatsapp}
+                  onChange={(e) => setEditProviderWhatsapp(formatPhone(e.target.value))}
+                  maxLength={15}
+                  className="bg-slate-800 border-slate-600 text-white"
+                />
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+              <Label className="text-slate-300 mb-2 block">Tabela de Preços</Label>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-xs text-slate-400">Valor Base</Label>
+                  <Input
+                    type="number"
+                    value={editProviderBasePrice}
+                    onChange={(e) => setEditProviderBasePrice(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400">Por KM</Label>
+                  <Input
+                    type="number"
+                    value={editProviderPricePerKm}
+                    onChange={(e) => setEditProviderPricePerKm(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400">+ Patins</Label>
+                  <Input
+                    type="number"
+                    value={editProviderPatinsPrice}
+                    onChange={(e) => setEditProviderPatinsPrice(e.target.value)}
+                    className="bg-slate-700 border-slate-600 text-white"
+                    min="0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="editHasPatins"
+                checked={editProviderHasPatins}
+                onCheckedChange={(checked) => setEditProviderHasPatins(checked === true)}
+                className="border-slate-600"
+              />
+              <Label htmlFor="editHasPatins" className="text-slate-300 cursor-pointer">
+                Possui patins para remoção de veículos travados
+              </Label>
+            </div>
+
+            <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+              <Label className="text-slate-300 mb-2 block flex items-center gap-2">
+                <Truck className="w-4 h-4" />
+                Tipos de Serviço
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
+                {serviceOptions.map((service) => {
+                  const isSelected = editProviderServices.includes(service.id);
+                  return (
+                    <button
+                      key={service.id}
+                      type="button"
+                      onClick={() => {
+                        setEditProviderServices(prev =>
+                          prev.includes(service.id)
+                            ? prev.filter(s => s !== service.id)
+                            : [...prev, service.id]
+                        );
+                      }}
+                      className={`p-2 rounded border text-left text-sm transition-all ${
+                        isSelected
+                          ? 'border-green-500 bg-green-500/20 text-green-400'
+                          : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                      }`}
+                    >
+                      {service.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Button
+              className="w-full bg-purple-600 hover:bg-purple-700"
+              disabled={editLoading || !editProviderName || !editProviderWhatsapp}
+              onClick={handleEditProvider}
+            >
+              {editLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Edit className="w-4 h-4 mr-2" />
+                  Salvar Alterações
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Provider Locations */}
+      <Dialog open={showLocationsModal} onOpenChange={setShowLocationsModal}>
+        <DialogContent className="bg-slate-900 border-slate-700 max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <MapPinned className="w-5 h-5" />
+              Localizações dos Prestadores
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Prestadores com rastreamento ativo
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadLocations}
+              disabled={locationsLoading}
+              className="border-slate-600 text-slate-300"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${locationsLoading ? 'animate-spin' : ''}`} />
+              Atualizar
+            </Button>
+
+            {locationsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+              </div>
+            ) : providerLocations.length === 0 ? (
+              <div className="text-center py-8 text-slate-400">
+                <Navigation className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>Nenhum prestador online no momento</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {providerLocations.map((loc) => (
+                  <div
+                    key={loc.id}
+                    className={`p-4 rounded-lg border ${
+                      loc.is_online 
+                        ? 'bg-green-500/10 border-green-500/30' 
+                        : 'bg-slate-800/50 border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className="font-semibold text-white flex items-center gap-2">
+                          {loc.provider_name}
+                          {loc.is_online && (
+                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                          )}
+                        </h4>
+                        <p className="text-sm text-slate-400">{loc.provider_whatsapp}</p>
+                      </div>
+                      <Badge className={loc.is_online ? 'bg-green-600' : 'bg-slate-600'}>
+                        {loc.is_online ? 'Online' : 'Offline'}
+                      </Badge>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <span className="text-slate-500">Latitude:</span>
+                        <span className="text-white ml-2 font-mono">{loc.latitude?.toFixed(6)}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Longitude:</span>
+                        <span className="text-white ml-2 font-mono">{loc.longitude?.toFixed(6)}</span>
+                      </div>
+                    </div>
+                    <div className="mt-2 text-xs text-slate-500">
+                      Última atualização: {new Date(loc.last_seen_at).toLocaleString('pt-BR')}
+                    </div>
+                    <a
+                      href={`https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300"
+                    >
+                      <MapPin className="w-3 h-3" />
+                      Ver no Google Maps
+                    </a>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

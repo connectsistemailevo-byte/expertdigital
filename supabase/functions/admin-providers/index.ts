@@ -31,10 +31,10 @@ serve(async (req) => {
 
     switch (action) {
       case "list_providers": {
-        // Buscar providers
+        // Buscar providers com todos os campos necessários
         const { data: providers, error: provError } = await supabaseClient
           .from('providers')
-          .select('id, name, whatsapp, slug, address, region, created_at')
+          .select('id, name, whatsapp, slug, address, region, created_at, base_price, price_per_km, patins_extra_price, has_patins, service_types, latitude, longitude')
           .order('created_at', { ascending: false });
 
         if (provError) throw provError;
@@ -289,6 +289,82 @@ serve(async (req) => {
           });
 
         return new Response(JSON.stringify({ success: true, provider: newProvider }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      case "update_provider": {
+        if (!provider_id) {
+          throw new Error("provider_id é obrigatório");
+        }
+
+        const updateData: Record<string, any> = {};
+        
+        if (data?.name !== undefined) updateData.name = data.name;
+        if (data?.whatsapp !== undefined) updateData.whatsapp = data.whatsapp;
+        if (data?.has_patins !== undefined) updateData.has_patins = data.has_patins;
+        if (data?.service_types !== undefined) updateData.service_types = data.service_types;
+        if (data?.base_price !== undefined) updateData.base_price = data.base_price;
+        if (data?.price_per_km !== undefined) updateData.price_per_km = data.price_per_km;
+        if (data?.patins_extra_price !== undefined) updateData.patins_extra_price = data.patins_extra_price;
+        if (data?.address !== undefined) updateData.address = data.address;
+        if (data?.region !== undefined) updateData.region = data.region;
+        if (data?.latitude !== undefined) updateData.latitude = data.latitude;
+        if (data?.longitude !== undefined) updateData.longitude = data.longitude;
+
+        if (Object.keys(updateData).length === 0) {
+          throw new Error("Nenhum dado para atualizar");
+        }
+
+        const { error: updateError } = await supabaseClient
+          .from('providers')
+          .update(updateData)
+          .eq('id', provider_id);
+
+        if (updateError) throw updateError;
+
+        console.log("Provider updated:", provider_id, updateData);
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      case "list_locations": {
+        // Buscar todas as localizações dos prestadores online
+        const { data: locations, error: locError } = await supabaseClient
+          .from('provider_online_status')
+          .select(`
+            id,
+            provider_id,
+            latitude,
+            longitude,
+            is_online,
+            last_seen_at
+          `);
+
+        if (locError) throw locError;
+
+        // Buscar informações básicas dos providers
+        const { data: providers, error: provError } = await supabaseClient
+          .from('providers')
+          .select('id, name, whatsapp');
+
+        if (provError) throw provError;
+
+        // Combinar dados
+        const result = locations?.map(loc => {
+          const provider = providers?.find(p => p.id === loc.provider_id);
+          return {
+            ...loc,
+            provider_name: provider?.name || 'Desconhecido',
+            provider_whatsapp: provider?.whatsapp || '',
+          };
+        });
+
+        return new Response(JSON.stringify({ locations: result }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
