@@ -731,84 +731,127 @@ export default function AdminPanel() {
             </CardContent>
           </Card>
 
-          {/* Online/Offline Providers List by Region */}
+          {/* Providers List by Plan Status and Region */}
           <Card className="bg-slate-800/50 border-slate-700">
             <CardHeader className="pb-2">
               <CardTitle className="text-white text-sm flex items-center gap-2">
                 <Users className="w-4 h-4 text-blue-400" />
-                Prestadores por Status
+                Prestadores por Plano e Região
               </CardTitle>
             </CardHeader>
             <CardContent className="max-h-[340px] overflow-y-auto">
               {(() => {
-                const now = new Date();
-                const onlineProvidersList = providerLocations
-                  .filter(l => l.is_online)
-                  .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
-                
-                const offlineProvidersList = providerLocations
-                  .filter(l => !l.is_online)
-                  .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
+                // Group providers by plan status, then by region
+                const groupedByPlan = {
+                  pagantes: providers.filter(p => getSubscription(p)?.adesao_paga),
+                  trial: providers.filter(p => getSubscription(p)?.trial_ativo && !getSubscription(p)?.adesao_paga),
+                  bloqueados: providers.filter(p => !getSubscription(p)?.trial_ativo && !getSubscription(p)?.adesao_paga),
+                };
 
-                // Group by region (using provider name first letter for now as we don't have region)
-                const groupByFirstLetter = (list: typeof providerLocations) => {
-                  const groups: Record<string, typeof providerLocations> = {};
+                const groupByRegion = (list: typeof providers) => {
+                  const groups: Record<string, typeof providers> = {};
                   list.forEach(p => {
-                    const letter = p.provider_name.charAt(0).toUpperCase();
-                    if (!groups[letter]) groups[letter] = [];
-                    groups[letter].push(p);
+                    const region = p.region?.split(' - ')[1]?.split(',')[0] || 'Sem região';
+                    if (!groups[region]) groups[region] = [];
+                    groups[region].push(p);
                   });
                   return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
                 };
 
+                const onlineIds = new Set(providerLocations.filter(l => l.is_online).map(l => l.provider_id));
+
                 return (
                   <div className="space-y-4">
-                    {/* Online */}
+                    {/* Pagantes */}
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                        <span className="text-xs font-bold text-green-400 uppercase">Online ({onlineProvidersList.length})</span>
+                        <Crown className="w-3 h-3 text-green-400" />
+                        <span className="text-xs font-bold text-green-400 uppercase">Plano Ativo ({groupedByPlan.pagantes.length})</span>
                       </div>
-                      {onlineProvidersList.length === 0 ? (
-                        <p className="text-xs text-slate-500 pl-4">Nenhum online</p>
+                      {groupedByPlan.pagantes.length === 0 ? (
+                        <p className="text-xs text-slate-500 pl-4">Nenhum</p>
                       ) : (
-                        <div className="space-y-1 pl-4">
-                          {onlineProvidersList.map(p => {
-                            const secondsAgo = p.last_seen_at ? Math.floor((now.getTime() - new Date(p.last_seen_at).getTime()) / 1000) : null;
-                            return (
-                              <div key={p.id} className="flex items-center justify-between text-xs p-1.5 bg-green-500/10 rounded border border-green-500/20">
-                                <span className="text-white font-medium truncate">{p.provider_name}</span>
-                                <span className="text-green-400 text-[10px]">
-                                  {secondsAgo !== null && secondsAgo < 60 ? `${secondsAgo}s` : secondsAgo !== null ? `${Math.floor(secondsAgo/60)}min` : '?'}
-                                </span>
+                        <div className="space-y-2 pl-4">
+                          {groupByRegion(groupedByPlan.pagantes).map(([region, regionProviders]) => (
+                            <div key={region}>
+                              <p className="text-[10px] text-slate-400 font-semibold mb-1">{region}</p>
+                              <div className="space-y-1">
+                                {regionProviders.map(p => (
+                                  <div key={p.id} className="flex items-center justify-between text-xs p-1.5 bg-green-500/10 rounded border border-green-500/20">
+                                    <div className="flex items-center gap-1.5 truncate">
+                                      <span className={`w-1.5 h-1.5 rounded-full ${onlineIds.has(p.id) ? 'bg-green-500 animate-pulse' : 'bg-slate-500'}`} />
+                                      <span className="text-white font-medium truncate">{p.name}</span>
+                                    </div>
+                                    <Badge className="text-[9px] px-1 py-0 h-4 bg-green-500/30 text-green-300">
+                                      {getSubscription(p)?.plano?.toUpperCase()}
+                                    </Badge>
+                                  </div>
+                                ))}
                               </div>
-                            );
-                          })}
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
 
-                    {/* Offline */}
+                    {/* Trial */}
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="w-2 h-2 bg-slate-500 rounded-full" />
-                        <span className="text-xs font-bold text-slate-400 uppercase">Offline ({offlineProvidersList.length})</span>
+                        <Zap className="w-3 h-3 text-yellow-400" />
+                        <span className="text-xs font-bold text-yellow-400 uppercase">Em Trial ({groupedByPlan.trial.length})</span>
                       </div>
-                      {offlineProvidersList.length === 0 ? (
-                        <p className="text-xs text-slate-500 pl-4">Nenhum offline</p>
+                      {groupedByPlan.trial.length === 0 ? (
+                        <p className="text-xs text-slate-500 pl-4">Nenhum</p>
                       ) : (
-                        <div className="space-y-1 pl-4">
-                          {offlineProvidersList.map(p => (
-                            <div key={p.id} className="flex items-center justify-between text-xs p-1.5 bg-slate-700/50 rounded border border-slate-600">
-                              <span className="text-slate-300 truncate">{p.provider_name}</span>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-5 px-2 text-[10px] text-green-400 hover:text-green-300"
-                                onClick={() => toggleProviderOnline(p.provider_id, true)}
-                              >
-                                Ativar
-                              </Button>
+                        <div className="space-y-2 pl-4">
+                          {groupByRegion(groupedByPlan.trial).map(([region, regionProviders]) => (
+                            <div key={region}>
+                              <p className="text-[10px] text-slate-400 font-semibold mb-1">{region}</p>
+                              <div className="space-y-1">
+                                {regionProviders.map(p => (
+                                  <div key={p.id} className="flex items-center justify-between text-xs p-1.5 bg-yellow-500/10 rounded border border-yellow-500/20">
+                                    <div className="flex items-center gap-1.5 truncate">
+                                      <span className={`w-1.5 h-1.5 rounded-full ${onlineIds.has(p.id) ? 'bg-green-500 animate-pulse' : 'bg-slate-500'}`} />
+                                      <span className="text-white font-medium truncate">{p.name}</span>
+                                    </div>
+                                    <span className="text-yellow-400 text-[10px]">
+                                      {getSubscription(p)?.trial_corridas_restantes ?? 0} rest
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bloqueados/Sem plano */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Ban className="w-3 h-3 text-red-400" />
+                        <span className="text-xs font-bold text-red-400 uppercase">Sem Plano ({groupedByPlan.bloqueados.length})</span>
+                      </div>
+                      {groupedByPlan.bloqueados.length === 0 ? (
+                        <p className="text-xs text-slate-500 pl-4">Nenhum</p>
+                      ) : (
+                        <div className="space-y-2 pl-4">
+                          {groupByRegion(groupedByPlan.bloqueados).map(([region, regionProviders]) => (
+                            <div key={region}>
+                              <p className="text-[10px] text-slate-400 font-semibold mb-1">{region}</p>
+                              <div className="space-y-1">
+                                {regionProviders.map(p => (
+                                  <div key={p.id} className="flex items-center justify-between text-xs p-1.5 bg-red-500/10 rounded border border-red-500/20">
+                                    <div className="flex items-center gap-1.5 truncate">
+                                      <span className={`w-1.5 h-1.5 rounded-full ${onlineIds.has(p.id) ? 'bg-green-500 animate-pulse' : 'bg-slate-500'}`} />
+                                      <span className="text-slate-300 truncate">{p.name}</span>
+                                    </div>
+                                    <Badge variant="destructive" className="text-[9px] px-1 py-0 h-4">
+                                      Bloqueado
+                                    </Badge>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -853,7 +896,7 @@ export default function AdminPanel() {
                       const sub = getSubscription(provider);
                       const isLoading = actionLoading === provider.id;
                       const providerUrl = provider.slug 
-                        ? `${window.location.origin}/p/${provider.slug}`
+                        ? `https://www.akiguincho.com.br/p/${provider.slug}`
                         : null;
                       
                       return (
