@@ -12,6 +12,7 @@ import ProviderPage from "./pages/ProviderPage";
 import ProviderExclusivePage from "./pages/ProviderExclusivePage";
 import AdminPanel from "./pages/AdminPanel";
 import ProviderTracking from "./pages/ProviderTracking";
+import InstalarPWA from "./pages/InstalarPWA";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -29,11 +30,15 @@ const TenantRouter = () => {
     );
   }
 
-  // Todas as rotas disponíveis - tracking é global para todos
+  // Todas as rotas disponíveis - tracking e pwa são globais
   return (
     <Routes>
-      {/* Tracking route - SEMPRE disponível, prioridade máxima */}
+      {/* PWA Installation route - prioridade máxima */}
+      <Route path="/instalar" element={<InstalarPWA />} />
+      
+      {/* Tracking routes - SEMPRE disponível */}
       <Route path="/tracking" element={<ProviderTracking />} />
+      <Route path="/rastreamento" element={<ProviderTracking />} />
       
       {/* White-label routes */}
       {tenant.isWhiteLabel ? (
