@@ -214,6 +214,7 @@ export type Database = {
           region: string | null
           service_types: string[]
           slug: string | null
+          state_uf: string | null
           updated_at: string
           whatsapp: string
         }
@@ -231,6 +232,7 @@ export type Database = {
           region?: string | null
           service_types?: string[]
           slug?: string | null
+          state_uf?: string | null
           updated_at?: string
           whatsapp: string
         }
@@ -248,6 +250,7 @@ export type Database = {
           region?: string | null
           service_types?: string[]
           slug?: string | null
+          state_uf?: string | null
           updated_at?: string
           whatsapp?: string
         }

@@ -294,7 +294,8 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
             base_price: parseFloat(basePrice) || 50,
             price_per_km: parseFloat(pricePerKm) || 5,
             patins_extra_price: parseFloat(patinsExtraPrice) || 30,
-          })
+            state_uf: selectedState || null,
+          } as any)
           .eq('id', existingProvider.id);
 
         if (error) throw error;
@@ -349,7 +350,8 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
           base_price: parseFloat(basePrice) || 50,
           price_per_km: parseFloat(pricePerKm) || 5,
           patins_extra_price: parseFloat(patinsExtraPrice) || 30,
-        }).select().single();
+          state_uf: selectedState || null,
+        } as any).select().single();
 
         if (error) {
           // Verificar se é erro de duplicidade
