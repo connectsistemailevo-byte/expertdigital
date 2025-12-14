@@ -215,6 +215,52 @@ serve(async (req) => {
         });
       }
 
+      case "delete_provider": {
+        if (!provider_id) throw new Error("provider_id é obrigatório");
+
+        console.log("Deleting provider:", provider_id);
+
+        // Deletar na ordem correta por causa das foreign keys
+        // 1. Deletar status online
+        await supabaseClient
+          .from('provider_online_status')
+          .delete()
+          .eq('provider_id', provider_id);
+
+        // 2. Deletar customização
+        await supabaseClient
+          .from('provider_customization')
+          .delete()
+          .eq('provider_id', provider_id);
+
+        // 3. Deletar pagamentos
+        await supabaseClient
+          .from('provider_payments')
+          .delete()
+          .eq('provider_id', provider_id);
+
+        // 4. Deletar subscription
+        await supabaseClient
+          .from('provider_subscriptions')
+          .delete()
+          .eq('provider_id', provider_id);
+
+        // 5. Deletar provider
+        const { error: deleteError } = await supabaseClient
+          .from('providers')
+          .delete()
+          .eq('id', provider_id);
+
+        if (deleteError) throw deleteError;
+
+        console.log("Provider deleted successfully:", provider_id);
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
       case "create_provider": {
         if (!data?.name || !data?.whatsapp) {
           throw new Error("Nome e WhatsApp são obrigatórios");
