@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // Get online providers with their details
+    // Get online providers with their details - SEM filtro de tempo, só is_online = true
     const { data: onlineStatus, error: statusError } = await supabase
       .from('provider_online_status')
       .select(`
@@ -39,8 +39,7 @@ Deno.serve(async (req) => {
           patins_extra_price
         )
       `)
-      .eq('is_online', true)
-      .gte('last_seen_at', new Date(Date.now() - 600000).toISOString()); // Online in last 10 minutes
+      .eq('is_online', true);
 
     if (statusError) {
       console.error('Error fetching online providers:', statusError);
