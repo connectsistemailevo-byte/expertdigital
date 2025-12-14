@@ -4,14 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLocation } from '@/contexts/LocationContext';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Truck, RefreshCw, CheckCircle2, UserPlus, DollarSign, Search, Edit, ArrowLeft, Zap, Gift, AlertTriangle, ExternalLink, CreditCard } from 'lucide-react';
+import { MapPin, Truck, RefreshCw, CheckCircle2, UserPlus, DollarSign, Search, Edit, ArrowLeft, Zap, Gift, AlertTriangle, ExternalLink, CreditCard, MapPinned } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import MiniMap from '@/components/MiniMap';
 import { PlanSelectionModal } from '@/components/PlanSelectionModal';
 import ProviderTrackingButton from '@/components/ProviderTrackingButton';
+import { brazilStates, extractDDD, getStateFromDDD } from '@/data/brazilStates';
 
 interface ProviderRegistrationModalProps {
   open: boolean;
@@ -31,6 +33,7 @@ interface ProviderData {
   base_price: number;
   price_per_km: number;
   patins_extra_price: number;
+  state_uf?: string | null;
 }
 
 interface SubscriptionData {
@@ -77,6 +80,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
   // Form fields
   const [name, setName] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
+  const [selectedState, setSelectedState] = useState('');
   const [hasPatins, setHasPatins] = useState(false);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [basePrice, setBasePrice] = useState('50');
@@ -98,6 +102,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
   const resetForm = () => {
     setName('');
     setWhatsapp('');
+    setSelectedState('');
     setHasPatins(false);
     setSelectedServices([]);
     setBasePrice('50');
@@ -177,6 +182,15 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
         setPricePerKm(String(providerData.price_per_km || 5));
         setPatinsExtraPrice(String(providerData.patins_extra_price || 30));
         
+        // Detectar estado do DDD do telefone
+        const ddd = extractDDD(providerData.whatsapp);
+        if (ddd) {
+          const stateFromDDD = getStateFromDDD(ddd);
+          if (stateFromDDD) {
+            setSelectedState(stateFromDDD.uf);
+          }
+        }
+        
         // Buscar subscription do provider
         console.log('Buscando subscription para provider_id:', providerData.id);
         const { data: subData, error: subError } = await supabase
@@ -228,11 +242,36 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
     );
   };
 
-  const canSubmit = name.length >= 2 && whatsapp.length >= 14 && selectedServices.length > 0 && !location.loading && !location.error;
+  const canSubmit = name.length >= 2 && whatsapp.length >= 14 && selectedServices.length > 0 && selectedState && !location.loading && !location.error;
+
+  // Validar se o DDD do telefone corresponde ao estado selecionado
+  const validatePhoneState = (): boolean => {
+    if (!selectedState || !whatsapp) return true;
+    
+    const ddd = extractDDD(whatsapp);
+    if (!ddd) return true;
+    
+    const stateFromDDD = getStateFromDDD(ddd);
+    if (!stateFromDDD) return true;
+    
+    return stateFromDDD.uf === selectedState;
+  };
 
   const handleSubmit = async () => {
     if (!canSubmit) {
       toast.error('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
+    // Validar DDD vs Estado
+    if (!validatePhoneState()) {
+      const ddd = extractDDD(whatsapp);
+      const stateFromDDD = ddd ? getStateFromDDD(ddd) : null;
+      const selectedStateName = brazilStates.find(s => s.uf === selectedState)?.name;
+      
+      toast.error('DDD não corresponde ao estado selecionado!', {
+        description: `O DDD ${ddd} pertence a ${stateFromDDD?.name || 'outro estado'}, mas você selecionou ${selectedStateName}. Por favor, corrija.`,
+      });
       return;
     }
 
@@ -607,6 +646,37 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
             className="h-10 text-base font-medium w-full"
           />
         </div>
+      </div>
+
+      {/* Estado/Região */}
+      <div className="p-2 sm:p-3 rounded-xl border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-indigo-500/5">
+        <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+          <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+            <MapPinned className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-blue-400" />
+          </div>
+          <span className="text-[11px] sm:text-sm font-bold text-foreground">Estado de Atuação *</span>
+        </div>
+        <Select value={selectedState} onValueChange={setSelectedState}>
+          <SelectTrigger className="h-10 w-full">
+            <SelectValue placeholder="Selecione seu estado" />
+          </SelectTrigger>
+          <SelectContent className="max-h-[300px]">
+            {brazilStates.map((state) => (
+              <SelectItem key={state.uf} value={state.uf}>
+                {state.uf} - {state.name} ({state.region})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {whatsapp.length >= 4 && selectedState && !validatePhoneState() && (
+          <p className="text-xs text-red-400 mt-2 flex items-center gap-1">
+            <AlertTriangle className="w-3 h-3" />
+            O DDD do seu telefone não corresponde ao estado selecionado
+          </p>
+        )}
+        <p className="text-[10px] text-muted-foreground mt-1">
+          O DDD do seu WhatsApp deve corresponder ao estado selecionado
+        </p>
       </div>
 
       {/* Pricing Section - Enhanced visibility */}
