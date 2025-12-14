@@ -34,6 +34,7 @@ interface ProviderData {
   price_per_km: number;
   patins_extra_price: number;
   state_uf?: string | null;
+  slug?: string | null;
 }
 
 interface SubscriptionData {
@@ -790,8 +791,29 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
 
       {/* Provider Tracking Button - Only show for existing providers */}
       {mode === 'edit' && existingProvider && (
-        <div className="pt-2 border-t border-border">
-          <p className="text-xs text-muted-foreground text-center mb-2">
+        <div className="pt-2 border-t border-border space-y-3">
+          {/* Link exclusivo do prestador */}
+          {existingProvider.slug && (
+            <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30">
+              <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1.5">
+                <ExternalLink className="w-3 h-3" />
+                Seu link exclusivo para divulgação:
+              </p>
+              <a 
+                href={`${window.location.origin}/p/${existingProvider.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-400 hover:text-blue-300 font-medium underline underline-offset-2 break-all"
+              >
+                {window.location.origin}/p/{existingProvider.slug}
+              </a>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Compartilhe este link para receber solicitações diretamente
+              </p>
+            </div>
+          )}
+          
+          <p className="text-xs text-muted-foreground text-center">
             Ative o rastreamento para receber solicitações de clientes
           </p>
           <ProviderTrackingButton 
