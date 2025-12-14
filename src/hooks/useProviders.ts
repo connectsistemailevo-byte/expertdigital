@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from '@/contexts/LocationContext';
 
@@ -18,6 +18,7 @@ export interface Provider {
   distance?: number;
   estimatedTime?: number;
   estimatedPrice?: number;
+  last_seen_at?: string;
 }
 
 // Calculate distance between two points using Haversine formula
@@ -45,81 +46,70 @@ export function useProviders(maxDistanceKm: number = 50) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchProviders() {
-      if (location.loading || location.error) {
-        setLoading(false);
+  const fetchProviders = useCallback(async () => {
+    if (location.loading || location.error) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setError(null);
+
+      // Fetch ONLY online providers from the edge function
+      const { data, error: fetchError } = await supabase.functions.invoke('prestadores-online');
+
+      if (fetchError) throw fetchError;
+
+      const onlineProviders = data?.providers || [];
+
+      if (onlineProviders.length === 0) {
+        setProviders([]);
         return;
       }
 
-      try {
-        setLoading(true);
-        setError(null);
+      // Calculate distance and price for each provider and filter by max distance
+      const providersWithDistance = onlineProviders
+        .map((provider: any) => {
+          const distance = calculateDistance(
+            location.latitude,
+            location.longitude,
+            provider.latitude,
+            provider.longitude
+          );
+          const basePrice = provider.base_price || 50;
+          const pricePerKm = provider.price_per_km || 5;
+          const estimatedPrice = basePrice + (distance * pricePerKm);
+          return {
+            ...provider,
+            address: null, // Online providers don't have address in response
+            region: null,
+            distance,
+            estimatedTime: estimateArrivalTime(distance),
+            estimatedPrice,
+          };
+        })
+        .filter((provider: Provider) => provider.distance <= maxDistanceKm)
+        .sort((a: Provider, b: Provider) => (a.distance || 0) - (b.distance || 0));
 
-        const { data, error: fetchError } = await supabase
-          .from('providers')
-          .select('*');
-
-        if (fetchError) throw fetchError;
-
-        if (!data || data.length === 0) {
-          setProviders([]);
-          return;
-        }
-
-        // Calculate distance and price for each provider and filter by max distance
-        const providersWithDistance = data
-          .map(provider => {
-            const distance = calculateDistance(
-              location.latitude,
-              location.longitude,
-              provider.latitude,
-              provider.longitude
-            );
-            const basePrice = provider.base_price || 50;
-            const pricePerKm = provider.price_per_km || 5;
-            const estimatedPrice = basePrice + (distance * pricePerKm);
-            return {
-              ...provider,
-              distance,
-              estimatedTime: estimateArrivalTime(distance),
-              estimatedPrice,
-            };
-          })
-          .filter(provider => provider.distance <= maxDistanceKm)
-          .sort((a, b) => a.distance - b.distance);
-
-        setProviders(providersWithDistance);
-      } catch (err: any) {
-        console.error('Error fetching providers:', err);
-        setError(err.message || 'Erro ao buscar prestadores');
-      } finally {
-        setLoading(false);
-      }
+      setProviders(providersWithDistance);
+    } catch (err: any) {
+      console.error('Error fetching online providers:', err);
+      setError(err.message || 'Erro ao buscar prestadores');
+    } finally {
+      setLoading(false);
     }
-
-    fetchProviders();
-
-    // Subscribe to realtime changes
-    const channel = supabase
-      .channel('providers-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'providers'
-        },
-        () => {
-          fetchProviders();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [location.latitude, location.longitude, location.loading, location.error, maxDistanceKm]);
 
-  return { providers, loading, error };
+  useEffect(() => {
+    fetchProviders();
+
+    // Poll for online providers every 10 seconds
+    const interval = setInterval(() => {
+      fetchProviders();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [fetchProviders]);
+
+  return { providers, loading, error, refetch: fetchProviders };
 }

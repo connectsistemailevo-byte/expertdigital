@@ -11,6 +11,7 @@ import ProviderDashboard from "./pages/ProviderDashboard";
 import ProviderPage from "./pages/ProviderPage";
 import ProviderExclusivePage from "./pages/ProviderExclusivePage";
 import AdminPanel from "./pages/AdminPanel";
+import ProviderTracking from "./pages/ProviderTracking";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const TenantRouter = () => {
       <Route path="/p/:slug" element={<ProviderExclusivePage />} />
       <Route path="/provider-dashboard" element={<ProviderDashboard />} />
       <Route path="/admin" element={<AdminPanel />} />
+      <Route path="/tracking" element={<ProviderTracking />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
