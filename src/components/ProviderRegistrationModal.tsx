@@ -800,12 +800,12 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({ o
                 Seu link exclusivo para divulgação:
               </p>
               <a 
-                href={`${window.location.origin}/p/${existingProvider.slug}`}
+                href={`https://www.akiguincho.com.br/p/${existingProvider.slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-blue-400 hover:text-blue-300 font-medium underline underline-offset-2 break-all"
               >
-                {window.location.origin}/p/{existingProvider.slug}
+                www.akiguincho.com.br/p/{existingProvider.slug}
               </a>
               <p className="text-[10px] text-muted-foreground mt-1">
                 Compartilhe este link para receber solicitações diretamente
