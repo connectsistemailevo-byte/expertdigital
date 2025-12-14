@@ -896,7 +896,7 @@ export default function AdminPanel() {
                       const sub = getSubscription(provider);
                       const isLoading = actionLoading === provider.id;
                       const providerUrl = provider.slug 
-                        ? `https://akiguincho24hs.lovable.app/p/${provider.slug}`
+                        ? `https://www.akiguincho.com.br/p/${provider.slug}`
                         : null;
                       
                       return (

@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from '@/contexts/LocationContext';
 import RequestPanel from '@/components/RequestPanel';
-import { Loader2, MapPin, Phone, AlertCircle } from 'lucide-react';
+import LiveTrackingMap from '@/components/LiveTrackingMap';
+import { Loader2, MapPin, Phone, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ProviderData {
@@ -160,9 +161,9 @@ const ProviderExclusivePage: React.FC = () => {
 
       {/* Conteúdo principal */}
       <main className="container mx-auto px-4 py-6">
-        {/* Info do prestador */}
+        {/* Info do prestador com Mapa */}
         <div className="mb-6 p-4 rounded-lg bg-slate-800/50 border border-slate-700/50">
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-3 mb-4">
             <MapPin className="w-5 h-5 text-primary mt-0.5" />
             <div>
               <p className="text-sm text-slate-300">{provider.address || 'Endereço não informado'}</p>
@@ -170,6 +171,21 @@ const ProviderExclusivePage: React.FC = () => {
                 Região: {provider.region || 'Não informada'}
               </p>
             </div>
+          </div>
+          
+          {/* Mapa do prestador */}
+          <div className="relative w-full h-[250px] md:h-[300px] rounded-xl overflow-hidden mb-4">
+            <LiveTrackingMap className="w-full h-full" />
+          </div>
+          
+          {/* Trust badges */}
+          <div className="flex flex-wrap justify-center items-center gap-3">
+            {['Resposta rápida', 'Preço justo', 'Profissional verificado'].map(badge => (
+              <div key={badge} className="flex items-center gap-1.5">
+                <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                <span className="text-xs text-slate-300">{badge}</span>
+              </div>
+            ))}
           </div>
         </div>
 
