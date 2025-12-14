@@ -29,12 +29,10 @@ const TenantRouter = () => {
     );
   }
 
-  // Rota de tracking é global - funciona em qualquer domínio
-  // Se é acesso white-label (subdomínio ou domínio próprio), mostra a página do prestador
-  // mas permite a rota /tracking também
+  // Todas as rotas disponíveis - tracking é global para todos
   return (
     <Routes>
-      {/* Tracking route - disponível globalmente */}
+      {/* Tracking route - SEMPRE disponível, prioridade máxima */}
       <Route path="/tracking" element={<ProviderTracking />} />
       
       {/* White-label routes */}
