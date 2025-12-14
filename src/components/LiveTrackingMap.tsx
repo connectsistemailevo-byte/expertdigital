@@ -584,7 +584,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
             <div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center">
               <Truck className="w-2.5 h-2.5 text-white" />
             </div>
-            <span className="text-white/80">Online ({onlineProviders.length})</span>
+            <span className="text-white/80">Online ({allProviders.length})</span>
           </div>
           {destination && (
             <div className="flex items-center gap-1">
