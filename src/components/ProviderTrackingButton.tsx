@@ -164,10 +164,10 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
     );
   }, [sendLocation]);
 
-  // Quando a página volta a ficar visível, reenviar localização (NÃO envia offline ao sair)
+  // Quando a página volta a ficar visível, reenviar localização
+  // NÃO envia offline ao sair - prestador permanece online por 30 minutos baseado em last_seen_at
   useEffect(() => {
     const handleVisibilityChange = () => {
-      // Quando a página volta a ficar visível, reenviar localização
       if (!document.hidden && isTracking && currentPositionRef.current) {
         sendLocation(currentPositionRef.current.lat, currentPositionRef.current.lng);
       }
@@ -177,8 +177,7 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      
-      // Cleanup do rastreamento local (mas NÃO envia offline - prestador permanece online)
+      // Cleanup local - NÃO envia offline
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
       }

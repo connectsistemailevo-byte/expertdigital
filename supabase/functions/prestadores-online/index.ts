@@ -20,7 +20,11 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get online providers with their details - SEM filtro de tempo, só is_online = true
+    // Calcular tempo limite - prestadores vistos nos últimos 30 minutos são considerados online
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    console.log('Checking providers seen after:', thirtyMinutesAgo);
+
+    // Get online providers with their details - baseado em last_seen_at (30 min) OU is_online = true
     const { data: onlineStatus, error: statusError } = await supabase
       .from('provider_online_status')
       .select(`
@@ -29,6 +33,7 @@ Deno.serve(async (req) => {
         latitude,
         longitude,
         last_seen_at,
+        is_online,
         providers (
           id,
           name,
@@ -42,7 +47,7 @@ Deno.serve(async (req) => {
           state_uf
         )
       `)
-      .eq('is_online', true);
+      .or(`is_online.eq.true,last_seen_at.gte.${thirtyMinutesAgo}`);
 
     if (statusError) {
       console.error('Error fetching online providers:', statusError);

@@ -152,14 +152,8 @@ const ProviderTracking: React.FC = () => {
     );
   }, [sendLocation]);
 
-  // Handle page visibility and unload
+  // Handle page visibility - NÃO envia offline ao fechar, prestador permanece online por 30 min
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (watchIdRef.current !== null) {
-        sendOffline();
-      }
-    };
-
     const handleVisibilityChange = () => {
       // When page becomes visible again, continue tracking
       if (!document.hidden && status === 'active' && currentPositionRef.current) {
@@ -167,14 +161,12 @@ const ProviderTracking: React.FC = () => {
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [sendOffline, sendLocation, status]);
+  }, [sendLocation, status]);
 
   // Cleanup on unmount
   useEffect(() => {
