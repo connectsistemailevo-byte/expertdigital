@@ -33,7 +33,7 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
   }, [popupWindow]);
 
   const handleActivateTracking = () => {
-    // Create the popup content - simplified without help messages
+    // Create the popup content with permission request button
     const popupContent = `
       <!DOCTYPE html>
       <html>
@@ -55,11 +55,11 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
             text-align: center;
           }
           .container {
-            max-width: 280px;
+            max-width: 300px;
           }
           .icon {
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             background: linear-gradient(135deg, #22c55e, #16a34a);
             border-radius: 50%;
             display: flex;
@@ -72,15 +72,19 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
             background: linear-gradient(135deg, #ef4444, #dc2626);
             animation: none;
           }
+          .icon.waiting {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            animation: pulse 1s ease-in-out infinite;
+          }
           .icon svg {
-            width: 30px;
-            height: 30px;
+            width: 35px;
+            height: 35px;
             fill: none;
             stroke: white;
             stroke-width: 2;
           }
           h1 {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
             margin-bottom: 8px;
             color: #22c55e;
@@ -88,25 +92,49 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
           h1.error {
             color: #ef4444;
           }
+          h1.waiting {
+            color: #f59e0b;
+          }
           p {
-            font-size: 12px;
+            font-size: 13px;
             color: #94a3b8;
             line-height: 1.5;
           }
           .status {
             margin-top: 16px;
-            padding: 8px 16px;
+            padding: 10px 20px;
             background: rgba(34, 197, 94, 0.2);
             border: 1px solid rgba(34, 197, 94, 0.3);
             border-radius: 20px;
-            font-size: 11px;
+            font-size: 12px;
             color: #22c55e;
           }
           .coords {
             margin-top: 12px;
-            font-size: 10px;
+            font-size: 11px;
             color: #64748b;
             font-family: monospace;
+          }
+          .btn {
+            margin-top: 16px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+          }
+          .btn:hover {
+            transform: scale(1.05);
+          }
+          .btn.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+          }
+          .hidden {
+            display: none;
           }
           @keyframes pulse {
             0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
@@ -116,16 +144,19 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
       </head>
       <body>
         <div class="container">
-          <div class="icon" id="iconContainer">
+          <div class="icon waiting" id="iconContainer">
             <svg viewBox="0 0 24 24">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
               <circle cx="12" cy="10" r="3"/>
             </svg>
           </div>
-          <h1 id="title">Localização Ativa</h1>
+          <h1 id="title" class="waiting">Aguardando Permissão</h1>
           <p id="description">Não feche esta janela.</p>
-          <div class="status" id="status">Iniciando...</div>
+          <div class="status" id="status">Clique no botão abaixo</div>
           <div class="coords" id="coords">--</div>
+          <button class="btn" id="permissionBtn" onclick="requestPermission()">
+            Permitir Localização
+          </button>
         </div>
         <script>
           const PROVIDER_ID = "${providerId}";
@@ -135,6 +166,7 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
           let watchId = null;
           let updateInterval = null;
           let lastPosition = null;
+          let isActive = false;
           
           function updateStatus(text, isError = false) {
             const el = document.getElementById('status');
@@ -148,20 +180,32 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
             document.getElementById('coords').textContent = lat.toFixed(6) + ', ' + lng.toFixed(6);
           }
 
-          function setError(isError) {
+          function setState(state) {
             const icon = document.getElementById('iconContainer');
             const title = document.getElementById('title');
-            if (isError) {
-              icon.classList.add('error');
-              title.classList.add('error');
+            const btn = document.getElementById('permissionBtn');
+            
+            icon.className = 'icon ' + state;
+            title.className = state;
+            
+            if (state === 'error') {
+              title.textContent = 'GPS Bloqueado';
+              btn.textContent = 'Tentar Novamente';
+              btn.className = 'btn error';
+              btn.classList.remove('hidden');
+            } else if (state === 'waiting') {
+              title.textContent = 'Aguardando Permissão';
+              btn.className = 'btn';
+              btn.classList.remove('hidden');
             } else {
-              icon.classList.remove('error');
-              title.classList.remove('error');
+              title.textContent = 'Online';
+              btn.classList.add('hidden');
             }
           }
           
           async function sendLocation(lat, lng) {
             try {
+              console.log('Sending location:', lat, lng);
               const response = await fetch(SUPABASE_URL + '/functions/v1/atualizar-localizacao-prestador', {
                 method: 'POST',
                 headers: {
@@ -176,12 +220,15 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
                 })
               });
               
-              if (!response.ok) throw new Error('Failed to update');
+              const result = await response.json();
+              console.log('Location update result:', result);
               
-              setError(false);
-              document.getElementById('title').textContent = 'Online';
-              updateStatus('Atualizado');
+              if (!response.ok) throw new Error(result.error || 'Failed to update');
+              
+              setState('');
+              updateStatus('Atualizado às ' + new Date().toLocaleTimeString());
               updateCoords(lat, lng);
+              isActive = true;
             } catch (err) {
               console.error('Error sending location:', err);
               updateStatus('Erro ao enviar', true);
@@ -190,6 +237,7 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
           
           async function goOffline() {
             try {
+              console.log('Going offline');
               await fetch(SUPABASE_URL + '/functions/v1/atualizar-localizacao-prestador', {
                 method: 'POST',
                 headers: {
@@ -206,21 +254,48 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
             }
           }
           
-          function startTracking() {
+          function requestPermission() {
             if (!navigator.geolocation) {
-              setError(true);
-              document.getElementById('title').textContent = 'GPS não suportado';
+              setState('error');
               updateStatus('GPS não disponível', true);
               return;
             }
             
             updateStatus('Obtendo GPS...');
+            setState('waiting');
+            document.getElementById('permissionBtn').classList.add('hidden');
             
+            // First try to get current position to trigger permission
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                console.log('Got position:', position.coords);
+                lastPosition = {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude
+                };
+                sendLocation(lastPosition.lat, lastPosition.lng);
+                startWatching();
+              },
+              (error) => {
+                console.error('Geolocation error:', error);
+                setState('error');
+                updateStatus('Permita o acesso ao GPS', true);
+              },
+              {
+                enableHighAccuracy: true,
+                maximumAge: 0,
+                timeout: 30000
+              }
+            );
+          }
+          
+          function startWatching() {
             if (watchId) navigator.geolocation.clearWatch(watchId);
             if (updateInterval) clearInterval(updateInterval);
             
             watchId = navigator.geolocation.watchPosition(
               (position) => {
+                console.log('Watch position update:', position.coords);
                 lastPosition = {
                   lat: position.coords.latitude,
                   lng: position.coords.longitude
@@ -228,20 +303,23 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
                 sendLocation(lastPosition.lat, lastPosition.lng);
               },
               (error) => {
-                console.error('Geolocation error:', error);
-                setError(true);
-                document.getElementById('title').textContent = 'GPS Bloqueado';
-                updateStatus('Permita localização', true);
+                console.error('Watch geolocation error:', error);
+                if (!isActive) {
+                  setState('error');
+                  updateStatus('GPS perdido', true);
+                }
               },
               {
                 enableHighAccuracy: true,
-                maximumAge: 5000,
-                timeout: 15000
+                maximumAge: 10000,
+                timeout: 30000
               }
             );
             
+            // Send location every 5 seconds to keep online
             updateInterval = setInterval(() => {
               if (lastPosition) {
+                console.log('Interval update');
                 sendLocation(lastPosition.lat, lastPosition.lng);
               }
             }, 5000);
@@ -261,7 +339,10 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
             }
           });
           
-          startTracking();
+          // Auto-start requesting permission
+          setTimeout(() => {
+            requestPermission();
+          }, 500);
         </script>
       </body>
       </html>
