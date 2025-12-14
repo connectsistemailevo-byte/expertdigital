@@ -20,7 +20,10 @@ import {
   AlertTriangle,
   LogOut,
   Palette,
-  Settings
+  Settings,
+  Navigation,
+  Download,
+  Smartphone
 } from 'lucide-react';
 
 interface ProviderData {
@@ -538,6 +541,39 @@ export default function ProviderDashboard() {
             </CardContent>
           </Card>
         )}
+
+        {/* Card de Rastreamento GPS */}
+        <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-green-500/50">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Navigation className="w-5 h-5 text-green-400" />
+              Rastreamento GPS
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-slate-300 mb-4">
+              Para aparecer online no mapa, instale o app de rastreamento no seu celular. 
+              O app funciona em segundo plano e mantém sua localização atualizada.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                onClick={() => navigate(`/instalar?id=${provider.id}&name=${encodeURIComponent(provider.name)}`)}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Instalar App de Rastreamento
+              </Button>
+              <Button
+                onClick={() => navigate(`/rastreamento?id=${provider.id}&name=${encodeURIComponent(provider.name)}`)}
+                variant="outline"
+                className="border-green-500/50 text-green-400 hover:bg-green-500/10"
+              >
+                <Smartphone className="w-4 h-4 mr-2" />
+                Abrir no Navegador
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Ações */}
         <div className="flex flex-wrap gap-4">
