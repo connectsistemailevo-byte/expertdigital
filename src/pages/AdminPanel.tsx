@@ -53,6 +53,8 @@ import {
   MapPinned,
   Navigation,
   Trash2,
+  ExternalLink,
+  Link,
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -277,8 +279,11 @@ export default function AdminPanel() {
     const storedPassword = localStorage.getItem('admin_password');
     if (storedPassword) {
       setIsAuthenticated(true);
-      // Load providers after a small delay to ensure state is set
-      setTimeout(() => loadProviders(), 100);
+      // Load providers and locations after a small delay to ensure state is set
+      setTimeout(() => {
+        loadProviders();
+        loadLocations(false); // Silent load for locations
+      }, 100);
     }
   }, []);
 
@@ -454,15 +459,16 @@ export default function AdminPanel() {
   };
 
   // Auto-refresh locations every 10 seconds - SILENTLY without UI disruption
+  // Works both on main panel and in modal
   useEffect(() => {
-    if (!showLocationsModal || !autoRefreshEnabled) return;
+    if (!isAuthenticated || !autoRefreshEnabled) return;
 
     const interval = setInterval(() => {
       loadLocations(false); // Silent refresh - no loading state
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [showLocationsModal, autoRefreshEnabled]);
+  }, [isAuthenticated, autoRefreshEnabled]);
 
   const openEditModal = (provider: ProviderWithSubscription) => {
     setSelectedProvider(provider);
@@ -671,6 +677,150 @@ export default function AdminPanel() {
           </Card>
         </div>
 
+        {/* Live Map Section - Always Visible */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Map */}
+          <Card className="bg-slate-800/50 border-slate-700 lg:col-span-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-white flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MapPinned className="w-5 h-5 text-green-400" />
+                  Mapa em Tempo Real
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => loadLocations(true)}
+                    disabled={locationsLoading}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${locationsLoading ? 'animate-spin' : ''}`} />
+                  </Button>
+                  <button
+                    onClick={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
+                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                      autoRefreshEnabled 
+                        ? 'bg-green-500/20 text-green-400' 
+                        : 'bg-slate-700 text-slate-400'
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${autoRefreshEnabled ? 'bg-green-500 animate-pulse' : 'bg-slate-500'}`} />
+                    Auto
+                  </button>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {locationsLoading && providerLocations.length === 0 ? (
+                <div className="flex items-center justify-center h-[300px]">
+                  <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+                </div>
+              ) : providerLocations.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-[300px] text-slate-400">
+                  <Navigation className="w-12 h-12 mb-2 opacity-50" />
+                  <p>Nenhum prestador com rastreamento ativo</p>
+                </div>
+              ) : (
+                <AdminProvidersMap 
+                  locations={providerLocations} 
+                  className="h-[300px] rounded-lg border border-slate-700"
+                  onToggleOnline={toggleProviderOnline}
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Online/Offline Providers List by Region */}
+          <Card className="bg-slate-800/50 border-slate-700">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-white text-sm flex items-center gap-2">
+                <Users className="w-4 h-4 text-blue-400" />
+                Prestadores por Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="max-h-[340px] overflow-y-auto">
+              {(() => {
+                const now = new Date();
+                const onlineProvidersList = providerLocations
+                  .filter(l => l.is_online)
+                  .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
+                
+                const offlineProvidersList = providerLocations
+                  .filter(l => !l.is_online)
+                  .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
+
+                // Group by region (using provider name first letter for now as we don't have region)
+                const groupByFirstLetter = (list: typeof providerLocations) => {
+                  const groups: Record<string, typeof providerLocations> = {};
+                  list.forEach(p => {
+                    const letter = p.provider_name.charAt(0).toUpperCase();
+                    if (!groups[letter]) groups[letter] = [];
+                    groups[letter].push(p);
+                  });
+                  return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+                };
+
+                return (
+                  <div className="space-y-4">
+                    {/* Online */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                        <span className="text-xs font-bold text-green-400 uppercase">Online ({onlineProvidersList.length})</span>
+                      </div>
+                      {onlineProvidersList.length === 0 ? (
+                        <p className="text-xs text-slate-500 pl-4">Nenhum online</p>
+                      ) : (
+                        <div className="space-y-1 pl-4">
+                          {onlineProvidersList.map(p => {
+                            const secondsAgo = p.last_seen_at ? Math.floor((now.getTime() - new Date(p.last_seen_at).getTime()) / 1000) : null;
+                            return (
+                              <div key={p.id} className="flex items-center justify-between text-xs p-1.5 bg-green-500/10 rounded border border-green-500/20">
+                                <span className="text-white font-medium truncate">{p.provider_name}</span>
+                                <span className="text-green-400 text-[10px]">
+                                  {secondsAgo !== null && secondsAgo < 60 ? `${secondsAgo}s` : secondsAgo !== null ? `${Math.floor(secondsAgo/60)}min` : '?'}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Offline */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="w-2 h-2 bg-slate-500 rounded-full" />
+                        <span className="text-xs font-bold text-slate-400 uppercase">Offline ({offlineProvidersList.length})</span>
+                      </div>
+                      {offlineProvidersList.length === 0 ? (
+                        <p className="text-xs text-slate-500 pl-4">Nenhum offline</p>
+                      ) : (
+                        <div className="space-y-1 pl-4">
+                          {offlineProvidersList.map(p => (
+                            <div key={p.id} className="flex items-center justify-between text-xs p-1.5 bg-slate-700/50 rounded border border-slate-600">
+                              <span className="text-slate-300 truncate">{p.provider_name}</span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-5 px-2 text-[10px] text-green-400 hover:text-green-300"
+                                onClick={() => toggleProviderOnline(p.provider_id, true)}
+                              >
+                                Ativar
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Providers Table */}
         <Card className="bg-slate-800/50 border-slate-700">
           <CardHeader>
@@ -686,11 +836,12 @@ export default function AdminPanel() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <Table>
+              <Table>
                   <TableHeader>
                     <TableRow className="border-slate-700">
                       <TableHead className="text-slate-400">Nome</TableHead>
                       <TableHead className="text-slate-400">WhatsApp</TableHead>
+                      <TableHead className="text-slate-400">Link Exclusivo</TableHead>
                       <TableHead className="text-slate-400">Status</TableHead>
                       <TableHead className="text-slate-400">Trial Restante</TableHead>
                       <TableHead className="text-slate-400">Corridas Usadas</TableHead>
@@ -701,6 +852,9 @@ export default function AdminPanel() {
                     {providers.map((provider) => {
                       const sub = getSubscription(provider);
                       const isLoading = actionLoading === provider.id;
+                      const providerUrl = provider.slug 
+                        ? `${window.location.origin}/p/${provider.slug}`
+                        : null;
                       
                       return (
                         <TableRow key={provider.id} className="border-slate-700">
@@ -709,6 +863,21 @@ export default function AdminPanel() {
                           </TableCell>
                           <TableCell className="text-slate-300">
                             {provider.whatsapp}
+                          </TableCell>
+                          <TableCell>
+                            {providerUrl ? (
+                              <a 
+                                href={providerUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs underline underline-offset-2"
+                              >
+                                /p/{provider.slug}
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            ) : (
+                              <span className="text-slate-500 text-xs">Sem slug</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             {getStatusBadge(provider)}

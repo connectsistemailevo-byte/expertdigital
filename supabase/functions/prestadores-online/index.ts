@@ -14,9 +14,10 @@ Deno.serve(async (req) => {
   try {
     console.log('prestadores-online function called');
 
+    // Use service role key to bypass RLS and ensure all data is accessible
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     // Get online providers with their details - SEM filtro de tempo, só is_online = true
@@ -36,7 +37,8 @@ Deno.serve(async (req) => {
           service_types,
           base_price,
           price_per_km,
-          patins_extra_price
+          patins_extra_price,
+          slug
         )
       `)
       .eq('is_online', true);
@@ -47,21 +49,31 @@ Deno.serve(async (req) => {
     }
 
     console.log(`Found ${onlineStatus?.length || 0} online providers`);
+    
+    // Log each provider for debugging
+    (onlineStatus || []).forEach((status: any) => {
+      console.log(`Provider: ${status.providers?.name}, ID: ${status.provider_id}, Coords: ${status.latitude}, ${status.longitude}`);
+    });
 
     // Transform data to include provider info with current location
-    const providers = (onlineStatus || []).map((status: any) => ({
-      id: status.provider_id,
-      name: status.providers?.name || 'Prestador',
-      latitude: status.latitude,
-      longitude: status.longitude,
-      whatsapp: status.providers?.whatsapp,
-      has_patins: status.providers?.has_patins,
-      service_types: status.providers?.service_types,
-      base_price: status.providers?.base_price || 50,
-      price_per_km: status.providers?.price_per_km || 5,
-      patins_extra_price: status.providers?.patins_extra_price || 30,
-      last_seen_at: status.last_seen_at,
-    }));
+    const providers = (onlineStatus || [])
+      .filter((status: any) => status.providers !== null) // Filter out any with null provider data
+      .map((status: any) => ({
+        id: status.provider_id,
+        name: status.providers?.name || 'Prestador',
+        latitude: status.latitude,
+        longitude: status.longitude,
+        whatsapp: status.providers?.whatsapp,
+        has_patins: status.providers?.has_patins,
+        service_types: status.providers?.service_types,
+        base_price: status.providers?.base_price || 50,
+        price_per_km: status.providers?.price_per_km || 5,
+        patins_extra_price: status.providers?.patins_extra_price || 30,
+        slug: status.providers?.slug,
+        last_seen_at: status.last_seen_at,
+      }));
+
+    console.log(`Returning ${providers.length} providers after filtering`);
 
     return new Response(JSON.stringify({ providers }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

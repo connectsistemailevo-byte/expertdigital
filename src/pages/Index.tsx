@@ -32,11 +32,31 @@ const Index: React.FC = () => {
                 <Truck className="w-4 h-4" />
                 Sou Prestador
               </button>
+              <a 
+                href="https://wa.me/5562994389675?text=Olá! Sou prestador e quero contratar o site Aki Guincho 24HS" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-sm text-secondary hover:text-secondary/80 transition-colors flex items-center gap-2 font-medium"
+              >
+                <Phone className="w-4 h-4" />
+                Quero Contratar o Site
+              </a>
             </nav>
-            <Button variant="hero" size="default" onClick={() => setIsProviderModalOpen(true)} className="pb-[6px] mx-[8px] my-0 pt-[10px] pr-[7px] rounded text-base pl-[5px]">
-              <Truck className="w-4 h-4 mr-2" />
-              Sou Prestador
-            </Button>
+            <div className="flex items-center gap-2">
+              <a 
+                href="https://wa.me/5562994389675?text=Olá! Sou prestador e quero contratar o site Aki Guincho 24HS" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hidden sm:flex items-center gap-1 text-xs text-secondary hover:text-secondary/80 transition-colors"
+              >
+                <Phone className="w-3 h-3" />
+                (62) 99438-9675
+              </a>
+              <Button variant="hero" size="default" onClick={() => setIsProviderModalOpen(true)} className="pb-[6px] mx-[8px] my-0 pt-[10px] pr-[7px] rounded text-base pl-[5px]">
+                <Truck className="w-4 h-4 mr-2" />
+                Sou Prestador
+              </Button>
+            </div>
           </div>
         </div>
       </header>
