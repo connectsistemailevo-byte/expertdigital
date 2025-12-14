@@ -3,8 +3,9 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useLocation } from '@/contexts/LocationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Truck, User, MapPin } from 'lucide-react';
+import { Truck, User, MapPin, Filter } from 'lucide-react';
 import showtimeLogo from '@/assets/showtime-logo.png';
+import { brazilStates } from '@/data/brazilStates';
 
 interface OnlineProvider {
   id: string;
@@ -13,10 +14,12 @@ interface OnlineProvider {
   longitude: number;
   distance?: number;
   estimatedTime?: number;
+  state_uf?: string;
 }
 
 interface LiveTrackingMapProps {
   className?: string;
+  showStateFilter?: boolean;
 }
 
 // Calculate distance between two points using Haversine formula
@@ -38,7 +41,7 @@ function estimateArrivalTime(distanceKm: number): number {
   return Math.round((distanceKm / averageSpeedKmH) * 60);
 }
 
-const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
+const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateFilter = false }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const clientMarker = useRef<mapboxgl.Marker | null>(null);
@@ -49,8 +52,11 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
   
   const { location, destination, routeInfo, mapboxToken, updateLocation } = useLocation();
   const [mapError, setMapError] = useState(false);
+  const [allProviders, setAllProviders] = useState<OnlineProvider[]>([]);
   const [onlineProviders, setOnlineProviders] = useState<OnlineProvider[]>([]);
   const [nearestProvider, setNearestProvider] = useState<OnlineProvider | null>(null);
+  const [selectedState, setSelectedState] = useState<string>('all');
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   // Fetch online providers
   const fetchOnlineProviders = useCallback(async () => {
@@ -64,7 +70,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
 
       if (data?.providers) {
         // Calculate distance for each provider
-        const providersWithDistance = data.providers.map((p: OnlineProvider) => {
+        const providersWithDistance = data.providers.map((p: any) => {
           const distance = calculateDistance(
             location.latitude,
             location.longitude,
@@ -75,21 +81,33 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
             ...p,
             distance,
             estimatedTime: estimateArrivalTime(distance),
+            state_uf: p.state_uf || null,
           };
         }).sort((a: OnlineProvider, b: OnlineProvider) => (a.distance || 0) - (b.distance || 0));
 
-        setOnlineProviders(providersWithDistance);
-        
-        if (providersWithDistance.length > 0) {
-          setNearestProvider(providersWithDistance[0]);
-        } else {
-          setNearestProvider(null);
-        }
+        setAllProviders(providersWithDistance);
       }
     } catch (err) {
       console.error('Error in fetchOnlineProviders:', err);
     }
   }, [location.latitude, location.longitude]);
+
+  // Filter providers by selected state
+  useEffect(() => {
+    let filtered = allProviders;
+    
+    if (selectedState !== 'all') {
+      filtered = allProviders.filter(p => p.state_uf === selectedState);
+    }
+    
+    setOnlineProviders(filtered);
+    
+    if (filtered.length > 0) {
+      setNearestProvider(filtered[0]);
+    } else {
+      setNearestProvider(null);
+    }
+  }, [allProviders, selectedState]);
 
   // Draw route to nearest provider
   const drawRoute = useCallback(async (providerLat: number, providerLng: number) => {
@@ -501,9 +519,57 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className }) => {
     );
   }
 
+  // Get unique states from providers
+  const availableStates = React.useMemo(() => {
+    const statesSet = new Set<string>();
+    allProviders.forEach(p => {
+      if (p.state_uf) statesSet.add(p.state_uf);
+    });
+    return Array.from(statesSet).sort();
+  }, [allProviders]);
+
   return (
     <div className={`${className} relative`}>
       <div ref={mapContainer} className="w-full h-full rounded-2xl overflow-hidden" />
+      
+      {/* State Filter */}
+      {showStateFilter && availableStates.length > 0 && (
+        <div className="absolute top-2 right-2 z-10">
+          <div className="relative">
+            <button
+              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+              className="flex items-center gap-1.5 bg-[#0a0f1a]/90 backdrop-blur-sm px-3 py-1.5 rounded-lg text-xs text-white hover:bg-[#0a0f1a] transition-colors border border-white/10"
+            >
+              <Filter className="w-3.5 h-3.5" />
+              {selectedState === 'all' ? 'Todos Estados' : selectedState}
+            </button>
+            
+            {showFilterDropdown && (
+              <div className="absolute top-full right-0 mt-1 bg-[#0a0f1a]/95 backdrop-blur-sm rounded-lg border border-white/10 shadow-xl max-h-60 overflow-y-auto min-w-[140px]">
+                <button
+                  onClick={() => { setSelectedState('all'); setShowFilterDropdown(false); }}
+                  className={`w-full text-left px-3 py-2 text-xs hover:bg-white/10 transition-colors ${selectedState === 'all' ? 'text-secondary font-medium' : 'text-white'}`}
+                >
+                  Todos Estados ({allProviders.length})
+                </button>
+                {availableStates.map(state => {
+                  const count = allProviders.filter(p => p.state_uf === state).length;
+                  const stateName = brazilStates.find(s => s.uf === state)?.name || state;
+                  return (
+                    <button
+                      key={state}
+                      onClick={() => { setSelectedState(state); setShowFilterDropdown(false); }}
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-white/10 transition-colors ${selectedState === state ? 'text-secondary font-medium' : 'text-white'}`}
+                    >
+                      {stateName} ({count})
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       
       {/* Compact Legend */}
       <div className="absolute top-2 left-2 z-10 bg-[#0a0f1a]/80 backdrop-blur-sm rounded-md px-2 py-1 shadow-lg">
