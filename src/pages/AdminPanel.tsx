@@ -1264,7 +1264,20 @@ export default function AdminPanel() {
               Localizações dos Prestadores em Tempo Real
             </DialogTitle>
             <DialogDescription className="text-slate-400">
-              {providerLocations.filter(l => l.is_online).length} prestador(es) online
+              {(() => {
+                const now = new Date();
+                const trulyOnline = providerLocations.filter(l => {
+                  if (!l.last_seen_at) return false;
+                  const secondsAgo = Math.floor((now.getTime() - new Date(l.last_seen_at).getTime()) / 1000);
+                  return l.is_online && secondsAgo <= 120;
+                }).length;
+                const inactive = providerLocations.filter(l => {
+                  if (!l.last_seen_at) return l.is_online;
+                  const secondsAgo = Math.floor((now.getTime() - new Date(l.last_seen_at).getTime()) / 1000);
+                  return l.is_online && secondsAgo > 120;
+                }).length;
+                return `${trulyOnline} online agora | ${inactive} inativos | ${providerLocations.filter(l => !l.is_online).length} offline`;
+              })()}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
@@ -1295,11 +1308,15 @@ export default function AdminPanel() {
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-slate-400">Online ({providerLocations.filter(l => l.is_online).length})</span>
+                  <span className="text-slate-400">Online</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 bg-yellow-500 rounded-full" />
+                  <span className="text-slate-400">Inativo</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 bg-slate-500 rounded-full" />
-                  <span className="text-slate-400">Offline ({providerLocations.filter(l => !l.is_online).length})</span>
+                  <span className="text-slate-400">Offline</span>
                 </div>
               </div>
             </div>
@@ -1324,51 +1341,88 @@ export default function AdminPanel() {
                 
                 {/* Provider List */}
                 <div className="max-h-[200px] overflow-y-auto space-y-2">
-                  {providerLocations.map((loc) => (
-                    <div
-                      key={loc.id}
-                      className={`p-3 rounded-lg border flex items-center justify-between ${
-                        loc.is_online 
-                          ? 'bg-green-500/10 border-green-500/30' 
-                          : 'bg-slate-800/50 border-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          loc.is_online ? 'bg-green-500/20' : 'bg-slate-700'
-                        }`}>
-                          <Truck className={`w-4 h-4 ${loc.is_online ? 'text-green-400' : 'text-slate-400'}`} />
+                  {providerLocations.map((loc) => {
+                    const lastSeenDate = loc.last_seen_at ? new Date(loc.last_seen_at) : null;
+                    const now = new Date();
+                    const secondsAgo = lastSeenDate ? Math.floor((now.getTime() - lastSeenDate.getTime()) / 1000) : null;
+                    
+                    // Format time ago
+                    let timeAgoText = 'Sem registro';
+                    let timeAgoColor = 'text-slate-500';
+                    
+                    if (secondsAgo !== null) {
+                      if (secondsAgo < 60) {
+                        timeAgoText = `há ${secondsAgo}s`;
+                        timeAgoColor = 'text-green-400';
+                      } else if (secondsAgo < 3600) {
+                        const mins = Math.floor(secondsAgo / 60);
+                        timeAgoText = `há ${mins}min`;
+                        timeAgoColor = mins <= 2 ? 'text-green-400' : mins <= 10 ? 'text-yellow-400' : 'text-orange-400';
+                      } else if (secondsAgo < 86400) {
+                        const hours = Math.floor(secondsAgo / 3600);
+                        timeAgoText = `há ${hours}h`;
+                        timeAgoColor = 'text-red-400';
+                      } else {
+                        const days = Math.floor(secondsAgo / 86400);
+                        timeAgoText = `há ${days}d`;
+                        timeAgoColor = 'text-red-500';
+                      }
+                    }
+                    
+                    // Check if truly online (last seen within 2 minutes)
+                    const isTrulyOnline = secondsAgo !== null && secondsAgo <= 120;
+                    
+                    return (
+                      <div
+                        key={loc.id}
+                        className={`p-3 rounded-lg border flex items-center justify-between ${
+                          isTrulyOnline 
+                            ? 'bg-green-500/10 border-green-500/30' 
+                            : loc.is_online 
+                              ? 'bg-yellow-500/10 border-yellow-500/30'
+                              : 'bg-slate-800/50 border-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            isTrulyOnline ? 'bg-green-500/20' : loc.is_online ? 'bg-yellow-500/20' : 'bg-slate-700'
+                          }`}>
+                            <Truck className={`w-4 h-4 ${isTrulyOnline ? 'text-green-400' : loc.is_online ? 'text-yellow-400' : 'text-slate-400'}`} />
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-white text-sm flex items-center gap-2">
+                              {loc.provider_name}
+                              {isTrulyOnline && (
+                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                              )}
+                              {loc.is_online && !isTrulyOnline && (
+                                <span className="w-2 h-2 bg-yellow-500 rounded-full" title="Marcado online mas sem atualização recente" />
+                              )}
+                            </h4>
+                            <p className="text-xs text-slate-400">{loc.provider_whatsapp}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-medium text-white text-sm flex items-center gap-2">
-                            {loc.provider_name}
-                            {loc.is_online && (
-                              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                            )}
-                          </h4>
-                          <p className="text-xs text-slate-400">{loc.provider_whatsapp}</p>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className={`text-xs ${loc.is_online ? 'border-red-500/50 text-red-400 hover:bg-red-500/10' : 'border-green-500/50 text-green-400 hover:bg-green-500/10'}`}
+                            onClick={() => toggleProviderOnline(loc.provider_id, !loc.is_online)}
+                          >
+                            {loc.is_online ? 'Desativar' : 'Ativar'}
+                          </Button>
+                          <div className="text-right min-w-[90px]">
+                            <Badge className={`text-xs ${isTrulyOnline ? 'bg-green-600' : loc.is_online ? 'bg-yellow-600' : 'bg-slate-600'}`}>
+                              {isTrulyOnline ? 'Online' : loc.is_online ? 'Inativo' : 'Offline'}
+                            </Badge>
+                            <p className={`text-xs mt-1 font-medium ${timeAgoColor}`}>
+                              {timeAgoText}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className={`text-xs ${loc.is_online ? 'border-red-500/50 text-red-400 hover:bg-red-500/10' : 'border-green-500/50 text-green-400 hover:bg-green-500/10'}`}
-                          onClick={() => toggleProviderOnline(loc.provider_id, !loc.is_online)}
-                        >
-                          {loc.is_online ? 'Desativar' : 'Ativar'}
-                        </Button>
-                        <div className="text-right">
-                          <Badge className={`text-xs ${loc.is_online ? 'bg-green-600' : 'bg-slate-600'}`}>
-                            {loc.is_online ? 'Online' : 'Offline'}
-                          </Badge>
-                          <p className="text-xs text-slate-500 mt-1">
-                            {loc.last_seen_at ? new Date(loc.last_seen_at).toLocaleTimeString('pt-BR') : 'Sem registro'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
