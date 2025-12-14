@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
         )
       `)
       .eq('is_online', true)
-      .gte('last_seen_at', new Date(Date.now() - 120000).toISOString()); // Online in last 2 minutes
+      .gte('last_seen_at', new Date(Date.now() - 600000).toISOString()); // Online in last 10 minutes
 
     if (statusError) {
       console.error('Error fetching online providers:', statusError);
