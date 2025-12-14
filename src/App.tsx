@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ProviderDashboard from "./pages/ProviderDashboard";
 import ProviderPage from "./pages/ProviderPage";
+import ProviderExclusivePage from "./pages/ProviderExclusivePage";
 import AdminPanel from "./pages/AdminPanel";
 import { Loader2 } from "lucide-react";
 
@@ -36,6 +37,7 @@ const TenantRouter = () => {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
+      <Route path="/p/:slug" element={<ProviderExclusivePage />} />
       <Route path="/provider-dashboard" element={<ProviderDashboard />} />
       <Route path="/admin" element={<AdminPanel />} />
       <Route path="*" element={<NotFound />} />
