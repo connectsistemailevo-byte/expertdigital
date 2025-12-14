@@ -52,7 +52,18 @@ import {
   Edit,
   MapPinned,
   Navigation,
+  Trash2,
 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import BrandingManager from '@/components/admin/BrandingManager';
 import AdminProvidersMap from '@/components/admin/AdminProvidersMap';
@@ -137,6 +148,11 @@ export default function AdminPanel() {
   const [editProviderPatinsPrice, setEditProviderPatinsPrice] = useState('30');
   const [editProviderServices, setEditProviderServices] = useState<string[]>([]);
   const [editLoading, setEditLoading] = useState(false);
+  
+  // Delete provider state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [providerToDelete, setProviderToDelete] = useState<ProviderWithSubscription | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const adminPassword = localStorage.getItem('admin_password') || '';
 
@@ -362,6 +378,33 @@ export default function AdminPanel() {
       toast({ title: 'Erro ao atualizar prestador', description: err.message, variant: 'destructive' });
     } finally {
       setEditLoading(false);
+    }
+  };
+
+  const handleDeleteProvider = async () => {
+    if (!providerToDelete) return;
+    
+    setDeleteLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-providers', {
+        body: {
+          action: 'delete_provider',
+          provider_id: providerToDelete.id,
+          admin_password: localStorage.getItem('admin_password'),
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast({ title: 'Prestador excluído com sucesso!' });
+      setShowDeleteConfirm(false);
+      setProviderToDelete(null);
+      await loadProviders();
+    } catch (err: any) {
+      toast({ title: 'Erro ao excluir prestador', description: err.message, variant: 'destructive' });
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -787,6 +830,21 @@ export default function AdminPanel() {
                                 title="Editar Prestador"
                               >
                                 <Edit className="w-3 h-3" />
+                              </Button>
+
+                              {/* Delete Provider */}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-2 border-red-800 text-red-500 hover:bg-red-500/10"
+                                onClick={() => {
+                                  setProviderToDelete(provider);
+                                  setShowDeleteConfirm(true);
+                                }}
+                                disabled={isLoading}
+                                title="Excluir Prestador"
+                              >
+                                <Trash2 className="w-3 h-3" />
                               </Button>
                             </div>
                           </TableCell>
@@ -1317,6 +1375,42 @@ export default function AdminPanel() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent className="bg-slate-900 border-slate-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Excluir Prestador</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              Tem certeza que deseja excluir o prestador <span className="font-bold text-white">{providerToDelete?.name}</span>?
+              <br /><br />
+              Esta ação não pode ser desfeita. Todos os dados do prestador serão removidos permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={handleDeleteProvider}
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Excluir
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
