@@ -60,6 +60,8 @@ const ProviderTracking: React.FC = () => {
     }
   }, [providerId]);
 
+  // Função para parar o rastreamento MANUALMENTE (quando o prestador clica no botão)
+  // Este é o ÚNICO momento que deve enviar offline
   const stopTracking = useCallback(() => {
     if (watchIdRef.current !== null) {
       navigator.geolocation.clearWatch(watchIdRef.current);
@@ -69,6 +71,7 @@ const ProviderTracking: React.FC = () => {
       clearInterval(intervalIdRef.current);
       intervalIdRef.current = null;
     }
+    // Só envia offline quando o prestador CLICA no botão para desativar
     sendOffline();
     setStatus('idle');
     setCoords(null);
@@ -168,7 +171,8 @@ const ProviderTracking: React.FC = () => {
     };
   }, [sendLocation, status]);
 
-  // Cleanup on unmount
+  // Cleanup on unmount - NÃO envia offline, apenas limpa recursos locais
+  // O prestador permanece online por 30 minutos baseado em last_seen_at
   useEffect(() => {
     return () => {
       if (watchIdRef.current !== null) {
@@ -177,6 +181,7 @@ const ProviderTracking: React.FC = () => {
       if (intervalIdRef.current) {
         clearInterval(intervalIdRef.current);
       }
+      // NÃO chama sendOffline() aqui - prestador permanece online
     };
   }, []);
 

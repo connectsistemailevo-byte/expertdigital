@@ -18,9 +18,22 @@ const Index: React.FC = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0f1a]/90 backdrop-blur-lg border-b border-white/10">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16 md:h-20">
-            <div className="font-display text-xl md:text-2xl font-bold text-white rounded-lg">
+            <div className="font-display text-lg md:text-2xl font-bold text-white rounded-lg flex-shrink-0">
               Aki Guincho <span className="text-secondary">24HS</span>
             </div>
+            
+            {/* Mobile: Contact Link */}
+            <a 
+              href="https://wa.me/5562994389675?text=Olá! Sou prestador e quero contratar o site Aki Guincho 24HS" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="md:hidden text-xs text-secondary hover:text-secondary/80 transition-colors flex items-center gap-1 font-medium flex-shrink-0"
+            >
+              <MessageCircle className="w-3 h-3" />
+              <span>(62) 99438-9675</span>
+            </a>
+            
+            {/* Desktop Nav */}
             <nav className="hidden md:flex items-center gap-8">
               <a href="#recursos" className="text-sm text-white/70 hover:text-white transition-colors">
                 Recursos
@@ -37,11 +50,12 @@ const Index: React.FC = () => {
                 Quero Contratar o Site (62) 99438-9675
               </a>
             </nav>
-            <div className="flex items-center gap-2">
-              
-              <Button variant="hero" size="default" onClick={() => setIsProviderModalOpen(true)} className="pb-[6px] mx-[8px] my-0 pt-[10px] pr-[7px] rounded text-base pl-[5px]">
-                <Truck className="w-4 h-4 mr-2" />
-                Sou Prestador
+            
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Button variant="hero" size="default" onClick={() => setIsProviderModalOpen(true)} className="pb-[6px] mx-[8px] my-0 pt-[10px] pr-[7px] rounded text-sm md:text-base pl-[5px]">
+                <Truck className="w-4 h-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Sou Prestador</span>
+                <span className="sm:hidden">Prestador</span>
               </Button>
             </div>
           </div>
