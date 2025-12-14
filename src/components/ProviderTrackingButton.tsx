@@ -164,23 +164,8 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
     );
   }, [sendLocation]);
 
-  // Cleanup quando componente desmonta ou página fecha
+  // Quando a página volta a ficar visível, reenviar localização (NÃO envia offline ao sair)
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (isTracking) {
-        // Tentar enviar offline de forma síncrona
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/atualizar-localizacao-prestador`, false);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.setRequestHeader('Authorization', `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`);
-        try {
-          xhr.send(JSON.stringify({ prestadorId: providerId, offline: true }));
-        } catch (e) {
-          console.error('Erro ao enviar offline:', e);
-        }
-      }
-    };
-
     const handleVisibilityChange = () => {
       // Quando a página volta a ficar visível, reenviar localização
       if (!document.hidden && isTracking && currentPositionRef.current) {
@@ -188,14 +173,12 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       
-      // Cleanup do rastreamento
+      // Cleanup do rastreamento local (mas NÃO envia offline - prestador permanece online)
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
       }
@@ -203,7 +186,7 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
         clearInterval(intervalIdRef.current);
       }
     };
-  }, [isTracking, providerId, sendLocation]);
+  }, [isTracking, sendLocation]);
 
   return (
     <div className="space-y-2">
