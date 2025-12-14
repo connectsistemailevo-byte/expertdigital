@@ -38,7 +38,7 @@ const Index: React.FC = () => {
                 rel="noopener noreferrer"
                 className="text-sm text-secondary hover:text-secondary/80 transition-colors flex items-center gap-2 font-medium"
               >
-                <Phone className="w-4 h-4" />
+                <MessageCircle className="w-4 h-4" />
                 Quero Contratar o Site
               </a>
             </nav>
