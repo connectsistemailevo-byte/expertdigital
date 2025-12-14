@@ -40,7 +40,7 @@ function estimateArrivalTime(distanceKm: number): number {
   return Math.round((distanceKm / averageSpeedKmH) * 60);
 }
 
-export function useProviders(maxDistanceKm: number = 50) {
+export function useProviders(maxDistanceKm: number = 500) {
   const { location } = useLocation();
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
