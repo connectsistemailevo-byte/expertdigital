@@ -29,20 +29,29 @@ const TenantRouter = () => {
     );
   }
 
+  // Rota de tracking é global - funciona em qualquer domínio
   // Se é acesso white-label (subdomínio ou domínio próprio), mostra a página do prestador
-  if (tenant.isWhiteLabel) {
-    return <ProviderPage />;
-  }
-
-  // Caso contrário, mostra as rotas normais
+  // mas permite a rota /tracking também
   return (
     <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/p/:slug" element={<ProviderExclusivePage />} />
-      <Route path="/provider-dashboard" element={<ProviderDashboard />} />
-      <Route path="/admin" element={<AdminPanel />} />
+      {/* Tracking route - disponível globalmente */}
       <Route path="/tracking" element={<ProviderTracking />} />
-      <Route path="*" element={<NotFound />} />
+      
+      {/* White-label routes */}
+      {tenant.isWhiteLabel ? (
+        <>
+          <Route path="/" element={<ProviderPage />} />
+          <Route path="*" element={<ProviderPage />} />
+        </>
+      ) : (
+        <>
+          <Route path="/" element={<Index />} />
+          <Route path="/p/:slug" element={<ProviderExclusivePage />} />
+          <Route path="/provider-dashboard" element={<ProviderDashboard />} />
+          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="*" element={<NotFound />} />
+        </>
+      )}
     </Routes>
   );
 };
