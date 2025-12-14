@@ -16,22 +16,32 @@ const Index: React.FC = () => {
   return <div className="min-h-screen bg-[#0a0f1a]">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0f1a]/90 backdrop-blur-lg border-b border-white/10">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16 md:h-20">
-            <div className="font-display text-lg md:text-2xl font-bold text-white rounded-lg flex-shrink-0">
+        <div className="container mx-auto px-2 md:px-4">
+          <div className="flex items-center justify-between h-14 md:h-20 gap-1">
+            {/* Logo - compacto no mobile */}
+            <div className="font-display text-sm md:text-2xl font-bold text-white rounded-lg flex-shrink-0 whitespace-nowrap">
               Aki Guincho <span className="text-secondary">24HS</span>
             </div>
             
-            {/* Mobile: Contact Link */}
-            <a 
-              href="https://wa.me/5562994389675?text=Olá! Sou prestador e quero contratar o site Aki Guincho 24HS" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="md:hidden text-xs text-secondary hover:text-secondary/80 transition-colors flex items-center gap-1 font-medium flex-shrink-0"
-            >
-              <MessageCircle className="w-3 h-3" />
-              <span>(62) 99438-9675</span>
-            </a>
+            {/* Mobile: Links centralizados */}
+            <div className="flex md:hidden items-center gap-1 flex-1 justify-center min-w-0">
+              <a 
+                href="https://wa.me/5562994389675?text=Olá! Sou prestador e quero contratar o site Aki Guincho 24HS" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-[10px] text-secondary hover:text-secondary/80 transition-colors flex items-center gap-0.5 font-medium whitespace-nowrap"
+              >
+                <MessageCircle className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">Contratar</span>
+              </a>
+              <span className="text-white/30 text-[10px]">|</span>
+              <a 
+                href="tel:+5562994389675" 
+                className="text-[10px] text-white/70 hover:text-white transition-colors whitespace-nowrap"
+              >
+                (62) 99438-9675
+              </a>
+            </div>
             
             {/* Desktop Nav */}
             <nav className="hidden md:flex items-center gap-8">
@@ -51,13 +61,12 @@ const Index: React.FC = () => {
               </a>
             </nav>
             
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Button variant="hero" size="default" onClick={() => setIsProviderModalOpen(true)} className="pb-[6px] mx-[8px] my-0 pt-[10px] pr-[7px] rounded text-sm md:text-base pl-[5px]">
-                <Truck className="w-4 h-4 mr-1 md:mr-2" />
-                <span className="hidden sm:inline">Sou Prestador</span>
-                <span className="sm:hidden">Prestador</span>
-              </Button>
-            </div>
+            {/* Botão Sou Prestador */}
+            <Button variant="hero" size="sm" onClick={() => setIsProviderModalOpen(true)} className="flex-shrink-0 text-[10px] md:text-sm px-2 md:px-4 py-1 md:py-2 h-auto">
+              <Truck className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+              <span className="hidden sm:inline">Sou Prestador</span>
+              <span className="sm:hidden">Prestador</span>
+            </Button>
           </div>
         </div>
       </header>
