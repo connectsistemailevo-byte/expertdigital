@@ -32,26 +32,13 @@ const Index: React.FC = () => {
                 <Truck className="w-4 h-4" />
                 Sou Prestador
               </button>
-              <a 
-                href="https://wa.me/5562994389675?text=Olá! Sou prestador e quero contratar o site Aki Guincho 24HS" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-sm text-secondary hover:text-secondary/80 transition-colors flex items-center gap-1.5 font-medium"
-              >
+              <a href="https://wa.me/5562994389675?text=Olá! Sou prestador e quero contratar o site Aki Guincho 24HS" target="_blank" rel="noopener noreferrer" className="text-sm text-secondary hover:text-secondary/80 transition-colors flex items-center gap-1.5 font-medium">
                 <MessageCircle className="w-4 h-4" />
                 Quero Contratar o Site (62) 99438-9675
               </a>
             </nav>
             <div className="flex items-center gap-2">
-              <a 
-                href="https://wa.me/5562994389675?text=Olá! Sou prestador e quero contratar o site Aki Guincho 24HS" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hidden sm:flex items-center gap-1 text-xs text-secondary hover:text-secondary/80 transition-colors"
-              >
-                <Phone className="w-3 h-3" />
-                (62) 99438-9675
-              </a>
+              
               <Button variant="hero" size="default" onClick={() => setIsProviderModalOpen(true)} className="pb-[6px] mx-[8px] my-0 pt-[10px] pr-[7px] rounded text-base pl-[5px]">
                 <Truck className="w-4 h-4 mr-2" />
                 Sou Prestador
@@ -85,13 +72,9 @@ const Index: React.FC = () => {
               
               {/* Map Container Inside Card */}
               <div className="relative w-full h-[280px] md:h-[320px] rounded-xl overflow-hidden mb-4">
-                {mapboxToken ? (
-                  <LiveTrackingMap className="w-full h-full" />
-                ) : (
-                  <div className="w-full h-full bg-[#1a1f2e] flex items-center justify-center">
+                {mapboxToken ? <LiveTrackingMap className="w-full h-full" /> : <div className="w-full h-full bg-[#1a1f2e] flex items-center justify-center">
                     <span className="text-white/50 text-sm">Carregando mapa...</span>
-                  </div>
-                )}
+                  </div>}
               </div>
               
               {/* Location Display */}
@@ -104,12 +87,10 @@ const Index: React.FC = () => {
 
               {/* Trust badges */}
               <div className="flex flex-wrap justify-center items-center gap-3 mb-4">
-                {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => (
-                  <div key={badge} className="flex items-center gap-1.5">
+                {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => <div key={badge} className="flex items-center gap-1.5">
                     <CheckCircle className="w-3.5 h-3.5 text-green-400" />
                     <span className="text-xs text-primary-foreground">{badge}</span>
-                  </div>
-                ))}
+                  </div>)}
               </div>
 
               {/* CTA for providers */}
