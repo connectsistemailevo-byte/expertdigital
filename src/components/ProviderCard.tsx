@@ -1,7 +1,6 @@
 import React from 'react';
 import { Provider } from '@/hooks/useProviders';
 import { MapPin, Clock, Truck, CheckCircle, DollarSign, Route, Wifi } from 'lucide-react';
-
 interface ProviderCardProps {
   provider: Provider;
   isSelected: boolean;
@@ -10,7 +9,6 @@ interface ProviderCardProps {
   tripDistanceKm?: number;
   className?: string;
 }
-
 const serviceLabels: Record<string, string> = {
   moto: 'Moto',
   carro_popular: 'Carro Popular',
@@ -19,7 +17,6 @@ const serviceLabels: Record<string, string> = {
   utilitarios_pesados: 'Utilitários Pesados',
   guincho_completo: 'Completo'
 };
-
 const ProviderCard: React.FC<ProviderCardProps> = ({
   provider,
   isSelected,
@@ -38,19 +35,12 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
     }
     return total;
   };
-  
   const tripPrice = calculateTripPrice();
   const hasValidTripDistance = tripDistanceKm && tripDistanceKm > 0;
-  
-  return (
-    <button 
-      type="button" 
-      onClick={onSelect} 
-      className={`relative w-full p-3 rounded-xl border-2 transition-all duration-200 text-left ${isSelected ? 'border-secondary bg-secondary/10' : 'border-border hover:border-secondary/50 hover:bg-muted'} ${className || ''}`}
-    >
+  return <button type="button" onClick={onSelect} className={`relative w-full p-3 rounded-xl border-2 transition-all duration-200 text-left ${isSelected ? 'border-secondary bg-secondary/10' : 'border-border hover:border-secondary/50 hover:bg-muted'} ${className || ''}`}>
       {isSelected && <CheckCircle className="w-4 h-4 text-secondary absolute top-2 right-2" />}
       
-      <div className="flex items-start gap-2 text-secondary-foreground bg-primary-foreground">
+      <div className="flex items-start gap-2 text-secondary-foreground bg-green-200">
         <div className={`relative w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-secondary text-secondary-foreground' : 'bg-muted'}`}>
           <Truck className="w-5 h-5 bg-transparent text-secondary-foreground" />
           {/* Indicador ONLINE pulsante */}
@@ -79,11 +69,11 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
             <div className="flex items-center gap-1">
               <MapPin className="w-3 h-3 text-foreground" />
-              <span className="text-secondary-foreground">{provider.distance?.toFixed(1)} km de você</span>
+              <span className="text-black">{provider.distance?.toFixed(1)} km de você</span>
             </div>
             <div className="flex items-center gap-1">
               <Clock className="w-3 h-3 text-primary" />
-              <span className="text-secondary-foreground">~{provider.estimatedTime} min</span>
+              <span className="text-black">~{provider.estimatedTime} min</span>
             </div>
           </div>
           
@@ -101,9 +91,9 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
                   R$ {tripPrice.toFixed(2)}
                 </span>
               </div>
-            </div> : <div className="flex items-center gap-1 mt-1.5 p-1.5 rounded-md text-primary-foreground bg-rose-500">
-              <Route className="w-3 h-3 text-primary" />
-              <span className="text-[10px] font-bold text-primary-foreground">
+            </div> : <div className="flex items-center gap-1 mt-1.5 p-1.5 rounded-md text-primary-foreground bg-secondary">
+              <Route className="w-3 h-3 text-green-700" />
+              <span className="text-[10px] font-bold text-secondary-foreground">
                 Informe o destino para ver o valor
               </span>
             </div>}
@@ -122,7 +112,6 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
           </div>
         </div>
       </div>
-    </button>
-  );
+    </button>;
 };
 export default ProviderCard;

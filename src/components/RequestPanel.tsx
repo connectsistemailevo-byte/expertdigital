@@ -350,7 +350,7 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
             {/* Vehicle Condition - Simple buttons */}
             <div>
               <label className="block text-xs font-bold mb-1.5 text-foreground">Selecionar a situação do veículo *</label>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5 bg-transparent">
                 {vehicleConditions.map(condition => {
                 const isSelected = selectedCondition === condition.id;
                 return <button key={condition.id} onClick={() => setSelectedCondition(condition.id)} className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${isSelected ? 'bg-secondary text-secondary-foreground' : 'bg-muted text-foreground hover:bg-muted/80'}`}>
@@ -401,20 +401,18 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
                     <Users className="w-6 h-6 text-muted-foreground mx-auto mb-1" />
                     <p className="text-xs text-muted-foreground">Nenhum prestador na região</p>
                   </div> : <div className="space-y-1.5 max-h-[140px] overflow-y-auto">
-                    {providers.slice(0, 4).map(provider => <ProviderCard key={provider.id} provider={provider} isSelected={selectedProvider?.id === provider.id} onSelect={() => setSelectedProvider(provider)} needsPatins={needsPatins} tripDistanceKm={tripDistanceKm} className="bg-primary-foreground" />)}
+                    {providers.slice(0, 4).map(provider => <ProviderCard key={provider.id} provider={provider} isSelected={selectedProvider?.id === provider.id} onSelect={() => setSelectedProvider(provider)} needsPatins={needsPatins} tripDistanceKm={tripDistanceKm} className="bg-sidebar-ring" />)}
                   </div>}
               </div>}
 
             {/* Price Summary with Breakdown */}
             {selectedProvider && tripDistanceKm > 0 && (() => {
-              const basePrice = selectedProvider.base_price ?? 0;
-              const pricePerKm = selectedProvider.price_per_km ?? 0;
-              const kmCost = tripDistanceKm * pricePerKm;
-              const patinsCost = (needsPatins && selectedProvider.has_patins) ? (selectedProvider.patins_extra_price ?? 0) : 0;
-              const total = basePrice + kmCost + patinsCost;
-              
-              return (
-                <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800 space-y-1">
+            const basePrice = selectedProvider.base_price ?? 0;
+            const pricePerKm = selectedProvider.price_per_km ?? 0;
+            const kmCost = tripDistanceKm * pricePerKm;
+            const patinsCost = needsPatins && selectedProvider.has_patins ? selectedProvider.patins_extra_price ?? 0 : 0;
+            const total = basePrice + kmCost + patinsCost;
+            return <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800 space-y-1">
                   <div className="text-[10px] text-muted-foreground space-y-0.5">
                     <div className="flex justify-between">
                       <span>Base:</span>
@@ -424,12 +422,10 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
                       <span>{tripDistanceKm.toFixed(1)} km × R$ {pricePerKm.toFixed(2)}:</span>
                       <span>R$ {kmCost.toFixed(2)}</span>
                     </div>
-                    {patinsCost > 0 && (
-                      <div className="flex justify-between text-cyan-600">
+                    {patinsCost > 0 && <div className="flex justify-between text-cyan-600">
                         <span>+ Patins:</span>
                         <span>R$ {patinsCost.toFixed(2)}</span>
-                      </div>
-                    )}
+                      </div>}
                   </div>
                   <div className="flex items-center justify-between pt-1 border-t border-green-200 dark:border-green-700">
                     <div className="flex items-center gap-1">
@@ -440,9 +436,8 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
                       R$ {total.toFixed(2)}
                     </span>
                   </div>
-                </div>
-              );
-            })()}
+                </div>;
+          })()}
 
             {/* Validation */}
             {!canSubmit && <p className="text-[10px] text-center text-secondary-foreground">
