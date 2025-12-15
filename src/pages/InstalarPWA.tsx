@@ -8,17 +8,37 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+const PROVIDER_STORAGE_KEY = 'showtime_provider_data';
+
 const InstalarPWA: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const providerId = searchParams.get('id');
-  const providerName = searchParams.get('name') || 'Prestador';
+  
+  // Try to get from URL first, then from localStorage
+  const urlProviderId = searchParams.get('id');
+  const urlProviderName = searchParams.get('name');
+  
+  const storedData = localStorage.getItem(PROVIDER_STORAGE_KEY);
+  const parsedData = storedData ? JSON.parse(storedData) : null;
+  
+  const providerId = urlProviderId || parsedData?.id || null;
+  const providerName = urlProviderName || parsedData?.name || 'Prestador';
 
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+
+  // Save provider data to localStorage when available from URL
+  useEffect(() => {
+    if (urlProviderId) {
+      localStorage.setItem(PROVIDER_STORAGE_KEY, JSON.stringify({
+        id: urlProviderId,
+        name: urlProviderName || 'Prestador'
+      }));
+    }
+  }, [urlProviderId, urlProviderName]);
 
   useEffect(() => {
     // Check if already in standalone mode (PWA installed)
