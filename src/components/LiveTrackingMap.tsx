@@ -641,19 +641,24 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
             </div>
             <span className="text-white/80">Você</span>
           </div>
-          <button 
+          <button
             onClick={() => {
-              if (map.current && allProviders.length > 0) {
-                const bounds = new mapboxgl.LngLatBounds();
-                allProviders.forEach(p => bounds.extend([p.longitude, p.latitude]));
-                bounds.extend([location.longitude, location.latitude]);
-                map.current.fitBounds(bounds, { padding: 50, maxZoom: 6 });
-              }
+              if (!map.current) return;
+
+              const list = onlineProviders;
+              if (list.length === 0) return;
+
+              const bounds = new mapboxgl.LngLatBounds();
+              list.forEach((p) => bounds.extend([p.longitude, p.latitude]));
+              bounds.extend([location.longitude, location.latitude]);
+
+              map.current.fitBounds(bounds, { padding: 50, maxZoom: 11 });
             }}
             className="flex items-center gap-1 bg-green-600/80 hover:bg-green-600 px-1.5 py-0.5 rounded transition-colors"
+            title={selectedState === 'all' ? 'Ver prestadores online' : `Ver prestadores online (${selectedState})`}
           >
             <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-white font-bold">{allProviders.length} Online</span>
+            <span className="text-white font-bold">{onlineProviders.length} Online</span>
           </button>
           {destination && (
             <div className="flex items-center gap-1">

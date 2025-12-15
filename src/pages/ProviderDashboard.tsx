@@ -188,6 +188,26 @@ export default function ProviderDashboard() {
     }
   }, []);
 
+  // Ao entrar no painel: pedir permissão de localização e restaurar rastreamento contínuo (se o prestador deixou ativado)
+  useEffect(() => {
+    if (!provider?.id) return;
+
+    const locationGrantedKey = `provider_location_granted:${provider.id}`;
+    const trackingEnabledKey = `provider_tracking_enabled:${provider.id}`;
+
+    const hasLocationGranted = localStorage.getItem(locationGrantedKey) === 'true';
+    const trackingEnabled = localStorage.getItem(trackingEnabledKey) === 'true';
+
+    if (trackingEnabled) {
+      setShowFloatingTracker(true);
+    }
+
+    // Se nunca concedeu, abrimos automaticamente para resolver o "não acontece nada" no celular
+    if (!hasLocationGranted) {
+      setShowLocationModal(true);
+    }
+  }, [provider?.id]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (whatsapp.length >= 10) {
@@ -197,10 +217,18 @@ export default function ProviderDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem('provider_whatsapp');
+
+    if (provider?.id) {
+      localStorage.removeItem(`provider_location_granted:${provider.id}`);
+      localStorage.removeItem(`provider_tracking_enabled:${provider.id}`);
+    }
+
     setProvider(null);
     setSubscription(null);
     setCustomization(null);
     setWhatsapp('');
+    setShowFloatingTracker(false);
+    setShowLocationModal(false);
   };
 
   const getPlanBadge = () => {
@@ -568,17 +596,21 @@ export default function ProviderDashboard() {
                 size="lg"
               >
                 <MapPin className="w-5 h-5 mr-2" />
-                Ativar Minha Localização
+                Permitir Localização e Ficar Online
               </Button>
-              
+
               {/* Botão para tracker flutuante */}
               <Button
-                onClick={() => setShowFloatingTracker(true)}
+                onClick={() => {
+                  if (!provider?.id) return;
+                  localStorage.setItem(`provider_tracking_enabled:${provider.id}`, 'true');
+                  setShowFloatingTracker(true);
+                }}
                 variant="outline"
                 className="border-green-500/50 text-green-400 hover:bg-green-500/10"
               >
                 <Navigation className="w-4 h-4 mr-2" />
-                Rastreamento Contínuo
+                Ativar Rastreamento Contínuo
               </Button>
 
               <Button
@@ -644,9 +676,13 @@ export default function ProviderDashboard() {
         providerId={provider.id}
         providerName={customization?.company_name || provider.name}
         onSuccess={() => {
+          localStorage.setItem(`provider_location_granted:${provider.id}`, 'true');
+          localStorage.setItem(`provider_tracking_enabled:${provider.id}`, 'true');
+          setShowFloatingTracker(true);
+
           toast({
             title: 'Localização ativada!',
-            description: 'Você está online no mapa. Os clientes podem ver você agora.',
+            description: 'Você está online no mapa. O rastreamento contínuo foi iniciado.',
           });
         }}
       />
@@ -656,7 +692,10 @@ export default function ProviderDashboard() {
         <ProviderFloatingTracker
           providerId={provider.id}
           providerName={customization?.company_name || provider.name}
-          onClose={() => setShowFloatingTracker(false)}
+          onClose={() => {
+            localStorage.setItem(`provider_tracking_enabled:${provider.id}`, 'false');
+            setShowFloatingTracker(false);
+          }}
         />
       )}
 
