@@ -40,28 +40,28 @@ const ProviderPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       {/* Header com branding personalizado */}
       <header className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-sm border-b border-slate-700/50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        <div className="container mx-auto px-3 py-2.5 sm:px-4 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               {tenant.logoUrl ? (
                 <img 
                   src={tenant.logoUrl} 
                   alt={tenant.companyName || 'Logo'} 
-                  className="h-10 w-auto object-contain"
+                  className="h-8 sm:h-10 w-auto object-contain shrink-0"
                 />
               ) : (
                 <div 
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0"
                   style={{ backgroundColor: tenant.primaryColor }}
                 >
                   {(tenant.companyName || tenant.providerName || 'P').charAt(0).toUpperCase()}
                 </div>
               )}
-              <div>
-                <h1 className="text-lg font-bold text-white">
+              <div className="min-w-0">
+                <h1 className="text-sm sm:text-lg font-bold text-white truncate">
                   {tenant.companyName || tenant.providerName}
                 </h1>
-                <p className="text-xs text-slate-400">Serviços de Guincho</p>
+                <p className="text-[10px] sm:text-xs text-slate-400 hidden xs:block">Serviços de Guincho</p>
               </div>
             </div>
 
@@ -70,7 +70,7 @@ const ProviderPage: React.FC = () => {
                 href={`https://wa.me/${tenantProvider.whatsapp.replace(/\D/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-white transition-all hover:opacity-90"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg text-white transition-all hover:opacity-90 text-sm shrink-0"
                 style={{ backgroundColor: tenant.primaryColor }}
               >
                 <Phone className="w-4 h-4" />
