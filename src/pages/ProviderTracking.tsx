@@ -9,6 +9,15 @@ type TrackingStatus = 'idle' | 'requesting' | 'active' | 'denied' | 'error' | 'u
 
 const PROVIDER_STORAGE_KEY = 'showtime_provider_data';
 
+// Phone mask function
+const formatPhone = (value: string): string => {
+  const numbers = value.replace(/\D/g, '');
+  if (numbers.length <= 2) return numbers;
+  if (numbers.length <= 7) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+  if (numbers.length <= 11) return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7)}`;
+  return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+};
+
 const ProviderTracking: React.FC = () => {
   const [searchParams] = useSearchParams();
   
@@ -61,6 +70,13 @@ const ProviderTracking: React.FC = () => {
     loadProviderData();
   }, [urlProviderId, urlProviderName]);
 
+  // Handle phone input with mask
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhone(e.target.value);
+    setPhoneInput(formatted);
+    setPhoneError('');
+  };
+
   // Search provider by phone number
   const searchProviderByPhone = async () => {
     const cleanPhone = phoneInput.replace(/\D/g, '');
@@ -74,22 +90,29 @@ const ProviderTracking: React.FC = () => {
     setPhoneError('');
 
     try {
-      // Search for provider by whatsapp number
+      // Fetch all providers and compare cleaned phone numbers
       const { data, error } = await supabase
         .from('providers')
-        .select('id, name, whatsapp')
-        .or(`whatsapp.ilike.%${cleanPhone}%,whatsapp.ilike.%${cleanPhone.slice(-9)}%`)
-        .limit(1)
-        .maybeSingle();
+        .select('id, name, whatsapp');
 
       if (error) throw error;
 
-      if (data) {
-        setProviderId(data.id);
-        setProviderName(data.name);
+      // Find provider by comparing cleaned phone numbers
+      const provider = data?.find(p => {
+        const cleanStoredPhone = p.whatsapp.replace(/\D/g, '');
+        // Match exact or last 9-11 digits
+        return cleanStoredPhone === cleanPhone || 
+               cleanStoredPhone.slice(-9) === cleanPhone.slice(-9) ||
+               cleanStoredPhone.slice(-10) === cleanPhone.slice(-10) ||
+               cleanStoredPhone.slice(-11) === cleanPhone;
+      });
+
+      if (provider) {
+        setProviderId(provider.id);
+        setProviderName(provider.name);
         localStorage.setItem(PROVIDER_STORAGE_KEY, JSON.stringify({
-          id: data.id,
-          name: data.name
+          id: provider.id,
+          name: provider.name
         }));
       } else {
         setPhoneError('Prestador não encontrado. Verifique o número ou cadastre-se primeiro.');
@@ -320,11 +343,9 @@ const ProviderTracking: React.FC = () => {
                 type="tel"
                 placeholder="(00) 00000-0000"
                 value={phoneInput}
-                onChange={(e) => {
-                  setPhoneInput(e.target.value);
-                  setPhoneError('');
-                }}
+                onChange={handlePhoneChange}
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/40 text-center text-lg"
+                maxLength={15}
               />
               {phoneError && (
                 <p className="text-red-400 text-sm mt-2 text-center">{phoneError}</p>
