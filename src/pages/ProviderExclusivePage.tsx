@@ -192,40 +192,56 @@ const ProviderExclusivePage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       {/* Header com branding personalizado */}
       <header className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-sm border-b border-slate-700/50">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        <div className="container mx-auto px-3 py-2.5 sm:px-4 sm:py-3">
+          <div className="flex items-center justify-between gap-2">
+            {/* Logo e nome */}
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               {customization?.logo_url ? (
                 <img 
                   src={customization.logo_url} 
                   alt={displayName} 
-                  className="h-10 w-auto object-contain"
+                  className="h-8 w-auto sm:h-10 object-contain shrink-0"
                 />
               ) : (
                 <div 
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0"
                   style={{ backgroundColor: primaryColor }}
                 >
                   {displayName.charAt(0).toUpperCase()}
                 </div>
               )}
-              <div>
-                <h1 className="text-lg font-bold text-white">
+              <div className="min-w-0">
+                <h1 className="text-sm sm:text-lg font-bold text-white truncate">
                   {displayName}
                 </h1>
-                <p className="text-xs text-slate-400">Serviços de Guincho</p>
+                <p className="text-[10px] sm:text-xs text-slate-400 hidden xs:block">Serviços de Guincho</p>
               </div>
             </div>
 
-            <a
-              href={`https://wa.me/55${provider.whatsapp.replace(/\D/g, '')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white transition-all hover:opacity-90 bg-green-600 hover:bg-green-700"
-            >
-              <Phone className="w-4 h-4" />
-              <span className="hidden sm:inline">WhatsApp</span>
-            </a>
+            {/* Status online + WhatsApp */}
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Badge de status */}
+              <Badge 
+                variant="outline" 
+                className={`text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 ${isProviderOnline 
+                  ? 'bg-green-500/20 text-green-400 border-green-500/30' 
+                  : 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full mr-1 ${isProviderOnline ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`}></span>
+                {isProviderOnline ? 'Online' : 'Offline'}
+              </Badge>
+
+              {/* Botão WhatsApp */}
+              <a
+                href={`https://wa.me/55${provider.whatsapp.replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg text-white transition-all hover:opacity-90 bg-green-600 hover:bg-green-700 text-sm"
+              >
+                <Phone className="w-4 h-4" />
+                <span className="hidden sm:inline">WhatsApp</span>
+              </a>
+            </div>
           </div>
         </div>
       </header>
@@ -247,13 +263,13 @@ const ProviderExclusivePage: React.FC = () => {
             {/* Info principal */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap mb-1">
-                <h2 className="text-lg font-bold text-slate-900">{displayName}</h2>
-                <Badge variant="outline" className="bg-pink-100 text-pink-700 border-pink-200 text-xs">
+                <h2 className="text-base sm:text-lg font-bold text-slate-900">{displayName}</h2>
+                <Badge variant="outline" className="bg-pink-100 text-pink-700 border-pink-200 text-[10px] sm:text-xs">
                   R${basePrice} + R${pricePerKm.toFixed(2)}/km
                 </Badge>
                 <Badge 
                   variant="outline" 
-                  className={`text-xs ${isProviderOnline 
+                  className={`text-[10px] sm:text-xs ${isProviderOnline 
                     ? 'bg-green-100 text-green-700 border-green-200' 
                     : 'bg-gray-100 text-gray-600 border-gray-200'}`}
                 >
