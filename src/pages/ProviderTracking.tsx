@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Navigation, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { Loader2, Navigation, CheckCircle2, XCircle, AlertTriangle, Phone, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 type TrackingStatus = 'idle' | 'requesting' | 'active' | 'denied' | 'error' | 'unavailable';
 
@@ -15,21 +16,91 @@ const ProviderTracking: React.FC = () => {
   const urlProviderId = searchParams.get('id');
   const urlProviderName = searchParams.get('name');
   
-  const storedData = localStorage.getItem(PROVIDER_STORAGE_KEY);
-  const parsedData = storedData ? JSON.parse(storedData) : null;
-  
-  const providerId = urlProviderId || parsedData?.id || null;
-  const providerName = urlProviderName || parsedData?.name || 'Prestador';
+  const [providerId, setProviderId] = useState<string | null>(null);
+  const [providerName, setProviderName] = useState<string>('Prestador');
+  const [isLoading, setIsLoading] = useState(true);
+  const [phoneInput, setPhoneInput] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
-  // Save provider data to localStorage when available from URL
+  // Load provider data on mount
   useEffect(() => {
-    if (urlProviderId) {
-      localStorage.setItem(PROVIDER_STORAGE_KEY, JSON.stringify({
-        id: urlProviderId,
-        name: urlProviderName || 'Prestador'
-      }));
-    }
+    const loadProviderData = async () => {
+      // First check URL params
+      if (urlProviderId) {
+        setProviderId(urlProviderId);
+        setProviderName(urlProviderName || 'Prestador');
+        localStorage.setItem(PROVIDER_STORAGE_KEY, JSON.stringify({
+          id: urlProviderId,
+          name: urlProviderName || 'Prestador'
+        }));
+        setIsLoading(false);
+        return;
+      }
+
+      // Then check localStorage
+      const storedData = localStorage.getItem(PROVIDER_STORAGE_KEY);
+      if (storedData) {
+        try {
+          const parsedData = JSON.parse(storedData);
+          if (parsedData?.id) {
+            setProviderId(parsedData.id);
+            setProviderName(parsedData.name || 'Prestador');
+            setIsLoading(false);
+            return;
+          }
+        } catch (e) {
+          console.error('Error parsing stored data:', e);
+        }
+      }
+
+      // No data found, show phone input
+      setIsLoading(false);
+    };
+
+    loadProviderData();
   }, [urlProviderId, urlProviderName]);
+
+  // Search provider by phone number
+  const searchProviderByPhone = async () => {
+    const cleanPhone = phoneInput.replace(/\D/g, '');
+    
+    if (cleanPhone.length < 10) {
+      setPhoneError('Digite um número de telefone válido com DDD');
+      return;
+    }
+
+    setIsSearching(true);
+    setPhoneError('');
+
+    try {
+      // Search for provider by whatsapp number
+      const { data, error } = await supabase
+        .from('providers')
+        .select('id, name, whatsapp')
+        .or(`whatsapp.ilike.%${cleanPhone}%,whatsapp.ilike.%${cleanPhone.slice(-9)}%`)
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setProviderId(data.id);
+        setProviderName(data.name);
+        localStorage.setItem(PROVIDER_STORAGE_KEY, JSON.stringify({
+          id: data.id,
+          name: data.name
+        }));
+      } else {
+        setPhoneError('Prestador não encontrado. Verifique o número ou cadastre-se primeiro.');
+      }
+    } catch (e) {
+      console.error('Error searching provider:', e);
+      setPhoneError('Erro ao buscar prestador. Tente novamente.');
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const [status, setStatus] = useState<TrackingStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -216,13 +287,73 @@ const ProviderTracking: React.FC = () => {
     }
   }, [providerId, status, startTracking]);
 
-  if (!providerId) {
+  // Show loading state
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
         <div className="text-center text-white">
-          <XCircle className="w-16 h-16 mx-auto mb-4 text-destructive" />
-          <h1 className="text-xl font-bold mb-2">Erro</h1>
-          <p className="text-muted-foreground">ID do prestador não encontrado</p>
+          <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin" />
+          <p>Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show phone search form if no provider ID
+  if (!providerId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+        <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 max-w-sm w-full">
+          <div className="text-center mb-6">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg">
+              <Phone className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2">Identificação</h1>
+            <p className="text-white/70 text-sm">
+              Digite seu WhatsApp cadastrado para acessar o rastreamento
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <Input
+                type="tel"
+                placeholder="(00) 00000-0000"
+                value={phoneInput}
+                onChange={(e) => {
+                  setPhoneInput(e.target.value);
+                  setPhoneError('');
+                }}
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/40 text-center text-lg"
+              />
+              {phoneError && (
+                <p className="text-red-400 text-sm mt-2 text-center">{phoneError}</p>
+              )}
+            </div>
+
+            <Button
+              onClick={searchProviderByPhone}
+              disabled={isSearching || phoneInput.replace(/\D/g, '').length < 10}
+              className="w-full bg-orange-500 hover:bg-orange-600"
+              size="lg"
+            >
+              {isSearching ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Buscando...
+                </>
+              ) : (
+                <>
+                  <Search className="w-5 h-5 mr-2" />
+                  Entrar
+                </>
+              )}
+            </Button>
+          </div>
+
+          <p className="text-white/40 text-xs text-center mt-6">
+            Use o mesmo número cadastrado como prestador
+          </p>
         </div>
       </div>
     );
