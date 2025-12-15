@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { PlanSelectionModal } from '@/components/PlanSelectionModal';
 import { TrialExhaustedModal } from '@/components/TrialExhaustedModal';
+import ProviderLocationPermissionModal from '@/components/ProviderLocationPermissionModal';
+import ProviderFloatingTracker from '@/components/ProviderFloatingTracker';
 import { 
   Truck, 
   Phone, 
@@ -73,6 +75,8 @@ export default function ProviderDashboard() {
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [showTrialExhaustedModal, setShowTrialExhaustedModal] = useState(false);
   const [blockReason, setBlockReason] = useState<'trial_exhausted' | 'limit_reached' | 'no_plan'>('trial_exhausted');
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showFloatingTracker, setShowFloatingTracker] = useState(false);
 
   const success = searchParams.get('success');
   const providerId = searchParams.get('provider_id');
@@ -547,29 +551,43 @@ export default function ProviderDashboard() {
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Navigation className="w-5 h-5 text-green-400" />
-              Rastreamento GPS
+              Rastreamento GPS - Fique Online!
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-slate-300 mb-4">
-              Para aparecer online no mapa, instale o app de rastreamento no seu celular. 
-              O app funciona em segundo plano e mantém sua localização atualizada.
+              Ative sua localização para aparecer online no mapa e receber mais clientes!
             </p>
             <div className="flex flex-wrap gap-3">
+              {/* Botão principal - Ativar localização agora */}
               <Button
-                onClick={() => navigate(`/instalar?id=${provider.id}&name=${encodeURIComponent(provider.name)}`)}
-                className="bg-green-600 hover:bg-green-700"
+                onClick={() => {
+                  setShowLocationModal(true);
+                }}
+                className="bg-green-600 hover:bg-green-700 animate-pulse"
+                size="lg"
               >
-                <Download className="w-4 h-4 mr-2" />
-                Instalar App de Rastreamento
+                <MapPin className="w-5 h-5 mr-2" />
+                Ativar Minha Localização
               </Button>
+              
+              {/* Botão para tracker flutuante */}
               <Button
-                onClick={() => navigate(`/rastreamento?id=${provider.id}&name=${encodeURIComponent(provider.name)}`)}
+                onClick={() => setShowFloatingTracker(true)}
                 variant="outline"
                 className="border-green-500/50 text-green-400 hover:bg-green-500/10"
               >
-                <Smartphone className="w-4 h-4 mr-2" />
-                Abrir no Navegador
+                <Navigation className="w-4 h-4 mr-2" />
+                Rastreamento Contínuo
+              </Button>
+
+              <Button
+                onClick={() => navigate(`/instalar?id=${provider.id}&name=${encodeURIComponent(provider.name)}`)}
+                variant="outline"
+                className="border-slate-600 text-slate-300"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Instalar App (PWA)
               </Button>
             </div>
           </CardContent>
@@ -617,7 +635,40 @@ export default function ProviderDashboard() {
         providerId={provider.id}
         whatsapp={provider.whatsapp}
         trialCorridasRestantes={subscription?.trial_corridas_restantes}
-        showTrial={subscription?.trial_ativo && !subscription?.adesao_paga}
+      />
+
+      {/* Modal de Permissão de Localização */}
+      <ProviderLocationPermissionModal
+        open={showLocationModal}
+        onOpenChange={setShowLocationModal}
+        providerId={provider.id}
+        providerName={customization?.company_name || provider.name}
+        onSuccess={() => {
+          toast({
+            title: 'Localização ativada!',
+            description: 'Você está online no mapa. Os clientes podem ver você agora.',
+          });
+        }}
+      />
+
+      {/* Tracker Flutuante */}
+      {showFloatingTracker && (
+        <ProviderFloatingTracker
+          providerId={provider.id}
+          providerName={customization?.company_name || provider.name}
+          onClose={() => setShowFloatingTracker(false)}
+        />
+      )}
+
+      <TrialExhaustedModal
+        open={showTrialExhaustedModal}
+        onOpenChange={setShowTrialExhaustedModal}
+        providerId={provider.id}
+        whatsapp={provider.whatsapp}
+        reason={blockReason}
+        message={blockReason === 'limit_reached' 
+          ? `Você atingiu o limite de ${subscription?.limite_corridas} corridas do seu plano.` 
+          : undefined}
       />
     </div>
   );

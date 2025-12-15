@@ -62,6 +62,8 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     error: null,
   });
 
+  // NÃO definir destino por padrão - isso evita rotas automáticas para lugares errados
+
 
   // Busca o token do Mapbox da edge function
   useEffect(() => {
