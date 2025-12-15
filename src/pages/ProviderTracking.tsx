@@ -6,10 +6,30 @@ import { Button } from '@/components/ui/button';
 
 type TrackingStatus = 'idle' | 'requesting' | 'active' | 'denied' | 'error' | 'unavailable';
 
+const PROVIDER_STORAGE_KEY = 'showtime_provider_data';
+
 const ProviderTracking: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const providerId = searchParams.get('id');
-  const providerName = searchParams.get('name') || 'Prestador';
+  
+  // Try to get from URL first, then from localStorage
+  const urlProviderId = searchParams.get('id');
+  const urlProviderName = searchParams.get('name');
+  
+  const storedData = localStorage.getItem(PROVIDER_STORAGE_KEY);
+  const parsedData = storedData ? JSON.parse(storedData) : null;
+  
+  const providerId = urlProviderId || parsedData?.id || null;
+  const providerName = urlProviderName || parsedData?.name || 'Prestador';
+
+  // Save provider data to localStorage when available from URL
+  useEffect(() => {
+    if (urlProviderId) {
+      localStorage.setItem(PROVIDER_STORAGE_KEY, JSON.stringify({
+        id: urlProviderId,
+        name: urlProviderName || 'Prestador'
+      }));
+    }
+  }, [urlProviderId, urlProviderName]);
 
   const [status, setStatus] = useState<TrackingStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
