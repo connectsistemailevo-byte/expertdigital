@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { ProviderUnavailableModal } from '@/components/ProviderUnavailableModal';
 type VehicleType = 'carro' | 'moto' | 'caminhonete' | 'caminhao' | 'outros';
-type VehicleCondition = 'pane' | 'seca' | 'capotado' | 'subsolo' | 'roda_travada' | 'volante_travado' | 'precisa_patins' | 'outros';
+type VehicleCondition = 'pane' | 'seca' | 'capotado' | 'subsolo' | 'roda_travada' | 'volante_travado' | 'precisa_patins';
 type PaymentMethod = 'pix' | 'dinheiro' | 'credito' | 'debito';
 const vehicleTypes = [{
   id: 'carro' as VehicleType,
@@ -84,12 +84,6 @@ const vehicleConditions = [{
   icon: Building2,
   color: 'text-cyan-500',
   needsPatins: true
-}, {
-  id: 'outros' as VehicleCondition,
-  label: 'Outros',
-  icon: AlertTriangle,
-  color: 'text-gray-500',
-  needsPatins: false
 }];
 const paymentMethods = [{
   id: 'pix' as PaymentMethod,
@@ -355,7 +349,7 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
 
             {/* Vehicle Condition - Simple buttons */}
             <div>
-              <label className="block text-xs font-bold mb-1.5 text-foreground">Situação do veículo *</label>
+              <label className="block text-xs font-bold mb-1.5 text-foreground">Selecionar a situação do veículo *</label>
               <div className="flex flex-wrap gap-1.5">
                 {vehicleConditions.map(condition => {
                 const isSelected = selectedCondition === condition.id;
