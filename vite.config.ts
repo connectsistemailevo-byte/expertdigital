@@ -15,16 +15,17 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png"],
+      includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png", "background-location-sw.js"],
       manifest: {
-        name: "ShowTime Guinchos - Rastreamento",
-        short_name: "ShowTime",
-        description: "Rastreamento GPS para prestadores",
+        name: "Aki Guincho 24hs - Rastreamento",
+        short_name: "Aki Guincho",
+        description: "Rastreamento GPS para prestadores - funciona em segundo plano",
         theme_color: "#f97316",
         background_color: "#0f172a",
         display: "standalone",
         orientation: "portrait",
         start_url: "/rastreamento",
+        categories: ["business", "utilities"],
         icons: [
           {
             src: "pwa-192x192.png",
@@ -42,6 +43,8 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
+        // Don't cache the background location service worker
+        globIgnores: ["**/background-location-sw.js"],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
