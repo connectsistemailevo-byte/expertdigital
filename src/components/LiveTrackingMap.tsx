@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { useLocation } from '@/contexts/LocationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Truck, User, MapPin, Filter } from 'lucide-react';
-import showtimeLogo from '@/assets/showtime-logo.png';
+
 import { brazilStates } from '@/data/brazilStates';
 
 interface OnlineProvider {
@@ -671,11 +671,6 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
         </div>
       </div>
 
-      {/* ShowTime Creative Branding */}
-      <div className="absolute bottom-2 left-2 z-10 flex items-center gap-1.5 bg-[#0a0f1a]/90 backdrop-blur-sm px-2 py-1 rounded-md shadow-lg">
-        <img src={showtimeLogo} alt="ShowTime Creative" className="w-4 h-4" />
-        <span className="text-[10px] font-semibold text-white">ShowTime Creative</span>
-      </div>
 
       <style>{`
         @keyframes pulse {
