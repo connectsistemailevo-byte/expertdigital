@@ -360,7 +360,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
           `;
         }
       } else {
-        // Create new marker with visible label
+        // Create new marker with ONLINE indicator and name
         const el = document.createElement('div');
         el.className = 'provider-marker';
         el.style.cssText = 'position: relative; display: flex; flex-direction: column; align-items: center;';
@@ -369,39 +369,73 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
           <div class="provider-label" style="
             background: rgba(10, 15, 26, 0.95);
             color: white;
-            padding: 3px 8px;
-            border-radius: 6px;
+            padding: 4px 10px;
+            border-radius: 8px;
             font-size: 11px;
             font-weight: 500;
             white-space: nowrap;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
             margin-bottom: 4px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 6px;
+            gap: 2px;
+            border: 1px solid rgba(34, 197, 94, 0.5);
           ">
-            <span style="color: #22c55e; font-weight: 700;">${provider.distance?.toFixed(1)} km</span>
-            <span style="color: #94a3b8;">~${provider.estimatedTime} min</span>
-            ${timeAgo ? `<span style="color: #60a5fa; font-size: 9px;">⏱${timeAgo}</span>` : ''}
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <span style="
+                display: inline-flex; 
+                align-items: center; 
+                gap: 3px; 
+                background: #22c55e; 
+                color: white; 
+                padding: 2px 6px; 
+                border-radius: 10px; 
+                font-size: 9px; 
+                font-weight: 700;
+                animation: pulse 2s ease-in-out infinite;
+              ">
+                <span style="width: 5px; height: 5px; background: white; border-radius: 50%;"></span>
+                ONLINE
+              </span>
+            </div>
+            <span style="color: #f59e0b; font-weight: 700; font-size: 12px;">${provider.name}</span>
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 10px;">
+              <span style="color: #22c55e; font-weight: 600;">${provider.distance?.toFixed(1)} km</span>
+              <span style="color: #94a3b8;">~${provider.estimatedTime} min</span>
+              ${timeAgo ? `<span style="color: #60a5fa;">⏱${timeAgo}</span>` : ''}
+            </div>
           </div>
           <div style="
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
             border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 3px 12px rgba(245, 158, 11, 0.5);
+            border: 3px solid white;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.6);
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
           ">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
               <path d="M9 17a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM19 17a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
               <path d="M13 16V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10"/>
               <path d="M17 16V8a1 1 0 0 0-1-1h-1"/>
               <path d="M5 16h8M10 16h7"/>
               <path d="M16 8h3l2 4v4h-5"/>
             </svg>
+            <span style="
+              position: absolute;
+              top: -2px;
+              right: -2px;
+              width: 12px;
+              height: 12px;
+              background: #22c55e;
+              border: 2px solid white;
+              border-radius: 50%;
+              animation: pulse 1.5s ease-in-out infinite;
+            "></span>
           </div>
         `;
 
