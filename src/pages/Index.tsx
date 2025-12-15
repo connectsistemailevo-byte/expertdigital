@@ -83,63 +83,54 @@ const Index: React.FC = () => {
         {/* Centered Content */}
         <div className="relative z-10 container mx-auto px-4 py-6 md:py-12 flex flex-col items-center justify-center min-h-[calc(100vh-5rem)]">
           
-          {/* Hero Card Unificado */}
-          <div className="w-full max-w-lg mx-auto mb-6 animate-fade-in">
-            <div className="backdrop-blur-xl rounded-2xl p-4 md:p-6 border shadow-2xl bg-secondary-foreground border-secondary border-solid">
-              
-              {/* Badge - no topo */}
-              <div className="text-center mb-3">
-                <span className="inline-block py-2 px-4 text-secondary rounded-full text-xs md:text-sm font-semibold bg-primary-foreground">
-                  Atendimento 24h em todo o Brasil
-                </span>
-              </div>
-
-              {/* Location Display - acima do mapa */}
-              <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl mb-3 bg-green-600 text-primary-foreground border border-primary-foreground shadow-md">
-                <MapPin className="w-4 h-4 text-secondary flex-shrink-0" />
-                <span className="font-medium text-white text-sm truncate">
-                  {location.loading ? 'Buscando sua localização...' : location.address || location.region || 'Localização não disponível'}
-                </span>
-              </div>
-
-              {/* Trust badges - acima do mapa */}
-              <div className="flex flex-wrap justify-center items-center gap-3 mb-3">
-                {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => <div key={badge} className="flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5 text-green-400" />
-                    <span className="text-xs text-primary-foreground">{badge}</span>
-                  </div>)}
-              </div>
-              
-              {/* Map Container Inside Card */}
-              <div className="relative w-full h-[280px] md:h-[320px] rounded-xl overflow-hidden mb-4">
-                {mapboxToken ? <LiveTrackingMap className="w-full h-full" /> : <div className="w-full h-full bg-[#1a1f2e] flex items-center justify-center">
-                    <span className="text-white/50 text-sm">Carregando mapa...</span>
-                  </div>}
-              </div>
-
-              {/* CTA for providers */}
-              <div className="text-center pt-3 border-t border-white/10">
-                <button onClick={() => setIsProviderModalOpen(true)} className="transition-colors font-medium bg-transparent text-primary-foreground text-lg shadow-md">
-                  É guincheiro? <span className="underline underline-offset-2 font-thin text-center">Cadastre-se aqui</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Device Frame with Glow - HORIZONTAL */}
-          <div className="w-full max-w-[95vw] md:max-w-[950px] lg:max-w-[1100px] mx-auto animate-slide-up">
-            {/* Outer glow effect */}
+          {/* Card Único Unificado */}
+          <div className="w-full max-w-[95vw] md:max-w-[950px] lg:max-w-[1100px] mx-auto animate-fade-in">
             <div className="relative">
               {/* Multi-layer glow */}
               <div className="absolute -inset-3 md:-inset-5 bg-gradient-to-r from-blue-600/50 via-purple-500/40 to-blue-600/50 rounded-[1.5rem] md:rounded-[2.5rem] blur-2xl opacity-70" />
               <div className="absolute -inset-2 md:-inset-4 bg-gradient-to-b from-blue-500/30 via-transparent to-purple-600/30 rounded-[1.25rem] md:rounded-[2rem] blur-xl" />
               
-              {/* Device frame */}
-              <div className="relative backdrop-blur-md md:rounded-[2rem] p-3 md:p-4 shadow-2xl border-0 border-primary-foreground rounded-3xl bg-secondary">
-                {/* Inner border glow */}
-                <div className="absolute inset-0 rounded-[1.25rem] md:rounded-[2rem] bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10 pointer-events-none" />
+              {/* Card Principal */}
+              <div className="relative backdrop-blur-xl rounded-2xl md:rounded-[2rem] p-4 md:p-6 border shadow-2xl bg-secondary-foreground border-secondary border-solid">
                 
-                {/* Content */}
+                {/* Badge - no topo */}
+                <div className="text-center mb-3">
+                  <span className="inline-block py-2 px-4 text-secondary rounded-full text-xs md:text-sm font-semibold bg-primary-foreground">
+                    Atendimento 24h em todo o Brasil
+                  </span>
+                </div>
+
+                {/* Location Display - acima do mapa */}
+                <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl mb-3 bg-green-600 text-primary-foreground border border-primary-foreground shadow-md">
+                  <MapPin className="w-4 h-4 text-secondary flex-shrink-0" />
+                  <span className="font-medium text-white text-sm truncate">
+                    {location.loading ? 'Buscando sua localização...' : location.address || location.region || 'Localização não disponível'}
+                  </span>
+                </div>
+
+                {/* Trust badges - acima do mapa */}
+                <div className="flex flex-wrap justify-center items-center gap-3 mb-3">
+                  {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => <div key={badge} className="flex items-center gap-1.5">
+                      <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                      <span className="text-xs text-primary-foreground">{badge}</span>
+                    </div>)}
+                </div>
+                
+                {/* Map Container Inside Card */}
+                <div className="relative w-full h-[200px] md:h-[280px] rounded-xl overflow-hidden mb-4">
+                  {mapboxToken ? <LiveTrackingMap className="w-full h-full" /> : <div className="w-full h-full bg-[#1a1f2e] flex items-center justify-center">
+                      <span className="text-white/50 text-sm">Carregando mapa...</span>
+                    </div>}
+                </div>
+
+                {/* CTA for providers */}
+                <div className="text-center py-3 border-t border-b border-white/10 mb-4">
+                  <button onClick={() => setIsProviderModalOpen(true)} className="transition-colors font-medium bg-transparent text-primary-foreground text-lg shadow-md">
+                    É guincheiro? <span className="underline underline-offset-2 font-thin text-center">Cadastre-se aqui</span>
+                  </button>
+                </div>
+
+                {/* RequestPanel integrado */}
                 <div className="relative overflow-hidden rounded-xl md:rounded-2xl">
                   <RequestPanel />
                 </div>
