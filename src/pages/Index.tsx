@@ -23,21 +23,20 @@ const Index: React.FC = () => {
               Aki Guincho <span className="text-secondary">24HS</span>
             </div>
             
-            {/* Mobile: Links centralizados */}
-            <div className="flex md:hidden items-center gap-1 flex-1 justify-center min-w-0">
+            {/* Mobile: Links em coluna */}
+            <div className="flex md:hidden flex-col items-center flex-1 min-w-0 px-1">
               <a 
                 href="https://wa.me/5562994389675?text=Olá! Sou prestador e quero contratar o site Aki Guincho 24HS" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="text-[10px] text-secondary hover:text-secondary/80 transition-colors flex items-center gap-0.5 font-medium whitespace-nowrap"
+                className="text-[9px] text-secondary hover:text-secondary/80 transition-colors flex items-center gap-0.5 font-medium"
               >
                 <MessageCircle className="w-3 h-3 flex-shrink-0" />
-                <span className="truncate">Contratar</span>
+                <span>Quero Contratar</span>
               </a>
-              <span className="text-white/30 text-[10px]">|</span>
               <a 
                 href="tel:+5562994389675" 
-                className="text-[10px] text-white/70 hover:text-white transition-colors whitespace-nowrap"
+                className="text-[9px] text-white/70 hover:text-white transition-colors"
               >
                 (62) 99438-9675
               </a>
