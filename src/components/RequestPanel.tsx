@@ -353,19 +353,15 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
               </div>
             </div>
 
-            {/* Vehicle Condition - Compact */}
+            {/* Vehicle Condition - Simple buttons */}
             <div>
               <label className="block text-xs font-bold mb-1.5 text-foreground">Situação do veículo *</label>
-              <div className="grid grid-cols-4 gap-1">
+              <div className="flex flex-wrap gap-1.5">
                 {vehicleConditions.map(condition => {
-                const Icon = condition.icon;
                 const isSelected = selectedCondition === condition.id;
-                return <button key={condition.id} onClick={() => setSelectedCondition(condition.id)} className={`relative flex flex-col items-center gap-0.5 p-1.5 rounded-lg border transition-all ${isSelected ? 'border-secondary bg-secondary/10' : 'border-border/30 hover:border-secondary/50 bg-card'}`}>
-                      <Icon className={`w-4 h-4 ${isSelected ? 'text-secondary' : condition.color}`} />
-                      <span className={`font-medium text-[8px] text-center leading-tight ${isSelected ? 'text-secondary' : 'text-foreground'}`}>
-                        {condition.label}
-                      </span>
-                      {condition.needsPatins && <span className="text-[6px] font-bold text-cyan-600">+patins</span>}
+                return <button key={condition.id} onClick={() => setSelectedCondition(condition.id)} className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${isSelected ? 'bg-secondary text-secondary-foreground' : 'bg-muted text-foreground hover:bg-muted/80'}`}>
+                      {condition.label}
+                      {condition.needsPatins && <span className="ml-1 text-[9px] text-cyan-400">+patins</span>}
                     </button>;
               })}
               </div>
