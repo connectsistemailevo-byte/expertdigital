@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Navigation, CheckCircle2, XCircle, AlertTriangle, Phone, Search } from 'lucide-react';
+import { 
+  Loader2, Navigation, CheckCircle2, XCircle, AlertTriangle, 
+  Phone, Search, Smartphone, Globe, Clock, MapPin
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-
-type TrackingStatus = 'idle' | 'requesting' | 'active' | 'denied' | 'error' | 'unavailable';
+import { useBackgroundTracking } from '@/hooks/useBackgroundTracking';
 
 const PROVIDER_STORAGE_KEY = 'showtime_provider_data';
 
@@ -21,7 +23,6 @@ const formatPhone = (value: string): string => {
 const ProviderTracking: React.FC = () => {
   const [searchParams] = useSearchParams();
   
-  // Try to get from URL first, then from localStorage
   const urlProviderId = searchParams.get('id');
   const urlProviderName = searchParams.get('name');
   
@@ -32,10 +33,22 @@ const ProviderTracking: React.FC = () => {
   const [phoneError, setPhoneError] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
+  // Use the background tracking hook
+  const {
+    isTracking,
+    isPWA,
+    coords,
+    lastUpdate,
+    updateCount,
+    error: trackingError,
+    status,
+    startTracking,
+    stopTracking
+  } = useBackgroundTracking({ providerId });
+
   // Load provider data on mount
   useEffect(() => {
     const loadProviderData = async () => {
-      // First check URL params
       if (urlProviderId) {
         setProviderId(urlProviderId);
         setProviderName(urlProviderName || 'Prestador');
@@ -47,7 +60,6 @@ const ProviderTracking: React.FC = () => {
         return;
       }
 
-      // Then check localStorage
       const storedData = localStorage.getItem(PROVIDER_STORAGE_KEY);
       if (storedData) {
         try {
@@ -63,7 +75,6 @@ const ProviderTracking: React.FC = () => {
         }
       }
 
-      // No data found, show phone input
       setIsLoading(false);
     };
 
@@ -90,17 +101,14 @@ const ProviderTracking: React.FC = () => {
     setPhoneError('');
 
     try {
-      // Fetch all providers and compare cleaned phone numbers
       const { data, error } = await supabase
         .from('providers')
         .select('id, name, whatsapp');
 
       if (error) throw error;
 
-      // Find provider by comparing cleaned phone numbers
       const provider = data?.find(p => {
         const cleanStoredPhone = p.whatsapp.replace(/\D/g, '');
-        // Match exact or last 9-11 digits
         return cleanStoredPhone === cleanPhone || 
                cleanStoredPhone.slice(-9) === cleanPhone.slice(-9) ||
                cleanStoredPhone.slice(-10) === cleanPhone.slice(-10) ||
@@ -125,190 +133,15 @@ const ProviderTracking: React.FC = () => {
     }
   };
 
-  const [status, setStatus] = useState<TrackingStatus>('idle');
-  const [errorMessage, setErrorMessage] = useState<string>('');
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [updateCount, setUpdateCount] = useState(0);
-
-  const watchIdRef = useRef<number | null>(null);
-  const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
-  const currentPositionRef = useRef<{ lat: number; lng: number } | null>(null);
-
-  const sendLocation = useCallback(async (lat: number, lng: number) => {
-    if (!providerId) return false;
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('atualizar-localizacao-prestador', {
-        body: {
-          prestadorId: providerId,
-          latitude: lat,
-          longitude: lng
-        }
-      });
-
-      if (error) throw error;
-      if (data?.success) {
-        setUpdateCount(prev => prev + 1);
-        setCoords({ lat, lng });
-        return true;
-      }
-      return false;
-    } catch (e) {
-      console.error('Error sending location:', e);
-      return false;
-    }
-  }, [providerId]);
-
-  const sendOffline = useCallback(async () => {
-    if (!providerId) return;
-    
-    try {
-      await supabase.functions.invoke('atualizar-localizacao-prestador', {
-        body: {
-          prestadorId: providerId,
-          offline: true
-        }
-      });
-    } catch (e) {
-      console.error('Error sending offline:', e);
-    }
-  }, [providerId]);
-
-  // Função para parar o rastreamento MANUALMENTE (quando o prestador clica no botão)
-  // Este é o ÚNICO momento que deve enviar offline
-  const stopTracking = useCallback(() => {
-    if (watchIdRef.current !== null) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-    }
-    if (intervalIdRef.current) {
-      clearInterval(intervalIdRef.current);
-      intervalIdRef.current = null;
-    }
-    // Só envia offline quando o prestador CLICA no botão para desativar
-    sendOffline();
-    setStatus('idle');
-    setCoords(null);
-    setUpdateCount(0);
-  }, [sendOffline]);
-
-  const startTracking = useCallback(() => {
-    if (!navigator.geolocation) {
-      setStatus('unavailable');
-      setErrorMessage('GPS não suportado neste navegador');
-      return;
-    }
-
-    setStatus('requesting');
-    setErrorMessage('');
-
-    // Request current position first to trigger permission prompt
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        currentPositionRef.current = { lat, lng };
-
-        // Send initial location
-        sendLocation(lat, lng).then((success) => {
-          if (success) {
-            setStatus('active');
-
-            // Start watching position with high accuracy
-            watchIdRef.current = navigator.geolocation.watchPosition(
-              (pos) => {
-                currentPositionRef.current = {
-                  lat: pos.coords.latitude,
-                  lng: pos.coords.longitude
-                };
-              },
-              (err) => {
-                console.error('Watch error:', err);
-              },
-              { 
-                enableHighAccuracy: true, 
-                maximumAge: 5000,
-                timeout: 30000
-              }
-            );
-
-            // Send updates every 5 seconds
-            intervalIdRef.current = setInterval(() => {
-              if (currentPositionRef.current) {
-                sendLocation(currentPositionRef.current.lat, currentPositionRef.current.lng);
-              }
-            }, 5000);
-          } else {
-            setStatus('error');
-            setErrorMessage('Erro ao enviar localização inicial');
-          }
-        });
-      },
-      (error) => {
-        console.error('GPS Error:', error);
-        
-        if (error.code === 1) {
-          setStatus('denied');
-          setErrorMessage('Você precisa permitir o acesso à localização para usar o rastreamento.');
-        } else if (error.code === 2) {
-          setStatus('error');
-          setErrorMessage('GPS indisponível. Verifique se o GPS está ativado no seu dispositivo.');
-        } else if (error.code === 3) {
-          setStatus('error');
-          setErrorMessage('Tempo esgotado ao obter localização. Tente novamente.');
-        } else {
-          setStatus('error');
-          setErrorMessage('Erro ao obter localização.');
-        }
-      },
-      { 
-        enableHighAccuracy: true, 
-        timeout: 20000, 
-        maximumAge: 0 
-      }
-    );
-  }, [sendLocation]);
-
-  // Handle page visibility - NÃO envia offline ao fechar, prestador permanece online por 30 min
+  // Auto-start when page loads and it's a PWA
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      // When page becomes visible again, continue tracking
-      if (!document.hidden && status === 'active' && currentPositionRef.current) {
-        sendLocation(currentPositionRef.current.lat, currentPositionRef.current.lng);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [sendLocation, status]);
-
-  // Cleanup on unmount - NÃO envia offline, apenas limpa recursos locais
-  // O prestador permanece online por 30 minutos baseado em last_seen_at
-  useEffect(() => {
-    return () => {
-      if (watchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
-      }
-      if (intervalIdRef.current) {
-        clearInterval(intervalIdRef.current);
-      }
-      // NÃO chama sendOffline() aqui - prestador permanece online
-    };
-  }, []);
-
-  // Auto-start when page loads
-  useEffect(() => {
-    if (providerId && status === 'idle') {
-      // Small delay to ensure DOM is ready
+    if (providerId && status === 'idle' && isPWA) {
       const timer = setTimeout(() => {
         startTracking();
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [providerId, status, startTracking]);
+  }, [providerId, status, isPWA, startTracking]);
 
   // Show loading state
   if (isLoading) {
@@ -380,6 +213,55 @@ const ProviderTracking: React.FC = () => {
     );
   }
 
+  // Not PWA - show install message
+  if (!isPWA) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+        <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 max-w-sm w-full text-center">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg">
+            <Smartphone className="w-10 h-10 text-white" />
+          </div>
+          
+          <h1 className="text-xl font-bold text-white mb-2">Instale o App</h1>
+          <p className="text-green-400 text-lg mb-4">{decodeURIComponent(providerName)}</p>
+          
+          <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 mb-6">
+            <Globe className="w-8 h-8 mx-auto mb-2 text-yellow-400" />
+            <p className="text-yellow-200 text-sm mb-2">
+              <strong>Você está acessando pelo navegador</strong>
+            </p>
+            <p className="text-white/70 text-xs">
+              Para o rastreamento funcionar em segundo plano, você precisa instalar o app (PWA).
+            </p>
+          </div>
+
+          <div className="text-left bg-white/5 rounded-lg p-4 mb-6">
+            <p className="text-white/80 text-sm font-medium mb-3">Como instalar:</p>
+            <ol className="text-white/60 text-xs space-y-2 list-decimal list-inside">
+              <li>Toque no menu do navegador (⋮ ou ⋯)</li>
+              <li>Selecione "Instalar app" ou "Adicionar à tela inicial"</li>
+              <li>Abra o app instalado e entre novamente</li>
+            </ol>
+          </div>
+
+          <Button 
+            onClick={() => window.location.href = '/instalar-pwa'}
+            className="w-full bg-orange-500 hover:bg-orange-600"
+            size="lg"
+          >
+            <Smartphone className="w-5 h-5 mr-2" />
+            Ver Instruções de Instalação
+          </Button>
+
+          <p className="text-white/40 text-xs mt-4">
+            O rastreamento GPS só funciona no app instalado
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // PWA mode - show tracking interface
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
       <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 max-w-sm w-full text-center">
@@ -387,18 +269,29 @@ const ProviderTracking: React.FC = () => {
         <h1 className="text-xl font-bold text-white mb-1">Rastreamento GPS</h1>
         <p className="text-green-400 text-lg mb-6">{decodeURIComponent(providerName)}</p>
 
+        {/* PWA Badge */}
+        <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs mb-6">
+          <Smartphone className="w-3 h-3" />
+          Modo App (PWA)
+        </div>
+
         {/* Status Display */}
         <div className="mb-6">
           {status === 'idle' && (
             <>
-              <Loader2 className="w-12 h-12 mx-auto mb-4 text-white animate-spin" />
-              <p className="text-white/80">Iniciando...</p>
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center">
+                <Navigation className="w-8 h-8 text-white/60" />
+              </div>
+              <p className="text-white/80">Rastreamento desativado</p>
+              <p className="text-white/50 text-sm mt-2">
+                Clique no botão abaixo para ativar
+              </p>
             </>
           )}
 
           {status === 'requesting' && (
             <>
-              <Loader2 className="w-12 h-12 mx-auto mb-4 text-green-400 animate-spin" />
+              <Loader2 className="w-16 h-16 mx-auto mb-4 text-green-400 animate-spin" />
               <p className="text-white animate-pulse">Solicitando permissão de GPS...</p>
               <p className="text-white/60 text-sm mt-2">
                 Clique em "Permitir" quando o navegador solicitar
@@ -413,12 +306,26 @@ const ProviderTracking: React.FC = () => {
               <p className="text-white/60 text-sm mt-2">
                 Você pode minimizar ou usar outros apps. O rastreamento continua.
               </p>
+              
               {coords && (
-                <p className="text-white/40 text-xs mt-4 font-mono">
-                  Lat: {coords.lat.toFixed(6)} | Lng: {coords.lng.toFixed(6)}
-                  <br />
-                  Atualizações: {updateCount}
-                </p>
+                <div className="mt-4 bg-white/5 rounded-lg p-3">
+                  <div className="flex items-center justify-center gap-2 text-white/60 text-xs mb-2">
+                    <MapPin className="w-3 h-3" />
+                    <span>Última localização</span>
+                  </div>
+                  <p className="text-white/40 text-xs font-mono">
+                    Lat: {coords.lat.toFixed(6)} | Lng: {coords.lng.toFixed(6)}
+                  </p>
+                  {lastUpdate && (
+                    <div className="flex items-center justify-center gap-1 text-white/40 text-xs mt-2">
+                      <Clock className="w-3 h-3" />
+                      <span>{lastUpdate.toLocaleTimeString('pt-BR')}</span>
+                    </div>
+                  )}
+                  <p className="text-green-400/60 text-xs mt-2">
+                    Atualizações: {updateCount}
+                  </p>
+                </div>
               )}
             </>
           )}
@@ -429,13 +336,13 @@ const ProviderTracking: React.FC = () => {
                 <XCircle className="w-10 h-10 text-red-400" />
               </div>
               <p className="text-red-400 text-lg font-bold mb-2">Permissão Negada</p>
-              <p className="text-white/60 text-sm">{errorMessage}</p>
+              <p className="text-white/60 text-sm">{trackingError}</p>
               <div className="mt-4 p-3 bg-white/5 rounded-lg text-left">
                 <p className="text-white/80 text-xs font-medium mb-2">Como permitir:</p>
                 <ol className="text-white/60 text-xs space-y-1 list-decimal list-inside">
-                  <li>Abra as configurações do navegador</li>
-                  <li>Vá em "Configurações do site" ou "Permissões"</li>
-                  <li>Encontre "Localização" e permita para este site</li>
+                  <li>Abra as configurações do app</li>
+                  <li>Vá em "Permissões" ou "Localização"</li>
+                  <li>Permita acesso à localização</li>
                   <li>Volte e clique no botão abaixo</li>
                 </ol>
               </div>
@@ -446,7 +353,7 @@ const ProviderTracking: React.FC = () => {
             <>
               <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-yellow-400" />
               <p className="text-yellow-400 text-lg font-bold mb-2">Erro</p>
-              <p className="text-white/60 text-sm">{errorMessage}</p>
+              <p className="text-white/60 text-sm">{trackingError}</p>
             </>
           )}
 
@@ -454,7 +361,7 @@ const ProviderTracking: React.FC = () => {
             <>
               <XCircle className="w-16 h-16 mx-auto mb-4 text-red-400" />
               <p className="text-red-400 text-lg font-bold mb-2">GPS Indisponível</p>
-              <p className="text-white/60 text-sm">{errorMessage}</p>
+              <p className="text-white/60 text-sm">{trackingError}</p>
             </>
           )}
         </div>
@@ -495,11 +402,16 @@ const ProviderTracking: React.FC = () => {
           )}
         </div>
 
-        {/* Keep alive notice */}
+        {/* Background info */}
         {status === 'active' && (
-          <p className="text-white/40 text-xs mt-6">
-            💡 Mantenha esta aba aberta para rastreamento contínuo
-          </p>
+          <div className="mt-6 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+            <p className="text-green-400/80 text-xs">
+              ✓ Rastreamento continua em segundo plano
+            </p>
+            <p className="text-white/50 text-xs mt-1">
+              Para ficar offline, clique em "Desativar Rastreamento"
+            </p>
+          </div>
         )}
       </div>
     </div>

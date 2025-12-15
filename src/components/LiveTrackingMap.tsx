@@ -15,6 +15,22 @@ interface OnlineProvider {
   distance?: number;
   estimatedTime?: number;
   state_uf?: string;
+  last_seen_at?: string;
+}
+
+// Format time ago
+function formatTimeAgo(dateString?: string): string {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  
+  if (diffSec < 60) return 'agora';
+  if (diffMin < 60) return `${diffMin}min`;
+  return `${Math.floor(diffMin / 60)}h`;
 }
 
 interface LiveTrackingMapProps {
@@ -82,6 +98,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
             distance,
             estimatedTime: estimateArrivalTime(distance),
             state_uf: p.state_uf || null,
+            last_seen_at: p.last_seen_at,
           };
         }).sort((a: OnlineProvider, b: OnlineProvider) => (a.distance || 0) - (b.distance || 0));
 
@@ -335,9 +352,11 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
         // Update label content
         const labelEl = existingMarker.getElement().querySelector('.provider-label');
         if (labelEl) {
+          const timeAgo = formatTimeAgo(provider.last_seen_at);
           labelEl.innerHTML = `
             <span style="color: #22c55e; font-weight: 700;">${provider.distance?.toFixed(1)} km</span>
             <span style="color: #94a3b8;">~${provider.estimatedTime} min</span>
+            ${timeAgo ? `<span style="color: #60a5fa; font-size: 9px;">⏱${timeAgo}</span>` : ''}
           `;
         }
       } else {
@@ -345,6 +364,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
         const el = document.createElement('div');
         el.className = 'provider-marker';
         el.style.cssText = 'position: relative; display: flex; flex-direction: column; align-items: center;';
+        const timeAgo = formatTimeAgo(provider.last_seen_at);
         el.innerHTML = `
           <div class="provider-label" style="
             background: rgba(10, 15, 26, 0.95);
@@ -362,6 +382,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
           ">
             <span style="color: #22c55e; font-weight: 700;">${provider.distance?.toFixed(1)} km</span>
             <span style="color: #94a3b8;">~${provider.estimatedTime} min</span>
+            ${timeAgo ? `<span style="color: #60a5fa; font-size: 9px;">⏱${timeAgo}</span>` : ''}
           </div>
           <div style="
             width: 40px;
