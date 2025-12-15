@@ -83,14 +83,31 @@ const Index: React.FC = () => {
         {/* Centered Content */}
         <div className="relative z-10 container mx-auto px-4 py-6 md:py-12 flex flex-col items-center justify-center min-h-[calc(100vh-5rem)]">
           
-          {/* Hero Card with Map Inside */}
+          {/* Hero Card Unificado */}
           <div className="w-full max-w-lg mx-auto mb-6 animate-fade-in">
             <div className="backdrop-blur-xl rounded-2xl p-4 md:p-6 border shadow-2xl bg-secondary-foreground border-secondary border-solid">
-              {/* Badge */}
+              
+              {/* Badge - no topo */}
               <div className="text-center mb-3">
                 <span className="inline-block py-2 px-4 text-secondary rounded-full text-xs md:text-sm font-semibold bg-primary-foreground">
                   Atendimento 24h em todo o Brasil
                 </span>
+              </div>
+
+              {/* Location Display - acima do mapa */}
+              <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl mb-3 bg-green-600 text-primary-foreground border border-primary-foreground shadow-md">
+                <MapPin className="w-4 h-4 text-secondary flex-shrink-0" />
+                <span className="font-medium text-white text-sm truncate">
+                  {location.loading ? 'Buscando sua localização...' : location.address || location.region || 'Localização não disponível'}
+                </span>
+              </div>
+
+              {/* Trust badges - acima do mapa */}
+              <div className="flex flex-wrap justify-center items-center gap-3 mb-3">
+                {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => <div key={badge} className="flex items-center gap-1.5">
+                    <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                    <span className="text-xs text-primary-foreground">{badge}</span>
+                  </div>)}
               </div>
               
               {/* Map Container Inside Card */}
@@ -98,22 +115,6 @@ const Index: React.FC = () => {
                 {mapboxToken ? <LiveTrackingMap className="w-full h-full" /> : <div className="w-full h-full bg-[#1a1f2e] flex items-center justify-center">
                     <span className="text-white/50 text-sm">Carregando mapa...</span>
                   </div>}
-              </div>
-              
-              {/* Location Display */}
-              <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl mb-4 bg-green-600 text-primary-foreground border border-primary-foreground shadow-md">
-                <MapPin className="w-4 h-4 text-secondary flex-shrink-0" />
-                <span className="font-medium text-white text-sm truncate">
-                  {location.loading ? 'Buscando sua localização...' : location.address || location.region || 'Localização não disponível'}
-                </span>
-              </div>
-
-              {/* Trust badges */}
-              <div className="flex flex-wrap justify-center items-center gap-3 mb-4">
-                {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => <div key={badge} className="flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5 text-green-400" />
-                    <span className="text-xs text-primary-foreground">{badge}</span>
-                  </div>)}
               </div>
 
               {/* CTA for providers */}
