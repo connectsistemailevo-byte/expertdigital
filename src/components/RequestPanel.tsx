@@ -353,24 +353,19 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
               </div>
             </div>
 
-            {/* Vehicle Condition */}
+            {/* Vehicle Condition - Compact */}
             <div>
-              <label className="block text-sm font-bold mb-2 text-foreground">Situação do veículo *</label>
-              <div className="grid grid-cols-4 gap-1.5">
+              <label className="block text-xs font-bold mb-1.5 text-foreground">Situação do veículo *</label>
+              <div className="grid grid-cols-4 gap-1">
                 {vehicleConditions.map(condition => {
                 const Icon = condition.icon;
                 const isSelected = selectedCondition === condition.id;
-                return <button key={condition.id} onClick={() => setSelectedCondition(condition.id)} className={`relative flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all shadow-sm hover:shadow-md ${isSelected ? 'border-secondary bg-gradient-to-br from-secondary/20 to-secondary/5 shadow-secondary/20' : 'border-border/50 hover:border-secondary/50 hover:bg-muted/50 bg-card'}`}>
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isSelected ? 'bg-white shadow-md' : 'bg-muted/50'}`}>
-                        <Icon className={`w-5 h-5 ${condition.color}`} />
-                      </div>
-                      <span className={`font-bold text-[9px] text-center leading-tight ${isSelected ? 'text-secondary' : 'text-foreground'}`}>
+                return <button key={condition.id} onClick={() => setSelectedCondition(condition.id)} className={`relative flex flex-col items-center gap-0.5 p-1.5 rounded-lg border transition-all ${isSelected ? 'border-secondary bg-secondary/10' : 'border-border/30 hover:border-secondary/50 bg-card'}`}>
+                      <Icon className={`w-4 h-4 ${isSelected ? 'text-secondary' : condition.color}`} />
+                      <span className={`font-medium text-[8px] text-center leading-tight ${isSelected ? 'text-secondary' : 'text-foreground'}`}>
                         {condition.label}
                       </span>
-                      {condition.needsPatins && <span className="text-[7px] font-bold text-cyan-600 bg-cyan-100 px-1.5 py-0.5 rounded-full">+patins</span>}
-                      {isSelected && <div className="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full flex items-center justify-center shadow-lg">
-                          <CheckCircle2 className="w-3 h-3 text-white" />
-                        </div>}
+                      {condition.needsPatins && <span className="text-[6px] font-bold text-cyan-600">+patins</span>}
                     </button>;
               })}
               </div>
