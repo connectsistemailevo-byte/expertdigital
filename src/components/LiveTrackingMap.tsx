@@ -77,7 +77,10 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
   // Fetch online providers
   const fetchOnlineProviders = useCallback(async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('prestadores-online');
+      // Add cache-busting timestamp
+      const { data, error } = await supabase.functions.invoke('prestadores-online', {
+        body: { timestamp: Date.now() }
+      });
       
       if (error) {
         console.error('Error fetching online providers:', error);
@@ -85,6 +88,8 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
       }
 
       if (data?.providers) {
+        console.log(`LiveTrackingMap: Received ${data.providers.length} providers from API`);
+        
         // Calculate distance for each provider
         const providersWithDistance = data.providers.map((p: any) => {
           const distance = calculateDistance(
@@ -102,6 +107,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
           };
         }).sort((a: OnlineProvider, b: OnlineProvider) => (a.distance || 0) - (b.distance || 0));
 
+        console.log(`LiveTrackingMap: Providers with distance:`, providersWithDistance.map((p: OnlineProvider) => `${p.name}: ${p.distance?.toFixed(1)}km`));
         setAllProviders(providersWithDistance);
       }
     } catch (err) {
@@ -626,21 +632,29 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
         </div>
       )}
       
-      {/* Compact Legend */}
-      <div className="absolute top-2 left-2 z-10 bg-[#0a0f1a]/80 backdrop-blur-sm rounded-md px-2 py-1 shadow-lg">
-        <div className="flex items-center gap-3 text-[10px]">
+      {/* Compact Legend with View All Button */}
+      <div className="absolute top-2 left-2 z-10 bg-[#0a0f1a]/80 backdrop-blur-sm rounded-md px-2 py-1.5 shadow-lg">
+        <div className="flex items-center gap-2 text-[10px]">
           <div className="flex items-center gap-1">
             <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
               <User className="w-2.5 h-2.5 text-white" />
             </div>
             <span className="text-white/80">Você</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center">
-              <Truck className="w-2.5 h-2.5 text-white" />
-            </div>
-            <span className="text-white/80">Online ({allProviders.length})</span>
-          </div>
+          <button 
+            onClick={() => {
+              if (map.current && allProviders.length > 0) {
+                const bounds = new mapboxgl.LngLatBounds();
+                allProviders.forEach(p => bounds.extend([p.longitude, p.latitude]));
+                bounds.extend([location.longitude, location.latitude]);
+                map.current.fitBounds(bounds, { padding: 50, maxZoom: 6 });
+              }
+            }}
+            className="flex items-center gap-1 bg-green-600/80 hover:bg-green-600 px-1.5 py-0.5 rounded transition-colors"
+          >
+            <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
+            <span className="text-white font-bold">{allProviders.length} Online</span>
+          </button>
           {destination && (
             <div className="flex items-center gap-1">
               <div className="w-4 h-4 rounded-full bg-red-500 flex items-center justify-center">
