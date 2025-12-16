@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useLocation as useRouterLocation } from "react-router-dom";
 import { useBackgroundTracking } from "@/hooks/useBackgroundTracking";
 
@@ -22,7 +22,8 @@ function readAutoEnabled(): boolean {
 
 function ProviderAutoTrackingInner({ providerId }: { providerId: string }) {
   const routerLocation = useRouterLocation();
-  const { isPWA, status, startTracking } = useBackgroundTracking({ providerId });
+  const { status, startTracking } = useBackgroundTracking({ providerId });
+  const hasAttemptedRef = useRef(false);
 
   const isTrackingRoute = useMemo(() => {
     const p = routerLocation.pathname;
@@ -32,13 +33,19 @@ function ProviderAutoTrackingInner({ providerId }: { providerId: string }) {
   useEffect(() => {
     // Only auto-start if the provider enabled it previously
     if (!readAutoEnabled()) return;
-    if (!isPWA) return;
+    // Don't auto-start on the tracking page (manual control there)
     if (isTrackingRoute) return;
+    // Only attempt once per mount and when idle
     if (status !== "idle") return;
+    if (hasAttemptedRef.current) return;
 
-    // Auto-start (will be silent if permission already granted)
+    hasAttemptedRef.current = true;
+    
+    // Auto-start tracking for ALL contexts (browser + PWA)
+    // This runs when the provider opens the site/app
+    console.log('[AutoTracking] Auto-starting tracking for provider:', providerId);
     startTracking();
-  }, [isPWA, isTrackingRoute, status, startTracking]);
+  }, [isTrackingRoute, status, startTracking, providerId]);
 
   return null;
 }
@@ -46,21 +53,27 @@ function ProviderAutoTrackingInner({ providerId }: { providerId: string }) {
 /**
  * Starts provider tracking automatically across the app (client pages included),
  * but only after the provider has enabled tracking once.
+ * Works in both browser and PWA mode.
  */
 export function ProviderAutoTracking() {
   const [providerId, setProviderId] = useState<string | null>(null);
+  const [autoEnabled, setAutoEnabled] = useState(false);
 
   useEffect(() => {
     setProviderId(readStoredProviderId());
+    setAutoEnabled(readAutoEnabled());
 
-    const onStorage = () => setProviderId(readStoredProviderId());
+    const onStorage = () => {
+      setProviderId(readStoredProviderId());
+      setAutoEnabled(readAutoEnabled());
+    };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   if (!providerId) return null;
   // Only mount the inner tracker when auto-tracking is enabled
-  if (!readAutoEnabled()) return null;
+  if (!autoEnabled) return null;
 
   return <ProviderAutoTrackingInner providerId={providerId} />;
 }
