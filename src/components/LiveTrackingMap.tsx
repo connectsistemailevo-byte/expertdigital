@@ -138,14 +138,25 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
   useEffect(() => {
     const clientCity = extractCity(location.region);
 
+    console.log(`[LiveTrackingMap] Client region: "${location.region}" -> city: "${clientCity}"`);
+    console.log(`[LiveTrackingMap] All providers (${allProviders.length}):`, allProviders.map(p => ({
+      name: p.name,
+      region: p.region,
+      city: extractCity(p.region),
+      lat: p.latitude,
+      lng: p.longitude,
+    })));
+
     // If we don't have client city yet, keep empty (prevents showing São Paulo first)
     if (!clientCity) {
+      console.log('[LiveTrackingMap] No client city yet, keeping providers empty');
       setOnlineProviders([]);
       setSelectedProvider(null);
       return;
     }
 
     let filtered = allProviders.filter((p) => extractCity(p.region) === clientCity);
+    console.log(`[LiveTrackingMap] Filtered to "${clientCity}":`, filtered.length, 'providers');
 
     if (selectedState !== 'all') {
       filtered = filtered.filter((p) => p.state_uf === selectedState);
@@ -471,6 +482,17 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
             "></span>
           </div>
         `;
+
+        // Make marker clickable to select provider
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', () => {
+          setSelectedProvider(provider);
+          map.current?.flyTo({
+            center: [provider.longitude, provider.latitude],
+            zoom: Math.max(map.current?.getZoom() ?? 14, 13),
+            duration: 700,
+          });
+        });
 
         const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
           .setLngLat([provider.longitude, provider.latitude])
