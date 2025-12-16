@@ -44,7 +44,8 @@ Deno.serve(async (req) => {
           price_per_km,
           patins_extra_price,
           slug,
-          state_uf
+          state_uf,
+          region
         )
       `)
       .or(`is_online.eq.true,last_seen_at.gte.${thirtyMinutesAgo}`);
@@ -77,6 +78,7 @@ Deno.serve(async (req) => {
         patins_extra_price: status.providers?.patins_extra_price || 30,
         slug: status.providers?.slug,
         state_uf: status.providers?.state_uf,
+        region: status.providers?.region,
         last_seen_at: status.last_seen_at,
       }));
 

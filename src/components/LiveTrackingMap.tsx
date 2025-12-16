@@ -15,22 +15,38 @@ interface OnlineProvider {
   distance?: number;
   estimatedTime?: number;
   state_uf?: string;
+  region?: string | null;
   last_seen_at?: string;
 }
 
 // Format time ago
 function formatTimeAgo(dateString?: string): string {
   if (!dateString) return '';
-  
+
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffSec = Math.floor(diffMs / 1000);
   const diffMin = Math.floor(diffSec / 60);
-  
+
   if (diffSec < 60) return 'agora';
   if (diffMin < 60) return `${diffMin}min`;
   return `${Math.floor(diffMin / 60)}h`;
+}
+
+function normalizeText(value?: string | null): string {
+  return (value ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function extractCity(value?: string | null): string {
+  const normalized = normalizeText(value);
+  if (!normalized) return '';
+  return normalized.split(',')[0]?.trim() ?? '';
 }
 
 interface LiveTrackingMapProps {
@@ -70,18 +86,20 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
   const [mapError, setMapError] = useState(false);
   const [allProviders, setAllProviders] = useState<OnlineProvider[]>([]);
   const [onlineProviders, setOnlineProviders] = useState<OnlineProvider[]>([]);
-  const [nearestProvider, setNearestProvider] = useState<OnlineProvider | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<OnlineProvider | null>(null);
   const [selectedState, setSelectedState] = useState<string>('all');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   // Fetch online providers
   const fetchOnlineProviders = useCallback(async () => {
+    if (location.loading || !location.latitude || !location.longitude) return;
+
     try {
       // Add cache-busting timestamp
       const { data, error } = await supabase.functions.invoke('prestadores-online', {
         body: { timestamp: Date.now() }
       });
-      
+
       if (error) {
         console.error('Error fetching online providers:', error);
         return;
@@ -89,7 +107,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
 
       if (data?.providers) {
         console.log(`LiveTrackingMap: Received ${data.providers.length} providers from API`);
-        
+
         // Calculate distance for each provider
         const providersWithDistance = data.providers.map((p: any) => {
           const distance = calculateDistance(
@@ -103,6 +121,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
             distance,
             estimatedTime: estimateArrivalTime(distance),
             state_uf: p.state_uf || null,
+            region: p.region || null,
             last_seen_at: p.last_seen_at,
           };
         }).sort((a: OnlineProvider, b: OnlineProvider) => (a.distance || 0) - (b.distance || 0));
@@ -113,24 +132,32 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
     } catch (err) {
       console.error('Error in fetchOnlineProviders:', err);
     }
-  }, [location.latitude, location.longitude]);
+  }, [location.latitude, location.longitude, location.loading]);
 
-  // Filter providers by selected state
+  // Filter providers by same city/region as client (primary) + optional state filter (secondary)
   useEffect(() => {
-    let filtered = allProviders;
-    
+    const clientCity = extractCity(location.region);
+
+    // If we don't have client city yet, keep empty (prevents showing São Paulo first)
+    if (!clientCity) {
+      setOnlineProviders([]);
+      setSelectedProvider(null);
+      return;
+    }
+
+    let filtered = allProviders.filter((p) => extractCity(p.region) === clientCity);
+
     if (selectedState !== 'all') {
-      filtered = allProviders.filter(p => p.state_uf === selectedState);
+      filtered = filtered.filter((p) => p.state_uf === selectedState);
     }
-    
+
     setOnlineProviders(filtered);
-    
-    if (filtered.length > 0) {
-      setNearestProvider(filtered[0]);
-    } else {
-      setNearestProvider(null);
+
+    // If selected provider is no longer valid in this city, clear selection and route
+    if (selectedProvider && !filtered.some((p) => p.id === selectedProvider.id)) {
+      setSelectedProvider(null);
     }
-  }, [allProviders, selectedState]);
+  }, [allProviders, selectedState, location.region, selectedProvider]);
 
   // Draw route to nearest provider
   const drawRoute = useCallback(async (providerLat: number, providerLng: number) => {
@@ -453,11 +480,21 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
       }
     });
 
-    // Draw route to nearest provider
-    if (nearestProvider) {
-      drawRoute(nearestProvider.latitude, nearestProvider.longitude);
+  }, [onlineProviders, mapError, drawRoute]);
+
+  // Draw route ONLY after user selects a provider
+  useEffect(() => {
+    if (!map.current || mapError) return;
+
+    // Clear route when nothing is selected
+    if (!selectedProvider) {
+      if (map.current.getLayer(routeLayerId)) map.current.removeLayer(routeLayerId);
+      if (map.current.getSource('route')) map.current.removeSource('route');
+      return;
     }
-  }, [onlineProviders, nearestProvider, mapError, drawRoute]);
+
+    drawRoute(selectedProvider.latitude, selectedProvider.longitude);
+  }, [selectedProvider, mapError, drawRoute]);
 
   // Handle destination marker and route
   useEffect(() => {
