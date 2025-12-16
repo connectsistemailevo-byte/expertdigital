@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { TenantProvider, useTenant } from "@/contexts/TenantContext";
+import { ProviderAutoTracking } from "@/components/ProviderAutoTracking";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ProviderDashboard from "./pages/ProviderDashboard";
@@ -35,11 +36,11 @@ const TenantRouter = () => {
     <Routes>
       {/* PWA Installation route - prioridade máxima */}
       <Route path="/instalar" element={<InstalarPWA />} />
-      
+
       {/* Tracking routes - SEMPRE disponível */}
       <Route path="/tracking" element={<ProviderTracking />} />
       <Route path="/rastreamento" element={<ProviderTracking />} />
-      
+
       {/* White-label routes */}
       {tenant.isWhiteLabel ? (
         <>
@@ -67,6 +68,8 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            {/* Auto tracking (only if provider enabled it before) */}
+            <ProviderAutoTracking />
             <TenantRouter />
           </BrowserRouter>
         </LocationProvider>

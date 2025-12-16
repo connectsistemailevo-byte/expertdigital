@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
     console.log('Checking providers seen after:', thirtyMinutesAgo);
 
-    // Get online providers with their details - baseado em last_seen_at (30 min) OU is_online = true
+    // Get providers with a RECENT location update (prevents stale locations showing as "online")
     const { data: onlineStatus, error: statusError } = await supabase
       .from('provider_online_status')
       .select(`
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
           region
         )
       `)
-      .or(`is_online.eq.true,last_seen_at.gte.${thirtyMinutesAgo}`);
+      .gte('last_seen_at', thirtyMinutesAgo);
 
     if (statusError) {
       console.error('Error fetching online providers:', statusError);
