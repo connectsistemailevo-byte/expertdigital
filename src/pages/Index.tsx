@@ -25,19 +25,11 @@ const Index: React.FC = () => {
             
             {/* Mobile: Links em coluna */}
             <div className="flex md:hidden flex-col items-center flex-1 min-w-0 px-1">
-              <a 
-                href="https://wa.me/5562994389675?text=Olá! Sou prestador e quero contratar o site Aki Guincho 24HS" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-[9px] text-secondary hover:text-secondary/80 transition-colors flex items-center gap-0.5 font-medium"
-              >
+              <a href="https://wa.me/5562994389675?text=Olá! Sou prestador e quero contratar o site Aki Guincho 24HS" target="_blank" rel="noopener noreferrer" className="text-[9px] text-secondary hover:text-secondary/80 transition-colors flex items-center gap-0.5 font-medium">
                 <MessageCircle className="w-3 h-3 flex-shrink-0" />
                 <span>Quero Contratar</span>
               </a>
-              <a 
-                href="tel:+5562994389675" 
-                className="text-[9px] text-white/70 hover:text-white transition-colors"
-              >
+              <a href="tel:+5562994389675" className="text-[9px] text-white/70 hover:text-white transition-colors">
                 (62) 99438-9675
               </a>
             </div>
@@ -123,11 +115,7 @@ const Index: React.FC = () => {
                 </div>
 
                 {/* CTA for providers */}
-                <div className="text-center py-3 border-t border-b border-white/10 mb-4">
-                  <button onClick={() => setIsProviderModalOpen(true)} className="transition-colors font-medium bg-transparent text-primary-foreground text-lg shadow-md">
-                    É guincheiro? <span className="underline underline-offset-2 font-thin text-center">Cadastre-se aqui</span>
-                  </button>
-                </div>
+                
 
                 {/* RequestPanel integrado */}
                 <div className="relative overflow-hidden rounded-xl md:rounded-2xl">
