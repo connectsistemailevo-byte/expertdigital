@@ -195,13 +195,20 @@ export function useBackgroundTracking({ providerId }: UseBackgroundTrackingProps
     }
   }, [providerId]);
 
+  const AUTO_TRACKING_KEY = 'showtime_provider_auto_tracking';
+
   // Start tracking
   const startTracking = useCallback(async () => {
+    if (!providerId) return;
+
+    // Guard against duplicate starts
+    if (state.status === 'requesting' || state.status === 'active' || state.isTracking) return;
+
     if (!navigator.geolocation) {
-      setState(prev => ({ 
-        ...prev, 
-        status: 'unavailable', 
-        error: 'GPS não suportado neste navegador' 
+      setState(prev => ({
+        ...prev,
+        status: 'unavailable',
+        error: 'GPS não suportado neste navegador'
       }));
       return;
     }
@@ -227,8 +234,11 @@ export function useBackgroundTracking({ providerId }: UseBackgroundTrackingProps
         currentPositionRef.current = { lat, lng };
 
         const success = await sendLocation(lat, lng);
-        
+
         if (success) {
+          // Persist "auto start" so provider doesn't need to manually activate every time
+          localStorage.setItem(AUTO_TRACKING_KEY, 'true');
+
           setState(prev => ({ ...prev, status: 'active', isTracking: true }));
 
           // Start watching position with high accuracy
@@ -242,8 +252,8 @@ export function useBackgroundTracking({ providerId }: UseBackgroundTrackingProps
             (err) => {
               console.error('[Tracking] Watch error:', err);
             },
-            { 
-              enableHighAccuracy: true, 
+            {
+              enableHighAccuracy: true,
               maximumAge: 5000,
               timeout: 30000
             }
@@ -256,37 +266,39 @@ export function useBackgroundTracking({ providerId }: UseBackgroundTrackingProps
             }
           }, 5000);
         } else {
-          setState(prev => ({ 
-            ...prev, 
-            status: 'error', 
-            error: 'Erro ao enviar localização inicial' 
+          setState(prev => ({
+            ...prev,
+            status: 'error',
+            error: 'Erro ao enviar localização inicial'
           }));
         }
       },
       (error) => {
         console.error('[Tracking] GPS Error:', error);
-        
-        let errorMsg = 'Erro ao obter localização.';
+
+        let errorMsg = 'Não foi possível obter sua localização.';
         let status: TrackingState['status'] = 'error';
-        
+
         if (error.code === 1) {
           status = 'denied';
           errorMsg = 'Você precisa permitir o acesso à localização para usar o rastreamento.';
+          // If denied, don't keep auto enabled
+          localStorage.removeItem(AUTO_TRACKING_KEY);
         } else if (error.code === 2) {
           errorMsg = 'GPS indisponível. Verifique se o GPS está ativado no seu dispositivo.';
         } else if (error.code === 3) {
           errorMsg = 'Tempo esgotado ao obter localização. Tente novamente.';
         }
-        
+
         setState(prev => ({ ...prev, status, error: errorMsg }));
       },
-      { 
-        enableHighAccuracy: true, 
-        timeout: 20000, 
-        maximumAge: 0 
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 0
       }
     );
-  }, [providerId, requestWakeLock, sendLocation]);
+  }, [providerId, requestWakeLock, sendLocation, state.isTracking, state.status]);
 
   // Stop tracking (manual action by provider)
   const stopTracking = useCallback(() => {
@@ -295,24 +307,27 @@ export function useBackgroundTracking({ providerId }: UseBackgroundTrackingProps
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
     }
-    
+
     // Clear interval
     if (intervalIdRef.current) {
       clearInterval(intervalIdRef.current);
       intervalIdRef.current = null;
     }
-    
+
     // Release wake lock
     releaseWakeLock();
-    
+
     // Notify service worker
     if (serviceWorkerRef.current) {
       serviceWorkerRef.current.postMessage({ type: 'STOP_TRACKING' });
     }
-    
+
     // Send offline status (only on manual stop)
     sendOffline();
-    
+
+    // Provider explicitly stopped -> disable auto tracking
+    localStorage.removeItem(AUTO_TRACKING_KEY);
+
     setState(prev => ({
       ...prev,
       isTracking: false,
