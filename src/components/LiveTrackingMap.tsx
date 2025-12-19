@@ -374,7 +374,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
     });
   }, [location.latitude, location.longitude, location.loading, mapError, updateLocation]);
 
-  // Update provider markers
+  // Update provider markers with smooth animation
   useEffect(() => {
     if (!map.current || mapError) return;
 
@@ -387,27 +387,56 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
       }
     });
 
-    // Add/update provider markers
+    // Add/update provider markers with smooth position updates
     onlineProviders.forEach(provider => {
       const existingMarker = providerMarkers.current.get(provider.id);
       
       if (existingMarker) {
-        existingMarker.setLngLat([provider.longitude, provider.latitude]);
+        // Smoothly animate marker to new position
+        const currentPos = existingMarker.getLngLat();
+        const newPos = { lng: provider.longitude, lat: provider.latitude };
+        
+        // Only animate if position changed significantly
+        if (Math.abs(currentPos.lng - newPos.lng) > 0.00001 || 
+            Math.abs(currentPos.lat - newPos.lat) > 0.00001) {
+          existingMarker.setLngLat([newPos.lng, newPos.lat]);
+        }
+        
         // Update label content
         const labelEl = existingMarker.getElement().querySelector('.provider-label');
         if (labelEl) {
           const timeAgo = formatTimeAgo(provider.last_seen_at);
           labelEl.innerHTML = `
-            <span style="color: #22c55e; font-weight: 700;">${provider.distance?.toFixed(1)} km</span>
-            <span style="color: #94a3b8;">~${provider.estimatedTime} min</span>
-            ${timeAgo ? `<span style="color: #60a5fa; font-size: 9px;">⏱${timeAgo}</span>` : ''}
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <span style="
+                display: inline-flex; 
+                align-items: center; 
+                gap: 3px; 
+                background: #22c55e; 
+                color: white; 
+                padding: 2px 6px; 
+                border-radius: 10px; 
+                font-size: 9px; 
+                font-weight: 700;
+                animation: pulse 2s ease-in-out infinite;
+              ">
+                <span style="width: 5px; height: 5px; background: white; border-radius: 50%;"></span>
+                ONLINE
+              </span>
+            </div>
+            <span style="color: #f59e0b; font-weight: 700; font-size: 12px;">${provider.name}</span>
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 10px;">
+              <span style="color: #22c55e; font-weight: 600;">${provider.distance?.toFixed(1)} km</span>
+              <span style="color: #94a3b8;">~${provider.estimatedTime} min</span>
+              ${timeAgo ? `<span style="color: #60a5fa;">⏱${timeAgo}</span>` : ''}
+            </div>
           `;
         }
       } else {
         // Create new marker with ONLINE indicator and name
         const el = document.createElement('div');
         el.className = 'provider-marker';
-        el.style.cssText = 'position: relative; display: flex; flex-direction: column; align-items: center;';
+        el.style.cssText = 'position: relative; display: flex; flex-direction: column; align-items: center; transition: transform 0.3s ease;';
         const timeAgo = formatTimeAgo(provider.last_seen_at);
         el.innerHTML = `
           <div class="provider-label" style="
@@ -461,6 +490,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
             align-items: center;
             justify-content: center;
             position: relative;
+            transition: transform 0.3s ease;
           ">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
               <path d="M9 17a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM19 17a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
@@ -599,18 +629,20 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
     }
   }, [destination, mapError, drawDestinationRoute, location.longitude, location.latitude]);
 
-  // Poll for online providers every 5 seconds
+  // Poll for online providers every 3 seconds for faster updates
   useEffect(() => {
     if (location.loading) return;
 
-    const interval = setInterval(fetchOnlineProviders, 5000);
+    const interval = setInterval(fetchOnlineProviders, 3000);
     return () => clearInterval(interval);
   }, [fetchOnlineProviders, location.loading]);
 
-  // Subscribe to realtime updates
+  // Subscribe to realtime updates for instant position changes
   useEffect(() => {
+    console.log('[LiveTrackingMap] Setting up realtime subscription');
+    
     const channel = supabase
-      .channel('provider-online-status-changes')
+      .channel('provider-online-status-realtime')
       .on(
         'postgres_changes',
         {
@@ -618,13 +650,18 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
           schema: 'public',
           table: 'provider_online_status'
         },
-        () => {
+        (payload) => {
+          console.log('[LiveTrackingMap] Realtime update:', payload.eventType, payload);
+          // Immediately fetch fresh data on any change
           fetchOnlineProviders();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[LiveTrackingMap] Realtime subscription status:', status);
+      });
 
     return () => {
+      console.log('[LiveTrackingMap] Removing realtime subscription');
       supabase.removeChannel(channel);
     };
   }, [fetchOnlineProviders]);

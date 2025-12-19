@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface LocationData {
@@ -31,9 +31,20 @@ interface LocationContextType {
   updateLocation: (lat: number, lng: number) => Promise<void>;
   setDestination: (dest: DestinationData | null) => void;
   mapboxToken: string;
+  sessionId: string;
 }
 
 const LocationContext = createContext<LocationContextType | null>(null);
+
+// Generate or retrieve session ID
+const getSessionId = (): string => {
+  let sessionId = localStorage.getItem('client_session_id');
+  if (!sessionId) {
+    sessionId = `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem('client_session_id', sessionId);
+  }
+  return sessionId;
+};
 
 export const useLocation = () => {
   const context = useContext(LocationContext);
@@ -49,8 +60,10 @@ interface LocationProviderProps {
 
 export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) => {
   const [mapboxToken, setMapboxToken] = useState('');
-  const [destination, setDestination] = useState<DestinationData | null>(null);
+  const [destination, setDestinationState] = useState<DestinationData | null>(null);
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
+  const sessionId = useRef(getSessionId()).current;
+  const lastSavedLocation = useRef<{ lat: number; lng: number } | null>(null);
 
   const [location, setLocation] = useState<LocationData>({
     latitude: 0,
@@ -274,6 +287,73 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     fetchLocation();
   }, [fetchLocation]);
 
+  // Save client location to database for admin tracking
+  const saveClientLocation = useCallback(async (lat: number, lng: number, region: string) => {
+    // Skip if location hasn't changed significantly (10 meters)
+    if (lastSavedLocation.current) {
+      const dist = Math.sqrt(
+        Math.pow(lat - lastSavedLocation.current.lat, 2) + 
+        Math.pow(lng - lastSavedLocation.current.lng, 2)
+      );
+      if (dist < 0.0001) return; // ~10 meters
+    }
+    
+    lastSavedLocation.current = { lat, lng };
+    
+    const city = region.split(',')[0]?.trim() || '';
+    const stateUf = region.split(',')[1]?.trim() || '';
+    
+    try {
+      const { error } = await supabase
+        .from('client_locations')
+        .upsert({
+          session_id: sessionId,
+          latitude: lat,
+          longitude: lng,
+          region,
+          city,
+          state_uf: stateUf,
+          last_seen_at: new Date().toISOString(),
+        }, { onConflict: 'session_id' });
+      
+      if (error) {
+        console.error('Error saving client location:', error);
+      }
+    } catch (err) {
+      console.error('Error saving client location:', err);
+    }
+  }, [sessionId]);
+
+  // Save location when it changes
+  useEffect(() => {
+    if (!location.loading && location.latitude && location.longitude && location.region) {
+      saveClientLocation(location.latitude, location.longitude, location.region);
+    }
+  }, [location.latitude, location.longitude, location.region, location.loading, saveClientLocation]);
+
+  // Wrapper for setDestination that also saves simulation
+  const setDestination = useCallback(async (dest: DestinationData | null) => {
+    setDestinationState(dest);
+    
+    // Save simulation when destination is set
+    if (dest && location.latitude && location.longitude) {
+      try {
+        await supabase.from('route_simulations').insert({
+          session_id: sessionId,
+          origin_latitude: location.latitude,
+          origin_longitude: location.longitude,
+          origin_address: location.address,
+          destination_latitude: dest.latitude,
+          destination_longitude: dest.longitude,
+          destination_address: dest.address,
+        });
+        console.log('Simulation saved');
+      } catch (err) {
+        console.error('Error saving simulation:', err);
+      }
+    }
+  }, [location.latitude, location.longitude, location.address, sessionId]);
+
   // Calculate route info when destination changes
   useEffect(() => {
     const calculateRoute = async () => {
@@ -296,7 +376,22 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
           const distanceKm = route.distance / 1000;
           const durationMin = Math.round(route.duration / 60);
           setRouteInfo({ distanceKm, durationMin, loading: false });
-          console.log('Route info calculated:', { distanceKm, durationMin });
+          
+          // Update simulation with distance and duration
+          if (destination) {
+            try {
+              await supabase
+                .from('route_simulations')
+                .update({ distance_km: distanceKm, duration_min: durationMin })
+                .eq('session_id', sessionId)
+                .eq('destination_latitude', destination.latitude)
+                .eq('destination_longitude', destination.longitude)
+                .order('created_at', { ascending: false })
+                .limit(1);
+            } catch (err) {
+              console.error('Error updating simulation:', err);
+            }
+          }
         } else {
           setRouteInfo(null);
         }
@@ -307,10 +402,10 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     };
 
     calculateRoute();
-  }, [destination, location.latitude, location.longitude, mapboxToken]);
+  }, [destination, location.latitude, location.longitude, mapboxToken, sessionId]);
 
   return (
-    <LocationContext.Provider value={{ location, destination, routeInfo, refreshLocation: fetchLocation, updateLocation, setDestination, mapboxToken }}>
+    <LocationContext.Provider value={{ location, destination, routeInfo, refreshLocation: fetchLocation, updateLocation, setDestination, mapboxToken, sessionId }}>
       {children}
     </LocationContext.Provider>
   );
