@@ -65,16 +65,33 @@ const AdminProvidersMap: React.FC<AdminProvidersMapProps> = ({
     fetchToken();
   }, []);
 
+  // Calculate time ago
+  const getTimeAgo = useCallback((dateString: string) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    
+    if (diffMins < 1) return 'agora';
+    if (diffMins < 60) return `${diffMins}min`;
+    if (diffHours < 24) return `${diffHours}h`;
+    return `${diffDays}d`;
+  }, []);
+
   // Create popup content
   const createPopupContent = useCallback((loc: ProviderLocation) => {
     const popupContent = document.createElement('div');
+    const timeAgo = loc.last_seen_at ? getTimeAgo(loc.last_seen_at) : '--';
+    
     popupContent.innerHTML = `
       <div style="
         background: #1e293b;
         padding: 12px;
         border-radius: 8px;
         color: white;
-        min-width: 200px;
+        min-width: 180px;
       ">
         <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">
           ${loc.provider_name}
@@ -94,14 +111,14 @@ const AdminProvidersMap: React.FC<AdminProvidersMapProps> = ({
         ">
           ${loc.is_online ? '● Online' : '○ Offline'}
         </div>
-        <div style="font-size: 10px; color: #64748b; margin-bottom: 8px;">
-          ${loc.last_seen_at ? `Atualizado: ${new Date(loc.last_seen_at).toLocaleTimeString('pt-BR')}` : 'Sem registro'}
+        <div style="font-size: 10px; color: #64748b; margin-bottom: 10px;">
+          Atualizado: ${timeAgo}
         </div>
         <button 
           class="toggle-btn"
           style="
             width: 100%;
-            padding: 6px 12px;
+            padding: 8px 12px;
             border-radius: 6px;
             font-size: 12px;
             font-weight: 500;
@@ -126,7 +143,7 @@ const AdminProvidersMap: React.FC<AdminProvidersMapProps> = ({
     }
 
     return popupContent;
-  }, [onToggleOnline]);
+  }, [onToggleOnline, getTimeAgo]);
 
   // Update marker appearance
   const updateMarkerAppearance = useCallback((element: HTMLDivElement, isOnline: boolean, name: string) => {
@@ -244,55 +261,105 @@ const AdminProvidersMap: React.FC<AdminProvidersMapProps> = ({
         const newContent = createPopupContent(loc);
         existing.popup.setDOMContent(newContent);
       } else {
-        // Create new marker with name label
+        // Create new marker with enhanced design like reference image
         const el = document.createElement('div');
         el.className = 'admin-provider-marker';
+        const timeAgo = loc.last_seen_at ? getTimeAgo(loc.last_seen_at) : '--';
+        
         el.innerHTML = `
           <div style="
             position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
           ">
+            <!-- Status badge and name card -->
             <div style="
-              background: rgba(10, 15, 26, 0.9);
-              color: ${loc.is_online ? '#22c55e' : '#94a3b8'};
-              padding: 2px 6px;
-              border-radius: 4px;
-              font-size: 10px;
-              font-weight: 600;
-              white-space: nowrap;
-              margin-bottom: 4px;
-              border: 1px solid ${loc.is_online ? 'rgba(34, 197, 94, 0.5)' : 'rgba(100, 116, 139, 0.3)'};
-            ">${loc.provider_name}</div>
+              background: rgba(10, 15, 26, 0.95);
+              border-radius: 8px;
+              padding: 8px 10px;
+              margin-bottom: 6px;
+              border: 1px solid ${loc.is_online ? 'rgba(34, 197, 94, 0.4)' : 'rgba(100, 116, 139, 0.3)'};
+              min-width: 80px;
+            ">
+              <!-- Online status badge -->
+              <div style="
+                display: flex;
+                justify-content: center;
+                margin-bottom: 4px;
+              ">
+                <span style="
+                  background: ${loc.is_online ? 'rgba(34, 197, 94, 0.25)' : 'rgba(100, 116, 139, 0.25)'};
+                  color: ${loc.is_online ? '#22c55e' : '#94a3b8'};
+                  padding: 2px 8px;
+                  border-radius: 10px;
+                  font-size: 9px;
+                  font-weight: 600;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                  border: 1px solid ${loc.is_online ? 'rgba(34, 197, 94, 0.5)' : 'rgba(100, 116, 139, 0.3)'};
+                ">● ${loc.is_online ? 'ONLINE' : 'OFFLINE'}</span>
+              </div>
+              
+              <!-- Provider name -->
+              <div style="
+                color: white;
+                font-size: 12px;
+                font-weight: 600;
+                text-align: center;
+                white-space: nowrap;
+                margin-bottom: 4px;
+              ">${loc.provider_name}</div>
+              
+              <!-- Time info -->
+              <div style="
+                display: flex;
+                justify-content: center;
+                gap: 6px;
+                color: #22c55e;
+                font-size: 10px;
+                font-weight: 500;
+              ">
+                <span style="display: flex; align-items: center; gap: 2px;">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 6v6l4 2"/>
+                  </svg>
+                  ${timeAgo}
+                </span>
+              </div>
+            </div>
+            
+            <!-- Truck icon -->
             <div style="
-              width: 40px;
-              height: 40px;
+              width: 36px;
+              height: 36px;
               background: ${loc.is_online ? 'linear-gradient(135deg, #22c55e, #16a34a)' : 'linear-gradient(135deg, #64748b, #475569)'};
               border-radius: 50%;
               display: flex;
               align-items: center;
               justify-content: center;
-              box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-              border: 3px solid ${loc.is_online ? '#22c55e' : '#64748b'};
+              border: 3px solid rgba(10, 15, 26, 0.9);
               cursor: pointer;
               position: relative;
             ">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                <path d="M5 17h14v2H5zM19 13H5v-4a7 7 0 0 1 14 0v4z"/>
-                <circle cx="7.5" cy="17" r="1.5"/>
-                <circle cx="16.5" cy="17" r="1.5"/>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <rect x="1" y="3" width="15" height="13" rx="2"/>
+                <path d="M16 8h4l3 3v5h-7V8z"/>
+                <circle cx="5.5" cy="18.5" r="2.5"/>
+                <circle cx="18.5" cy="18.5" r="2.5"/>
               </svg>
               ${loc.is_online ? `
                 <div class="pulse-indicator" style="
                   position: absolute;
                   top: -2px;
                   right: -2px;
-                  width: 12px;
-                  height: 12px;
+                  width: 10px;
+                  height: 10px;
                   background: #22c55e;
                   border-radius: 50%;
-                  border: 2px solid #1a1f2e;
+                  border: 2px solid rgba(10, 15, 26, 0.9);
                   animation: pulse 2s infinite;
                 "></div>
               ` : ''}
