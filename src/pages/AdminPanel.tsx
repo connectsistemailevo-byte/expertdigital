@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import {
   Shield,
   Users,
   Loader2,
@@ -55,6 +61,9 @@ import {
   Trash2,
   ExternalLink,
   Link,
+  LayoutGrid,
+  List,
+  Eye,
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -69,6 +78,9 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import BrandingManager from '@/components/admin/BrandingManager';
 import AdminProvidersMap from '@/components/admin/AdminProvidersMap';
+import SimulationsHistory from '@/components/admin/SimulationsHistory';
+import ClientLocationsCard from '@/components/admin/ClientLocationsCard';
+import ProviderCards from '@/components/admin/ProviderCards';
 
 interface ProviderWithSubscription {
   id: string;
@@ -130,6 +142,12 @@ export default function AdminPanel() {
   const [providerLocations, setProviderLocations] = useState<ProviderLocation[]>([]);
   const [locationsLoading, setLocationsLoading] = useState(false);
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+  const [focusProviderId, setFocusProviderId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  
+  // Client locations for map
+  const [clientLocations, setClientLocations] = useState<any[]>([]);
+  const [showClientsOnMap, setShowClientsOnMap] = useState(false);
   
   // New provider form state
   const [newProviderName, setNewProviderName] = useState('');
@@ -688,6 +706,17 @@ export default function AdminPanel() {
                   Mapa em Tempo Real
                 </div>
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowClientsOnMap(!showClientsOnMap)}
+                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                      showClientsOnMap 
+                        ? 'bg-blue-500/20 text-blue-400' 
+                        : 'bg-slate-700 text-slate-400'
+                    }`}
+                  >
+                    <Users className="w-3 h-3" />
+                    Clientes
+                  </button>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -713,169 +742,132 @@ export default function AdminPanel() {
             </CardHeader>
             <CardContent>
               {locationsLoading && providerLocations.length === 0 ? (
-                <div className="flex items-center justify-center h-[300px]">
+                <div className="flex items-center justify-center h-[350px]">
                   <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
                 </div>
               ) : providerLocations.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-[300px] text-slate-400">
+                <div className="flex flex-col items-center justify-center h-[350px] text-slate-400">
                   <Navigation className="w-12 h-12 mb-2 opacity-50" />
                   <p>Nenhum prestador com rastreamento ativo</p>
                 </div>
               ) : (
                 <AdminProvidersMap 
-                  locations={providerLocations} 
-                  className="h-[300px] rounded-lg border border-slate-700"
+                  locations={providerLocations}
+                  clientLocations={clientLocations}
+                  showClients={showClientsOnMap}
+                  className="h-[350px] rounded-lg border border-slate-700"
                   onToggleOnline={toggleProviderOnline}
+                  focusProviderId={focusProviderId}
                 />
               )}
-            </CardContent>
-          </Card>
-
-          {/* Providers List by Plan Status and Region */}
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-white text-sm flex items-center gap-2">
-                <Users className="w-4 h-4 text-blue-400" />
-                Prestadores por Plano e Região
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="max-h-[340px] overflow-y-auto">
-              {(() => {
-                // Group providers by plan status, then by region
-                const groupedByPlan = {
-                  pagantes: providers.filter(p => getSubscription(p)?.adesao_paga),
-                  trial: providers.filter(p => getSubscription(p)?.trial_ativo && !getSubscription(p)?.adesao_paga),
-                  bloqueados: providers.filter(p => !getSubscription(p)?.trial_ativo && !getSubscription(p)?.adesao_paga),
-                };
-
-                const groupByRegion = (list: typeof providers) => {
-                  const groups: Record<string, typeof providers> = {};
-                  list.forEach(p => {
-                    const region = p.region?.split(' - ')[1]?.split(',')[0] || 'Sem região';
-                    if (!groups[region]) groups[region] = [];
-                    groups[region].push(p);
-                  });
-                  return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
-                };
-
-                const onlineIds = new Set(providerLocations.filter(l => l.is_online).map(l => l.provider_id));
-
-                return (
-                  <div className="space-y-4">
-                    {/* Pagantes */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Crown className="w-3 h-3 text-green-400" />
-                        <span className="text-xs font-bold text-green-400 uppercase">Plano Ativo ({groupedByPlan.pagantes.length})</span>
-                      </div>
-                      {groupedByPlan.pagantes.length === 0 ? (
-                        <p className="text-xs text-slate-500 pl-4">Nenhum</p>
-                      ) : (
-                        <div className="space-y-2 pl-4">
-                          {groupByRegion(groupedByPlan.pagantes).map(([region, regionProviders]) => (
-                            <div key={region}>
-                              <p className="text-[10px] text-slate-400 font-semibold mb-1">{region}</p>
-                              <div className="space-y-1">
-                                {regionProviders.map(p => (
-                                  <div key={p.id} className="flex items-center justify-between text-xs p-1.5 bg-green-500/10 rounded border border-green-500/20">
-                                    <div className="flex items-center gap-1.5 truncate">
-                                      <span className={`w-1.5 h-1.5 rounded-full ${onlineIds.has(p.id) ? 'bg-green-500 animate-pulse' : 'bg-slate-500'}`} />
-                                      <span className="text-white font-medium truncate">{p.name}</span>
-                                    </div>
-                                    <Badge className="text-[9px] px-1 py-0 h-4 bg-green-500/30 text-green-300">
-                                      {getSubscription(p)?.plano?.toUpperCase()}
-                                    </Badge>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Trial */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Zap className="w-3 h-3 text-yellow-400" />
-                        <span className="text-xs font-bold text-yellow-400 uppercase">Em Trial ({groupedByPlan.trial.length})</span>
-                      </div>
-                      {groupedByPlan.trial.length === 0 ? (
-                        <p className="text-xs text-slate-500 pl-4">Nenhum</p>
-                      ) : (
-                        <div className="space-y-2 pl-4">
-                          {groupByRegion(groupedByPlan.trial).map(([region, regionProviders]) => (
-                            <div key={region}>
-                              <p className="text-[10px] text-slate-400 font-semibold mb-1">{region}</p>
-                              <div className="space-y-1">
-                                {regionProviders.map(p => (
-                                  <div key={p.id} className="flex items-center justify-between text-xs p-1.5 bg-yellow-500/10 rounded border border-yellow-500/20">
-                                    <div className="flex items-center gap-1.5 truncate">
-                                      <span className={`w-1.5 h-1.5 rounded-full ${onlineIds.has(p.id) ? 'bg-green-500 animate-pulse' : 'bg-slate-500'}`} />
-                                      <span className="text-white font-medium truncate">{p.name}</span>
-                                    </div>
-                                    <span className="text-yellow-400 text-[10px]">
-                                      {getSubscription(p)?.trial_corridas_restantes ?? 0} rest
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Bloqueados/Sem plano */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Ban className="w-3 h-3 text-red-400" />
-                        <span className="text-xs font-bold text-red-400 uppercase">Sem Plano ({groupedByPlan.bloqueados.length})</span>
-                      </div>
-                      {groupedByPlan.bloqueados.length === 0 ? (
-                        <p className="text-xs text-slate-500 pl-4">Nenhum</p>
-                      ) : (
-                        <div className="space-y-2 pl-4">
-                          {groupByRegion(groupedByPlan.bloqueados).map(([region, regionProviders]) => (
-                            <div key={region}>
-                              <p className="text-[10px] text-slate-400 font-semibold mb-1">{region}</p>
-                              <div className="space-y-1">
-                                {regionProviders.map(p => (
-                                  <div key={p.id} className="flex items-center justify-between text-xs p-1.5 bg-red-500/10 rounded border border-red-500/20">
-                                    <div className="flex items-center gap-1.5 truncate">
-                                      <span className={`w-1.5 h-1.5 rounded-full ${onlineIds.has(p.id) ? 'bg-green-500 animate-pulse' : 'bg-slate-500'}`} />
-                                      <span className="text-slate-300 truncate">{p.name}</span>
-                                    </div>
-                                    <Badge variant="destructive" className="text-[9px] px-1 py-0 h-4">
-                                      Bloqueado
-                                    </Badge>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+              
+              {/* Online/Offline Legend */}
+              <div className="flex items-center justify-between mt-3 text-xs">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" />
+                    <span className="text-slate-400">
+                      Online ({providerLocations.filter(l => l.is_online).length})
+                    </span>
                   </div>
-                );
-              })()}
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 bg-slate-500 rounded-full" />
+                    <span className="text-slate-400">
+                      Offline ({providerLocations.filter(l => !l.is_online).length})
+                    </span>
+                  </div>
+                  {showClientsOnMap && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 bg-blue-500 rounded-full" />
+                      <span className="text-slate-400">
+                        Clientes ({clientLocations.length})
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {focusProviderId && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 text-xs text-slate-400"
+                    onClick={() => setFocusProviderId(null)}
+                  >
+                    Limpar foco
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
+
+          {/* Sidebar with Simulations and Clients */}
+          <div className="space-y-4">
+            <SimulationsHistory className="max-h-[250px]" />
+            <ClientLocationsCard 
+              className="max-h-[200px]" 
+              onLocationsChange={setClientLocations}
+            />
+          </div>
         </div>
 
-        {/* Providers Table */}
+        {/* Providers Section with View Toggle */}
         <Card className="bg-slate-800/50 border-slate-700">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Prestadores ({providers.length})
+            <CardTitle className="text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Prestadores ({providers.length})
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setViewMode('cards')}
+                  className={`p-1.5 rounded ${viewMode === 'cards' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'}`}
+                  title="Visualização em Cards"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`p-1.5 rounded ${viewMode === 'table' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'}`}
+                  title="Visualização em Tabela"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+              </div>
+            ) : viewMode === 'cards' ? (
+              <div className="max-h-[500px] overflow-y-auto">
+                <ProviderCards
+                  providers={providers}
+                  providerLocations={providerLocations}
+                  onFocusProvider={(id) => setFocusProviderId(id)}
+                  onEditProvider={(p) => openEditModal(p)}
+                  onDeleteProvider={(p) => {
+                    setProviderToDelete(p);
+                    setShowDeleteConfirm(true);
+                  }}
+                  onToggleTrial={(id) => executeAction('toggle_trial', id)}
+                  onSetRides={(p) => {
+                    setSelectedProvider(p);
+                    const sub = getSubscription(p);
+                    setRidesInput(String(sub?.trial_corridas_restantes || 10));
+                    setShowSetRidesModal(true);
+                  }}
+                  onActivatePlan={(p) => {
+                    setSelectedProvider(p);
+                    const sub = getSubscription(p);
+                    setSelectedPlan(sub?.plano || 'basico');
+                    setShowActivatePlanModal(true);
+                  }}
+                  onResetRides={(id) => executeAction('reset_rides', id)}
+                  onDeactivatePlan={(id) => executeAction('deactivate_plan', id)}
+                  actionLoading={actionLoading}
+                />
               </div>
             ) : (
               <div className="overflow-x-auto">

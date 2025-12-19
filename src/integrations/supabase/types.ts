@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      client_locations: {
+        Row: {
+          city: string | null
+          created_at: string
+          id: string
+          last_seen_at: string
+          latitude: number
+          longitude: number
+          region: string | null
+          session_id: string
+          state_uf: string | null
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          id?: string
+          last_seen_at?: string
+          latitude: number
+          longitude: number
+          region?: string | null
+          session_id: string
+          state_uf?: string | null
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          id?: string
+          last_seen_at?: string
+          latitude?: number
+          longitude?: number
+          region?: string | null
+          session_id?: string
+          state_uf?: string | null
+        }
+        Relationships: []
+      }
       provider_customization: {
         Row: {
           company_name: string | null
@@ -253,6 +289,48 @@ export type Database = {
           state_uf?: string | null
           updated_at?: string
           whatsapp?: string
+        }
+        Relationships: []
+      }
+      route_simulations: {
+        Row: {
+          created_at: string
+          destination_address: string | null
+          destination_latitude: number
+          destination_longitude: number
+          distance_km: number | null
+          duration_min: number | null
+          id: string
+          origin_address: string | null
+          origin_latitude: number
+          origin_longitude: number
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          destination_address?: string | null
+          destination_latitude: number
+          destination_longitude: number
+          distance_km?: number | null
+          duration_min?: number | null
+          id?: string
+          origin_address?: string | null
+          origin_latitude: number
+          origin_longitude: number
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          destination_address?: string | null
+          destination_latitude?: number
+          destination_longitude?: number
+          distance_km?: number | null
+          duration_min?: number | null
+          id?: string
+          origin_address?: string | null
+          origin_latitude?: number
+          origin_longitude?: number
+          session_id?: string
         }
         Relationships: []
       }
