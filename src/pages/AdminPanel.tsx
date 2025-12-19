@@ -87,9 +87,9 @@ interface ProviderWithSubscription {
   name: string;
   whatsapp: string;
   slug: string | null;
-  address: string | null;
+  address?: string | null;
   region: string | null;
-  created_at: string;
+  created_at?: string;
   base_price?: number;
   price_per_km?: number;
   patins_extra_price?: number;
