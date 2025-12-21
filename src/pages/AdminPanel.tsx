@@ -81,6 +81,7 @@ import AdminProvidersMap from '@/components/admin/AdminProvidersMap';
 import SimulationsHistory from '@/components/admin/SimulationsHistory';
 import ClientLocationsCard from '@/components/admin/ClientLocationsCard';
 import ProviderCards from '@/components/admin/ProviderCards';
+import WhatsAppBroadcast from '@/components/admin/WhatsAppBroadcast';
 
 interface ProviderWithSubscription {
   id: string;
@@ -619,6 +620,7 @@ export default function AdminPanel() {
               <MapPinned className="w-4 h-4 mr-2" />
               Localizações
             </Button>
+            <WhatsAppBroadcast providers={providers} />
             <Button
               variant="outline"
               onClick={loadProviders}

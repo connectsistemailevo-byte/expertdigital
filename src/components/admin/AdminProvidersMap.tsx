@@ -145,38 +145,6 @@ const AdminProvidersMap: React.FC<AdminProvidersMapProps> = ({
     return popupContent;
   }, [onToggleOnline, getTimeAgo]);
 
-  // Update marker appearance
-  const updateMarkerAppearance = useCallback((element: HTMLDivElement, isOnline: boolean, name: string) => {
-    const innerDiv = element.querySelector('div') as HTMLDivElement;
-    if (innerDiv) {
-      innerDiv.style.background = isOnline 
-        ? 'linear-gradient(135deg, #22c55e, #16a34a)' 
-        : 'linear-gradient(135deg, #64748b, #475569)';
-      innerDiv.style.borderColor = isOnline ? '#22c55e' : '#64748b';
-      
-      // Update or add/remove pulse indicator
-      let pulseDiv = innerDiv.querySelector('.pulse-indicator') as HTMLDivElement;
-      if (isOnline && !pulseDiv) {
-        pulseDiv = document.createElement('div');
-        pulseDiv.className = 'pulse-indicator';
-        pulseDiv.style.cssText = `
-          position: absolute;
-          top: -2px;
-          right: -2px;
-          width: 12px;
-          height: 12px;
-          background: #22c55e;
-          border-radius: 50%;
-          border: 2px solid #1a1f2e;
-          animation: pulse 2s infinite;
-        `;
-        innerDiv.appendChild(pulseDiv);
-      } else if (!isOnline && pulseDiv) {
-        pulseDiv.remove();
-      }
-    }
-  }, []);
-
   // Initialize map
   useEffect(() => {
     if (!mapContainer.current || !mapboxToken || map.current) return;
@@ -230,7 +198,7 @@ const AdminProvidersMap: React.FC<AdminProvidersMapProps> = ({
     }
   }, [focusProviderId, locations, mapLoaded]);
 
-  // Update provider markers
+  // Update provider markers - COMPACT STYLE like main map
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
 
@@ -247,6 +215,7 @@ const AdminProvidersMap: React.FC<AdminProvidersMapProps> = ({
     // Add or update markers
     locations.forEach(loc => {
       const existing = markers.current.get(loc.provider_id);
+      const timeAgo = loc.last_seen_at ? getTimeAgo(loc.last_seen_at) : '--';
       
       if (existing) {
         // Silently update position if changed
@@ -255,16 +224,35 @@ const AdminProvidersMap: React.FC<AdminProvidersMapProps> = ({
           existing.marker.setLngLat([loc.longitude, loc.latitude]);
         }
         
-        updateMarkerAppearance(existing.element, loc.is_online, loc.provider_name);
-        
         // Update popup content
         const newContent = createPopupContent(loc);
         existing.popup.setDOMContent(newContent);
+        
+        // Update marker style (just the status badge and time)
+        const statusBadge = existing.element.querySelector('.status-badge') as HTMLElement;
+        const timeSpan = existing.element.querySelector('.time-ago') as HTMLElement;
+        const iconCircle = existing.element.querySelector('.icon-circle') as HTMLElement;
+        const pulseIndicator = existing.element.querySelector('.pulse-indicator') as HTMLElement;
+        
+        if (statusBadge) {
+          statusBadge.style.background = loc.is_online ? 'rgba(34, 197, 94, 0.9)' : 'rgba(100, 116, 139, 0.9)';
+          statusBadge.textContent = loc.is_online ? '● ONLINE' : '○ OFFLINE';
+        }
+        if (timeSpan) {
+          timeSpan.textContent = timeAgo;
+        }
+        if (iconCircle) {
+          iconCircle.style.background = loc.is_online 
+            ? 'linear-gradient(135deg, #22c55e, #16a34a)' 
+            : 'linear-gradient(135deg, #64748b, #475569)';
+        }
+        if (pulseIndicator) {
+          pulseIndicator.style.display = loc.is_online ? 'block' : 'none';
+        }
       } else {
-        // Create new marker with enhanced design like reference image
+        // Create new marker - COMPACT STYLE like second image
         const el = document.createElement('div');
         el.className = 'admin-provider-marker';
-        const timeAgo = loc.last_seen_at ? getTimeAgo(loc.last_seen_at) : '--';
         
         el.innerHTML = `
           <div style="
@@ -272,97 +260,87 @@ const AdminProvidersMap: React.FC<AdminProvidersMapProps> = ({
             display: flex;
             flex-direction: column;
             align-items: center;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            cursor: pointer;
           ">
-            <!-- Status badge and name card -->
+            <!-- Compact card with status and name -->
             <div style="
               background: rgba(10, 15, 26, 0.95);
-              border-radius: 8px;
-              padding: 8px 10px;
-              margin-bottom: 6px;
+              border-radius: 6px;
+              padding: 4px 8px;
+              margin-bottom: 4px;
               border: 1px solid ${loc.is_online ? 'rgba(34, 197, 94, 0.4)' : 'rgba(100, 116, 139, 0.3)'};
-              min-width: 80px;
+              min-width: 60px;
+              max-width: 100px;
             ">
-              <!-- Online status badge -->
-              <div style="
-                display: flex;
-                justify-content: center;
-                margin-bottom: 4px;
-              ">
-                <span style="
-                  background: ${loc.is_online ? 'rgba(34, 197, 94, 0.25)' : 'rgba(100, 116, 139, 0.25)'};
-                  color: ${loc.is_online ? '#22c55e' : '#94a3b8'};
-                  padding: 2px 8px;
-                  border-radius: 10px;
-                  font-size: 9px;
-                  font-weight: 600;
-                  text-transform: uppercase;
-                  letter-spacing: 0.5px;
-                  border: 1px solid ${loc.is_online ? 'rgba(34, 197, 94, 0.5)' : 'rgba(100, 116, 139, 0.3)'};
-                ">● ${loc.is_online ? 'ONLINE' : 'OFFLINE'}</span>
-              </div>
+              <!-- Status badge -->
+              <div class="status-badge" style="
+                background: ${loc.is_online ? 'rgba(34, 197, 94, 0.9)' : 'rgba(100, 116, 139, 0.9)'};
+                color: white;
+                padding: 1px 6px;
+                border-radius: 8px;
+                font-size: 8px;
+                font-weight: 600;
+                text-align: center;
+                margin-bottom: 2px;
+                letter-spacing: 0.3px;
+              ">${loc.is_online ? '● ONLINE' : '○ OFFLINE'}</div>
               
               <!-- Provider name -->
               <div style="
                 color: white;
-                font-size: 12px;
+                font-size: 10px;
                 font-weight: 600;
                 text-align: center;
                 white-space: nowrap;
-                margin-bottom: 4px;
+                overflow: hidden;
+                text-overflow: ellipsis;
               ">${loc.provider_name}</div>
               
-              <!-- Time info -->
+              <!-- Time and distance info -->
               <div style="
                 display: flex;
                 justify-content: center;
-                gap: 6px;
+                gap: 4px;
                 color: #22c55e;
-                font-size: 10px;
+                font-size: 9px;
                 font-weight: 500;
+                margin-top: 2px;
               ">
-                <span style="display: flex; align-items: center; gap: 2px;">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M12 6v6l4 2"/>
-                  </svg>
-                  ${timeAgo}
-                </span>
+                <span class="time-ago">${timeAgo}</span>
               </div>
             </div>
             
-            <!-- Truck icon -->
-            <div style="
-              width: 36px;
-              height: 36px;
+            <!-- Truck icon - smaller -->
+            <div class="icon-circle" style="
+              width: 28px;
+              height: 28px;
               background: ${loc.is_online ? 'linear-gradient(135deg, #22c55e, #16a34a)' : 'linear-gradient(135deg, #64748b, #475569)'};
               border-radius: 50%;
               display: flex;
               align-items: center;
               justify-content: center;
-              border: 3px solid rgba(10, 15, 26, 0.9);
-              cursor: pointer;
+              border: 2px solid rgba(10, 15, 26, 0.9);
               position: relative;
             ">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
                 <rect x="1" y="3" width="15" height="13" rx="2"/>
                 <path d="M16 8h4l3 3v5h-7V8z"/>
                 <circle cx="5.5" cy="18.5" r="2.5"/>
                 <circle cx="18.5" cy="18.5" r="2.5"/>
               </svg>
-              ${loc.is_online ? `
-                <div class="pulse-indicator" style="
-                  position: absolute;
-                  top: -2px;
-                  right: -2px;
-                  width: 10px;
-                  height: 10px;
-                  background: #22c55e;
-                  border-radius: 50%;
-                  border: 2px solid rgba(10, 15, 26, 0.9);
-                  animation: pulse 2s infinite;
-                "></div>
-              ` : ''}
+              <div class="pulse-indicator" style="
+                position: absolute;
+                top: -2px;
+                right: -2px;
+                width: 8px;
+                height: 8px;
+                background: #22c55e;
+                border-radius: 50%;
+                border: 1.5px solid rgba(10, 15, 26, 0.9);
+                animation: pulse 2s infinite;
+                display: ${loc.is_online ? 'block' : 'none'};
+              "></div>
             </div>
           </div>
         `;
@@ -400,11 +378,18 @@ const AdminProvidersMap: React.FC<AdminProvidersMapProps> = ({
       }
       initialFitDone.current = true;
     }
-  }, [locations, mapLoaded, createPopupContent, updateMarkerAppearance]);
+  }, [locations, mapLoaded, createPopupContent, getTimeAgo]);
 
   // Update client markers
   useEffect(() => {
-    if (!map.current || !mapLoaded || !showClients) return;
+    if (!map.current || !mapLoaded) return;
+
+    // Remove all client markers if not showing
+    if (!showClients) {
+      clientMarkers.current.forEach(marker => marker.remove());
+      clientMarkers.current.clear();
+      return;
+    }
 
     const currentIds = new Set(clientLocations.map(loc => loc.session_id));
     
@@ -423,36 +408,24 @@ const AdminProvidersMap: React.FC<AdminProvidersMapProps> = ({
       if (existing) {
         existing.setLngLat([loc.longitude, loc.latitude]);
       } else {
-        // Create client marker
+        // Create client marker - small and unobtrusive
         const el = document.createElement('div');
         el.innerHTML = `
           <div style="
-            width: 24px;
-            height: 24px;
+            width: 16px;
+            height: 16px;
             background: linear-gradient(135deg, #3b82f6, #1d4ed8);
             border-radius: 50%;
             border: 2px solid white;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          ">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          </div>
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.4);
+          "></div>
         `;
 
-        const popup = new mapboxgl.Popup({ offset: 15 })
+        const popup = new mapboxgl.Popup({ offset: 10 })
           .setHTML(`
-            <div style="background: #1e293b; padding: 8px; border-radius: 6px; color: white;">
-              <div style="font-size: 11px; color: #94a3b8;">Cliente</div>
-              <div style="font-size: 12px; font-weight: 500;">${loc.city || 'Desconhecido'}</div>
-              ${loc.state_uf ? `<div style="font-size: 11px; color: #64748b;">${loc.state_uf}</div>` : ''}
-              <div style="font-size: 10px; color: #64748b; margin-top: 4px;">
-                ${new Date(loc.last_seen_at).toLocaleTimeString('pt-BR')}
-              </div>
+            <div style="background: #1e293b; padding: 6px 8px; border-radius: 4px; color: white;">
+              <div style="font-size: 10px; color: #94a3b8;">Cliente</div>
+              <div style="font-size: 11px; font-weight: 500;">${loc.city || 'Desconhecido'}</div>
             </div>
           `);
 
