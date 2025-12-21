@@ -78,7 +78,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import BrandingManager from '@/components/admin/BrandingManager';
 import AdminProvidersMap from '@/components/admin/AdminProvidersMap';
-import SimulationsHistory from '@/components/admin/SimulationsHistory';
+
 import ClientLocationsCard from '@/components/admin/ClientLocationsCard';
 import ProviderCards from '@/components/admin/ProviderCards';
 import WhatsAppBroadcast from '@/components/admin/WhatsAppBroadcast';
@@ -801,11 +801,10 @@ export default function AdminPanel() {
             </CardContent>
           </Card>
 
-          {/* Sidebar with Simulations and Clients */}
+          {/* Sidebar with Clients */}
           <div className="space-y-4">
-            <SimulationsHistory className="max-h-[250px]" />
             <ClientLocationsCard 
-              className="max-h-[200px]" 
+              className="max-h-[300px]" 
               onLocationsChange={setClientLocations}
             />
           </div>
