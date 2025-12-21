@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
-import { MapPin, Loader2, Building2, Search } from 'lucide-react';
+import { MapPin, Loader2, Building2, Search, Mail } from 'lucide-react';
 import { useLocation } from '@/contexts/LocationContext';
 
 export interface DestinationCoordinates {
@@ -34,10 +34,16 @@ const POI_KEYWORDS = [
   'aeroporto', 'rodoviária', 'rodoviaria', 'terminal'
 ];
 
+// Detecta se é um CEP brasileiro (formato: XXXXX-XXX ou XXXXXXXX)
+const isCEP = (query: string): boolean => {
+  const cleaned = query.replace(/\D/g, '');
+  return cleaned.length === 8;
+};
+
 const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   value,
   onChange,
-  placeholder = "Digite o endereço ou cidade",
+  placeholder = "Digite endereço, cidade ou CEP",
   className = "",
 }) => {
   const { mapboxToken, location } = useLocation();
@@ -70,6 +76,58 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     return POI_KEYWORDS.some(keyword => lowerQuery.includes(keyword));
   };
 
+  // Busca por CEP usando ViaCEP (API gratuita brasileira)
+  const searchByCEP = async (cep: string): Promise<boolean> => {
+    const cleanCep = cep.replace(/\D/g, '');
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await response.json();
+      
+      if (data.erro) {
+        return false;
+      }
+      
+      // Construir endereço completo para geocodificar
+      const fullAddress = `${data.logradouro}, ${data.bairro}, ${data.localidade}, ${data.uf}, Brasil`;
+      
+      // Usar Mapbox para obter coordenadas do endereço
+      if (mapboxToken) {
+        const geoResponse = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(fullAddress)}.json?access_token=${mapboxToken}&country=br&language=pt&limit=1`
+        );
+        const geoData = await geoResponse.json();
+        
+        if (geoData.features && geoData.features.length > 0) {
+          const feature = geoData.features[0];
+          setSuggestions([{
+            id: cleanCep,
+            name: `${data.logradouro || 'CEP'} - ${data.bairro || ''}`,
+            full_address: `${data.logradouro || ''}, ${data.bairro || ''}, ${data.localidade} - ${data.uf}, ${cleanCep}`,
+            isPOI: false,
+            coordinates: feature.center as [number, number],
+            type: 'cep',
+          }]);
+          setShowSuggestions(true);
+          return true;
+        }
+      }
+      
+      // Fallback sem coordenadas
+      setSuggestions([{
+        id: cleanCep,
+        name: `${data.logradouro || 'CEP'} - ${data.bairro || ''}`,
+        full_address: `${data.logradouro || ''}, ${data.bairro || ''}, ${data.localidade} - ${data.uf}, ${cleanCep}`,
+        isPOI: false,
+        type: 'cep',
+      }]);
+      setShowSuggestions(true);
+      return true;
+    } catch (error) {
+      console.error('Erro ao buscar CEP:', error);
+      return false;
+    }
+  };
+
   const searchAddress = async (query: string) => {
     if (!query || query.length < 2 || !mapboxToken) {
       setSuggestions([]);
@@ -79,6 +137,15 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     setIsLoading(true);
 
     try {
+      // Verificar se é CEP primeiro
+      if (isCEP(query)) {
+        const found = await searchByCEP(query);
+        if (found) {
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const isSearchingPOI = isPOISearch(query);
       
       // Proximity para ordenar resultados, mas sem limitar bbox
@@ -292,6 +359,9 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
   // Ícone baseado no tipo de sugestão
   const getTypeIcon = (suggestion: Suggestion) => {
+    if (suggestion.type === 'cep') {
+      return <Mail className="w-4 h-4 text-purple-500 shrink-0" />;
+    }
     if (suggestion.isPOI || suggestion.type === 'poi') {
       return <Building2 className="w-4 h-4 text-amber-500 shrink-0" />;
     }
@@ -304,6 +374,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   // Label do tipo
   const getTypeLabel = (suggestion: Suggestion) => {
     const labels: Record<string, string> = {
+      'cep': 'CEP',
       'place': 'Cidade',
       'locality': 'Localidade',
       'district': 'Distrito',
