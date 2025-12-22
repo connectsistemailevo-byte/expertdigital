@@ -807,12 +807,22 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
         .mapboxgl-ctrl-attrib {
           display: none !important;
         }
-        /* Fix marker positioning during zoom */
+        /* Fix marker positioning during zoom - prevent overlap and movement */
         .provider-marker {
           transform-origin: center bottom !important;
+          z-index: 1 !important;
+          isolation: isolate;
+        }
+        .provider-marker:hover {
+          z-index: 100 !important;
         }
         .mapboxgl-marker {
-          will-change: transform;
+          will-change: auto !important;
+          transition: none !important;
+        }
+        /* Ensure markers don't overlap during map interactions */
+        .mapboxgl-canvas-container {
+          overflow: visible;
         }
       `}</style>
     </div>
