@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useLocation } from '@/contexts/LocationContext';
 import LiveTrackingMap from '@/components/LiveTrackingMap';
@@ -7,12 +8,31 @@ import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
 import RequestPanel from '@/components/RequestPanel';
 import { MapPin, Phone, ArrowRight, CheckCircle, Truck, Navigation, Settings, MessageCircle } from 'lucide-react';
+
 const Index: React.FC = () => {
+  const navigate = useNavigate();
   const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
   const {
     location,
     mapboxToken
   } = useLocation();
+
+  // Verificar se cliente instalou PWA via prestador exclusivo
+  useEffect(() => {
+    const exclusiveProvider = localStorage.getItem('exclusive_provider_data');
+    if (exclusiveProvider) {
+      try {
+        const data = JSON.parse(exclusiveProvider);
+        if (data.slug) {
+          // Redirecionar para página exclusiva do prestador
+          navigate(`/p/${data.slug}`);
+        }
+      } catch (e) {
+        console.log('Erro ao parsear dados do prestador exclusivo');
+      }
+    }
+  }, [navigate]);
+
   return <div className="min-h-screen bg-[#0a0f1a]">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0f1a]/90 backdrop-blur-lg border-b border-white/10">
@@ -47,10 +67,14 @@ const Index: React.FC = () => {
             </nav>
             
             {/* Botão Sou Prestador */}
-            <Button variant="hero" size="sm" onClick={() => setIsProviderModalOpen(true)} className="flex-shrink-0 text-[10px] md:text-sm md:px-4 py-1 md:py-2 h-auto px-[34px] text-center">
-              <Truck className="w-3 h-3 md:w-4 md:h-4 mr-1 px-0 my-[7px] py-0" />
-              <span className="hidden sm:inline">Área do  Prestador</span>
-              <span className="sm:hidden mt-[3px] ml-0 py-0 mb-[2px] pr-0 pb-0 px-[2px] my-[6px] mx-px">Área do Prestador</span>
+            <Button 
+              variant="hero" 
+              size="sm" 
+              onClick={() => setIsProviderModalOpen(true)} 
+              className="flex items-center gap-1 text-[11px] sm:text-xs md:text-sm px-2 sm:px-3 md:px-4 py-1.5 md:py-2 h-auto whitespace-nowrap"
+            >
+              <Truck className="w-3 h-3 md:w-4 md:h-4 shrink-0" />
+              <span>Sou Prestador</span>
             </Button>
           </div>
         </div>

@@ -250,6 +250,7 @@ export type Database = {
           region: string | null
           return_enabled: boolean
           return_price: number | null
+          return_price_per_km: number | null
           service_types: string[]
           slug: string | null
           state_uf: string | null
@@ -270,6 +271,7 @@ export type Database = {
           region?: string | null
           return_enabled?: boolean
           return_price?: number | null
+          return_price_per_km?: number | null
           service_types?: string[]
           slug?: string | null
           state_uf?: string | null
@@ -290,6 +292,7 @@ export type Database = {
           region?: string | null
           return_enabled?: boolean
           return_price?: number | null
+          return_price_per_km?: number | null
           service_types?: string[]
           slug?: string | null
           state_uf?: string | null
@@ -297,6 +300,41 @@ export type Database = {
           whatsapp?: string
         }
         Relationships: []
+      }
+      qr_code_scans: {
+        Row: {
+          id: string
+          ip_hash: string | null
+          provider_id: string
+          referrer: string | null
+          scanned_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          id?: string
+          ip_hash?: string | null
+          provider_id: string
+          referrer?: string | null
+          scanned_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          id?: string
+          ip_hash?: string | null
+          provider_id?: string
+          referrer?: string | null
+          scanned_at?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_code_scans_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       route_simulations: {
         Row: {

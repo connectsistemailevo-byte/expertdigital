@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLocation } from '@/contexts/LocationContext';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Truck, RefreshCw, CheckCircle2, UserPlus, DollarSign, Search, Edit, ArrowLeft, Zap, Gift, AlertTriangle, ExternalLink, CreditCard, MapPinned, RotateCcw, QrCode } from 'lucide-react';
+import { MapPin, Truck, RefreshCw, CheckCircle2, UserPlus, DollarSign, Search, Edit, ArrowLeft, Zap, Gift, AlertTriangle, ExternalLink, CreditCard, MapPinned, RotateCcw, QrCode, BarChart3 } from 'lucide-react';
 import ProviderQRCode from '@/components/ProviderQRCode';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
@@ -36,6 +36,7 @@ interface ProviderData {
   state_uf?: string | null;
   slug?: string | null;
   return_price?: number | null;
+  return_price_per_km?: number | null;
   return_enabled?: boolean;
 }
 interface SubscriptionData {
@@ -101,6 +102,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
   const [patinsExtraPrice, setPatinsExtraPrice] = useState('30');
   const [returnEnabled, setReturnEnabled] = useState(false);
   const [returnPrice, setReturnPrice] = useState('');
+  const [returnPricePerKm, setReturnPricePerKm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPlanModal, setShowPlanModal] = useState(false);
 
@@ -124,6 +126,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
     setPatinsExtraPrice('30');
     setReturnEnabled(false);
     setReturnPrice('');
+    setReturnPricePerKm('');
   };
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -193,6 +196,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
         setPatinsExtraPrice(String(providerData.patins_extra_price || 30));
         setReturnEnabled(providerData.return_enabled || false);
         setReturnPrice(String(providerData.return_price || ''));
+        setReturnPricePerKm(String(providerData.return_price_per_km || ''));
 
         // Detectar estado do DDD do telefone
         const ddd = extractDDD(providerData.whatsapp);
@@ -295,7 +299,8 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
           patins_extra_price: parseFloat(patinsExtraPrice) || 30,
           state_uf: selectedState || null,
           return_enabled: returnEnabled,
-          return_price: returnEnabled && returnPrice ? parseFloat(returnPrice) : null
+          return_price: returnEnabled && returnPrice ? parseFloat(returnPrice) : null,
+          return_price_per_km: returnEnabled && returnPricePerKm ? parseFloat(returnPricePerKm) : null
         } as any).eq('id', existingProvider.id);
         if (error) throw error;
         toast.success('Cadastro atualizado com sucesso!');
@@ -347,7 +352,8 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
           patins_extra_price: parseFloat(patinsExtraPrice) || 30,
           state_uf: selectedState || null,
           return_enabled: returnEnabled,
-          return_price: returnEnabled && returnPrice ? parseFloat(returnPrice) : null
+          return_price: returnEnabled && returnPrice ? parseFloat(returnPrice) : null,
+          return_price_per_km: returnEnabled && returnPricePerKm ? parseFloat(returnPricePerKm) : null
         } as any).select().single();
         if (error) {
           // Verificar se é erro de duplicidade
@@ -624,25 +630,44 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
           />
         </div>
         {returnEnabled && (
-          <div className="mt-2">
-            <label className="block text-[9px] sm:text-xs text-muted-foreground mb-1">
-              Valor adicional para serviço com retorno
-            </label>
-            <div className="relative w-32">
-              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold text-orange-400">R$</span>
-              <Input 
-                type="number" 
-                placeholder="100" 
-                value={returnPrice} 
-                onChange={e => setReturnPrice(e.target.value)} 
-                className="h-9 text-sm font-bold pl-8" 
-                min="0" 
-                step="0.01" 
-              />
+          <div className="mt-2 space-y-3">
+            <div>
+              <label className="block text-[9px] sm:text-xs text-muted-foreground mb-1">
+                Valor fixo de retorno (opcional)
+              </label>
+              <div className="relative w-32">
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold text-orange-400">R$</span>
+                <Input 
+                  type="number" 
+                  placeholder="100" 
+                  value={returnPrice} 
+                  onChange={e => setReturnPrice(e.target.value)} 
+                  className="h-9 text-sm font-bold pl-8" 
+                  min="0" 
+                  step="0.01" 
+                />
+              </div>
             </div>
-            <p className="text-[9px] text-muted-foreground mt-1">
-              Este valor será exibido para clientes quando você estiver com localização ativa
-            </p>
+            <div>
+              <label className="block text-[9px] sm:text-xs text-muted-foreground mb-1">
+                Valor por KM de retorno (opcional)
+              </label>
+              <div className="relative w-32">
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold text-orange-400">R$</span>
+                <Input 
+                  type="number" 
+                  placeholder="3" 
+                  value={returnPricePerKm} 
+                  onChange={e => setReturnPricePerKm(e.target.value)} 
+                  className="h-9 text-sm font-bold pl-8" 
+                  min="0" 
+                  step="0.01" 
+                />
+              </div>
+              <p className="text-[9px] text-muted-foreground mt-1">
+                O valor do retorno = fixo + (km × valor por km)
+              </p>
+            </div>
           </div>
         )}
         {!returnEnabled && (
@@ -715,6 +740,20 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
                   Compartilhe este link para receber solicitações diretamente
                 </p>
               </div>
+
+              {/* Estatísticas Section */}
+              <button
+                onClick={() => navigate('/provider-stats')}
+                className="w-full p-3 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 flex items-center gap-3 hover:bg-green-500/20 transition-colors"
+              >
+                <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                  <BarChart3 className="w-4 h-4 text-green-400" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-foreground">Ver Estatísticas</p>
+                  <p className="text-[10px] text-muted-foreground">Quantas vezes seu QR Code foi escaneado</p>
+                </div>
+              </button>
             </div>
           )}
           
