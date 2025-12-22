@@ -631,7 +631,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
           {existingProvider.slug && <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30">
               <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1.5">
                 <ExternalLink className="w-3 h-3" />
-                Seu link exclusivo para divulgação:
+                Seu acesso exclusivo de atendimento:
               </p>
               <a href={`https://akiguincho24hs.lovable.app/p/${existingProvider.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:text-blue-300 font-medium underline underline-offset-2 break-all">
                 akiguincho24hs.lovable.app/p/{existingProvider.slug}
