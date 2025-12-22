@@ -436,7 +436,9 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
         // Create new marker with ONLINE indicator and name - FIXED POSITIONING
         const el = document.createElement('div');
         el.className = 'provider-marker';
-        // Use fixed dimensions to prevent movement during zoom
+        // Use fixed dimensions to prevent movement during zoom - unique ID for z-index
+        const markerId = `marker-${provider.id}`;
+        el.id = markerId;
         el.style.cssText = `
           position: relative;
           display: flex;
@@ -444,6 +446,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
           align-items: center;
           width: 110px;
           pointer-events: auto;
+          z-index: ${Math.floor(1000 - (provider.distance || 0))};
         `;
         const timeAgo = formatTimeAgo(provider.last_seen_at);
         
@@ -810,19 +813,26 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({ className, showStateF
         /* Fix marker positioning during zoom - prevent overlap and movement */
         .provider-marker {
           transform-origin: center bottom !important;
-          z-index: 1 !important;
           isolation: isolate;
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
         }
         .provider-marker:hover {
-          z-index: 100 !important;
+          z-index: 9999 !important;
         }
+        /* Prevent any CSS transitions/animations on markers that could cause movement */
         .mapboxgl-marker {
           will-change: auto !important;
           transition: none !important;
+          transform-style: flat !important;
         }
-        /* Ensure markers don't overlap during map interactions */
+        /* Ensure markers stay in place during map interactions */
         .mapboxgl-canvas-container {
           overflow: visible;
+        }
+        /* Prevent marker animation on click */
+        .mapboxgl-marker:active {
+          transform: none !important;
         }
       `}</style>
     </div>

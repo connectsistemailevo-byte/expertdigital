@@ -248,6 +248,8 @@ export type Database = {
           patins_extra_price: number | null
           price_per_km: number | null
           region: string | null
+          return_enabled: boolean
+          return_price: number | null
           service_types: string[]
           slug: string | null
           state_uf: string | null
@@ -266,6 +268,8 @@ export type Database = {
           patins_extra_price?: number | null
           price_per_km?: number | null
           region?: string | null
+          return_enabled?: boolean
+          return_price?: number | null
           service_types?: string[]
           slug?: string | null
           state_uf?: string | null
@@ -284,6 +288,8 @@ export type Database = {
           patins_extra_price?: number | null
           price_per_km?: number | null
           region?: string | null
+          return_enabled?: boolean
+          return_price?: number | null
           service_types?: string[]
           slug?: string | null
           state_uf?: string | null

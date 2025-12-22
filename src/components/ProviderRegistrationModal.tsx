@@ -7,7 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLocation } from '@/contexts/LocationContext';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Truck, RefreshCw, CheckCircle2, UserPlus, DollarSign, Search, Edit, ArrowLeft, Zap, Gift, AlertTriangle, ExternalLink, CreditCard, MapPinned } from 'lucide-react';
+import { MapPin, Truck, RefreshCw, CheckCircle2, UserPlus, DollarSign, Search, Edit, ArrowLeft, Zap, Gift, AlertTriangle, ExternalLink, CreditCard, MapPinned, RotateCcw, QrCode } from 'lucide-react';
+import ProviderQRCode from '@/components/ProviderQRCode';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import MiniMap from '@/components/MiniMap';
@@ -33,6 +35,8 @@ interface ProviderData {
   patins_extra_price: number;
   state_uf?: string | null;
   slug?: string | null;
+  return_price?: number | null;
+  return_enabled?: boolean;
 }
 interface SubscriptionData {
   trial_ativo: boolean;
@@ -95,6 +99,8 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
   const [basePrice, setBasePrice] = useState('50');
   const [pricePerKm, setPricePerKm] = useState('5');
   const [patinsExtraPrice, setPatinsExtraPrice] = useState('30');
+  const [returnEnabled, setReturnEnabled] = useState(false);
+  const [returnPrice, setReturnPrice] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPlanModal, setShowPlanModal] = useState(false);
 
@@ -116,6 +122,8 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
     setBasePrice('50');
     setPricePerKm('5');
     setPatinsExtraPrice('30');
+    setReturnEnabled(false);
+    setReturnPrice('');
   };
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -183,6 +191,8 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
         setBasePrice(String(providerData.base_price || 50));
         setPricePerKm(String(providerData.price_per_km || 5));
         setPatinsExtraPrice(String(providerData.patins_extra_price || 30));
+        setReturnEnabled(providerData.return_enabled || false);
+        setReturnPrice(String(providerData.return_price || ''));
 
         // Detectar estado do DDD do telefone
         const ddd = extractDDD(providerData.whatsapp);
@@ -283,7 +293,9 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
           base_price: parseFloat(basePrice) || 50,
           price_per_km: parseFloat(pricePerKm) || 5,
           patins_extra_price: parseFloat(patinsExtraPrice) || 30,
-          state_uf: selectedState || null
+          state_uf: selectedState || null,
+          return_enabled: returnEnabled,
+          return_price: returnEnabled && returnPrice ? parseFloat(returnPrice) : null
         } as any).eq('id', existingProvider.id);
         if (error) throw error;
         toast.success('Cadastro atualizado com sucesso!');
@@ -324,7 +336,6 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
           name,
           whatsapp,
           slug,
-          // Adicionar slug gerado
           has_patins: hasPatins,
           service_types: selectedServices,
           latitude: location.latitude,
@@ -334,7 +345,9 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
           base_price: parseFloat(basePrice) || 50,
           price_per_km: parseFloat(pricePerKm) || 5,
           patins_extra_price: parseFloat(patinsExtraPrice) || 30,
-          state_uf: selectedState || null
+          state_uf: selectedState || null,
+          return_enabled: returnEnabled,
+          return_price: returnEnabled && returnPrice ? parseFloat(returnPrice) : null
         } as any).select().single();
         if (error) {
           // Verificar se é erro de duplicidade
@@ -596,6 +609,49 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
         </div>
       </div>
 
+      {/* Return Price Section */}
+      <div className="p-2 sm:p-3 rounded-xl border-2 border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-amber-500/5">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+              <RotateCcw className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-orange-400" />
+            </div>
+            <span className="text-[11px] sm:text-sm font-bold text-foreground">Valor de Retorno (Ida e Volta)</span>
+          </div>
+          <Switch
+            checked={returnEnabled}
+            onCheckedChange={setReturnEnabled}
+          />
+        </div>
+        {returnEnabled && (
+          <div className="mt-2">
+            <label className="block text-[9px] sm:text-xs text-muted-foreground mb-1">
+              Valor adicional para serviço com retorno
+            </label>
+            <div className="relative w-32">
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold text-orange-400">R$</span>
+              <Input 
+                type="number" 
+                placeholder="100" 
+                value={returnPrice} 
+                onChange={e => setReturnPrice(e.target.value)} 
+                className="h-9 text-sm font-bold pl-8" 
+                min="0" 
+                step="0.01" 
+              />
+            </div>
+            <p className="text-[9px] text-muted-foreground mt-1">
+              Este valor será exibido para clientes quando você estiver com localização ativa
+            </p>
+          </div>
+        )}
+        {!returnEnabled && (
+          <p className="text-[9px] text-muted-foreground">
+            Ative para oferecer serviço de retorno aos clientes
+          </p>
+        )}
+      </div>
+
       {/* Has Patins */}
       <div className="flex items-start space-x-3 p-3 rounded-xl border-2 border-border bg-muted/50">
         <Checkbox id="hasPatins" checked={hasPatins} onCheckedChange={checked => setHasPatins(checked === true)} className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -626,20 +682,41 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
       </div>
 
       {/* Provider Tracking Button - Only show for existing providers */}
-      {mode === 'edit' && existingProvider && <div className="pt-2 border-t border-border space-y-3">
-          {/* Link exclusivo do prestador */}
-          {existingProvider.slug && <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30">
-              <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <ExternalLink className="w-3 h-3" />
-                Seu acesso exclusivo de atendimento:
-              </p>
-              <a href={`https://akiguincho24hs.lovable.app/p/${existingProvider.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:text-blue-300 font-medium underline underline-offset-2 break-all">
-                akiguincho24hs.lovable.app/p/{existingProvider.slug}
-              </a>
-              <p className="text-[10px] text-muted-foreground mt-1">
-                Compartilhe este link para receber solicitações diretamente
-              </p>
-            </div>}
+      {mode === 'edit' && existingProvider && <div className="pt-2 border-t border-border space-y-4">
+          {/* QR Code e Link exclusivo do prestador */}
+          {existingProvider.slug && (
+            <div className="space-y-4">
+              {/* QR Code Section */}
+              <div className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/30">
+                <div className="flex items-center gap-2 mb-3">
+                  <QrCode className="w-4 h-4 text-purple-400" />
+                  <span className="text-sm font-bold text-foreground">Seu QR Code Exclusivo</span>
+                </div>
+                <ProviderQRCode 
+                  providerSlug={existingProvider.slug} 
+                  providerName={existingProvider.name}
+                  size={140}
+                />
+                <p className="text-[10px] text-muted-foreground mt-3 text-center">
+                  Clientes que escanearem terão acesso direto ao seu serviço de guincho
+                </p>
+              </div>
+
+              {/* Link Section */}
+              <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30">
+                <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1.5">
+                  <ExternalLink className="w-3 h-3" />
+                  Seu acesso exclusivo de atendimento:
+                </p>
+                <a href={`https://akiguincho24hs.lovable.app/p/${existingProvider.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:text-blue-300 font-medium underline underline-offset-2 break-all">
+                  akiguincho24hs.lovable.app/p/{existingProvider.slug}
+                </a>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Compartilhe este link para receber solicitações diretamente
+                </p>
+              </div>
+            </div>
+          )}
           
           <p className="text-xs text-muted-foreground text-center">
             Ative o rastreamento para receber solicitações de clientes

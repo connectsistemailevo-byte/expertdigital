@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from '@/contexts/LocationContext';
 import RequestPanel from '@/components/RequestPanel';
 import LiveTrackingMap from '@/components/LiveTrackingMap';
-import { Loader2, MapPin, Phone, AlertCircle, CheckCircle, Clock, DollarSign, Truck, Navigation } from 'lucide-react';
+import { Loader2, MapPin, Phone, AlertCircle, CheckCircle, Clock, DollarSign, Truck, Navigation, RotateCcw, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -23,6 +23,8 @@ interface ProviderData {
   patins_extra_price: number | null;
   service_types: string[];
   state_uf: string | null;
+  return_price: number | null;
+  return_enabled: boolean;
 }
 
 interface OnlineStatus {
@@ -60,6 +62,32 @@ const ProviderExclusivePage: React.FC = () => {
   const [customization, setCustomization] = useState<CustomizationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showPWAPrompt, setShowPWAPrompt] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  // Listen for PWA install prompt
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowPWAPrompt(true);
+    };
+    
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallPWA = async () => {
+    if (!deferredPrompt) return;
+    
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      setShowPWAPrompt(false);
+    }
+    setDeferredPrompt(null);
+  };
 
   useEffect(() => {
     async function loadProvider() {
@@ -299,6 +327,14 @@ const ProviderExclusivePage: React.FC = () => {
                 Informe o destino para ver o valor
               </div>
 
+              {/* Valor de retorno - só exibe se ativado e prestador online */}
+              {provider.return_enabled && provider.return_price && isProviderOnline && (
+                <div className="bg-orange-100 text-orange-700 rounded-lg px-3 py-2 flex items-center gap-2 text-sm font-medium mt-2">
+                  <RotateCcw className="w-4 h-4" />
+                  Retorno (ida e volta): R${provider.return_price.toFixed(2)}
+                </div>
+              )}
+
               {/* Tags de serviços */}
               <div className="flex flex-wrap gap-2 mt-3">
                 {provider.has_patins && (
@@ -345,6 +381,28 @@ const ProviderExclusivePage: React.FC = () => {
           filterProviderId={provider.id}
           hideProviderSelection={true}
         />
+
+        {/* PWA Install Prompt */}
+        {showPWAPrompt && (
+          <div className="fixed bottom-4 left-4 right-4 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-4 shadow-2xl z-50 animate-in slide-in-from-bottom">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                <Download className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-white text-sm">Instale o App de {displayName}</h3>
+                <p className="text-white/80 text-xs">Acesso rápido ao seu guincho de confiança</p>
+              </div>
+              <Button
+                size="sm"
+                className="bg-white text-green-700 hover:bg-white/90 shrink-0"
+                onClick={handleInstallPWA}
+              >
+                Instalar
+              </Button>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Footer */}
