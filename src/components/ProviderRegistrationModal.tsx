@@ -410,7 +410,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
           <div>
             <p className="font-semibold text-sm text-green-400">Teste Grátis!</p>
             <p className="text-xs text-muted-foreground">
-              Novos prestadores ganham <span className="text-green-400 font-bold">10 corridas GRÁTIS</span> para testar
+              Ative seu perfil e receba até <span className="text-green-400 font-bold">5 solicitações</span> para testar o atendimento.
             </p>
           </div>
         </div>
