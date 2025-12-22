@@ -26,11 +26,17 @@ interface DailyScan {
   count: number;
 }
 
+interface RecentScan {
+  scanned_at: string;
+  referrer: string | null;
+  user_agent: string | null;
+}
 export default function ProviderStats() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<ScanStats | null>(null);
   const [dailyScans, setDailyScans] = useState<DailyScan[]>([]);
+  const [recentScans, setRecentScans] = useState<RecentScan[]>([]);
   const [providerId, setProviderId] = useState<string | null>(null);
   const [providerName, setProviderName] = useState<string>('');
   const [providerSlug, setProviderSlug] = useState<string>('');
@@ -139,6 +145,15 @@ export default function ProviderStats() {
         Object.entries(scansByDay).map(([date, count]) => ({ date, count }))
       );
 
+      // Últimos escaneamentos (data e hora)
+      const { data: recent } = await supabase
+        .from('qr_code_scans')
+        .select('scanned_at, referrer, user_agent')
+        .eq('provider_id', provider.id)
+        .order('scanned_at', { ascending: false })
+        .limit(30);
+
+      setRecentScans((recent || []) as RecentScan[]);
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
     } finally {
@@ -242,15 +257,15 @@ export default function ProviderStats() {
           </CardHeader>
           <CardContent>
             <div className="flex items-end gap-2 h-40">
-              {dailyScans.map((day, index) => {
+              {dailyScans.map((day) => {
                 const height = (day.count / maxScanCount) * 100;
                 const date = new Date(day.date);
                 const dayName = date.toLocaleDateString('pt-BR', { weekday: 'short' });
-                
+
                 return (
                   <div key={day.date} className="flex-1 flex flex-col items-center gap-2">
                     <span className="text-xs text-white font-medium">{day.count}</span>
-                    <div 
+                    <div
                       className="w-full bg-gradient-to-t from-purple-500 to-indigo-500 rounded-t transition-all duration-500"
                       style={{ height: `${Math.max(height, 5)}%` }}
                     />
@@ -262,6 +277,48 @@ export default function ProviderStats() {
           </CardContent>
         </Card>
 
+        {/* Últimos escaneamentos (data e hora) */}
+        <Card className="bg-slate-800/50 border-slate-700">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Eye className="w-5 h-5" />
+              Últimos escaneamentos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {recentScans.length === 0 ? (
+              <p className="text-sm text-slate-400">Nenhum escaneamento registrado ainda.</p>
+            ) : (
+              <div className="space-y-2">
+                {recentScans.slice(0, 15).map((scan, idx) => {
+                  const when = new Date(scan.scanned_at).toLocaleString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  });
+                  return (
+                    <div
+                      key={`${scan.scanned_at}-${idx}`}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-slate-700/60 bg-slate-900/30 px-3 py-2"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm text-white font-medium truncate">{when}</p>
+                        {scan.referrer ? (
+                          <p className="text-[11px] text-slate-400 truncate">Origem: {scan.referrer}</p>
+                        ) : (
+                          <p className="text-[11px] text-slate-500">Origem: direta</p>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-slate-400 shrink-0">#{idx + 1}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
         {/* QR Code Customizer */}
         {providerSlug && (
           <QRCodeCustomizer 
