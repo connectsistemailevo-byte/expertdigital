@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from '@/contexts/LocationContext';
 import RequestPanel from '@/components/RequestPanel';
-import LiveTrackingMap from '@/components/LiveTrackingMap';
-import { Loader2, MapPin, Phone, AlertCircle, CheckCircle, Clock, DollarSign, Truck, Navigation, RotateCcw, Download } from 'lucide-react';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import { Loader2, MapPin, Phone, AlertCircle, CheckCircle, Clock, DollarSign, Truck, Navigation, RotateCcw, Download, Route } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -54,10 +55,278 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c;
 };
 
+// Componente de mapa exclusivo para mostrar apenas o prestador específico
+interface ExclusiveProviderMapProps {
+  provider: ProviderData;
+  onlineStatus: OnlineStatus | null;
+  clientLocation: { latitude: number; longitude: number };
+}
+
+const ExclusiveProviderMap: React.FC<ExclusiveProviderMapProps> = ({ provider, onlineStatus, clientLocation }) => {
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const { mapboxToken } = useLocation();
+
+  useEffect(() => {
+    if (!mapContainer.current || !mapboxToken) return;
+
+    mapboxgl.accessToken = mapboxToken;
+
+    const providerLat = onlineStatus?.latitude || provider.latitude;
+    const providerLng = onlineStatus?.longitude || provider.longitude;
+
+    // Centro entre cliente e prestador
+    const centerLat = (clientLocation.latitude + providerLat) / 2;
+    const centerLng = (clientLocation.longitude + providerLng) / 2;
+
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/navigation-night-v1',
+      center: [centerLng, centerLat],
+      zoom: 12,
+      pitch: 30,
+      attributionControl: false,
+    });
+
+    map.current.on('load', () => {
+      if (!map.current) return;
+
+      // Marcador do cliente (azul)
+      const clientEl = document.createElement('div');
+      clientEl.innerHTML = `
+        <div style="
+          width: 40px;
+          height: 40px;
+          background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+          border-radius: 50%;
+          border: 3px solid white;
+          box-shadow: 0 4px 15px rgba(59, 130, 246, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+      `;
+      new mapboxgl.Marker({ element: clientEl })
+        .setLngLat([clientLocation.longitude, clientLocation.latitude])
+        .addTo(map.current!);
+
+      // Marcador do prestador (verde)
+      const providerEl = document.createElement('div');
+      providerEl.innerHTML = `
+        <div style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        ">
+          <div style="
+            background: rgba(10, 15, 26, 0.95);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            margin-bottom: 4px;
+            border: 1px solid rgba(34, 197, 94, 0.5);
+            text-align: center;
+          ">
+            <span style="
+              display: inline-flex;
+              align-items: center;
+              gap: 3px;
+              background: #22c55e;
+              color: white;
+              padding: 2px 6px;
+              border-radius: 10px;
+              font-size: 9px;
+              font-weight: 700;
+            ">
+              <span style="width: 5px; height: 5px; background: white; border-radius: 50%;"></span>
+              ONLINE
+            </span>
+            <div style="color: #f59e0b; font-weight: 700; font-size: 12px; margin-top: 2px;">${provider.name}</div>
+          </div>
+          <div style="
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              <path d="M10 17h4V5H2v12h3m5 0a3 3 0 1 0 6 0m-6 0h6"/>
+              <path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5v8h1m5 0a3 3 0 1 1-6 0"/>
+            </svg>
+          </div>
+        </div>
+      `;
+      new mapboxgl.Marker({ element: providerEl, anchor: 'bottom' })
+        .setLngLat([providerLng, providerLat])
+        .addTo(map.current!);
+
+      // Ajustar bounds para mostrar ambos os marcadores
+      const bounds = new mapboxgl.LngLatBounds()
+        .extend([clientLocation.longitude, clientLocation.latitude])
+        .extend([providerLng, providerLat]);
+      
+      map.current.fitBounds(bounds, { padding: 60, maxZoom: 14 });
+    });
+
+    return () => {
+      map.current?.remove();
+    };
+  }, [mapboxToken, provider, onlineStatus, clientLocation]);
+
+  if (!mapboxToken) {
+    return (
+      <div className="w-full h-full bg-slate-800 flex items-center justify-center">
+        <span className="text-slate-500 text-sm">Carregando mapa...</span>
+      </div>
+    );
+  }
+
+  return <div ref={mapContainer} className="w-full h-full" />;
+};
+
+// Componente para exibir as informações do prestador com preço calculado
+interface ProviderInfoCardProps {
+  provider: ProviderData;
+  displayName: string;
+  primaryColor: string;
+  isProviderOnline: boolean;
+  providerMetrics: { distance: number; estimatedTime: number };
+  routeInfo: { distanceKm: number; loading: boolean } | null;
+}
+
+const ProviderInfoCard: React.FC<ProviderInfoCardProps> = ({
+  provider,
+  displayName,
+  primaryColor,
+  isProviderOnline,
+  providerMetrics,
+  routeInfo
+}) => {
+  const basePrice = provider.base_price ?? 50;
+  const pricePerKm = provider.price_per_km ?? 5;
+  const tripDistanceKm = routeInfo?.distanceKm || 0;
+  const hasDestination = tripDistanceKm > 0;
+
+  // Calcular preço total
+  const totalPrice = basePrice + (tripDistanceKm * pricePerKm);
+
+  return (
+    <div className="mb-4 p-4 rounded-2xl bg-white border-2 border-yellow-400 shadow-lg">
+      <div className="flex items-start gap-3">
+        {/* Avatar/Icon do prestador */}
+        <div 
+          className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shrink-0"
+          style={{ backgroundColor: primaryColor }}
+        >
+          <Truck className="w-6 h-6" />
+        </div>
+
+        {/* Info principal */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900">{displayName}</h2>
+            <Badge variant="outline" className="bg-pink-100 text-pink-700 border-pink-200 text-[10px] sm:text-xs">
+              R${basePrice} + R${pricePerKm.toFixed(2)}/km
+            </Badge>
+            <Badge 
+              variant="outline" 
+              className={`text-[10px] sm:text-xs ${isProviderOnline 
+                ? 'bg-green-100 text-green-700 border-green-200' 
+                : 'bg-gray-100 text-gray-600 border-gray-200'}`}
+            >
+              {isProviderOnline ? 'Disponível' : 'Indisponível'}
+            </Badge>
+          </div>
+
+          {/* Distância e tempo */}
+          <div className="flex items-center gap-4 text-sm text-slate-600 mb-2">
+            {providerMetrics.distance > 0 && (
+              <>
+                <span className="flex items-center gap-1">
+                  <Navigation className="w-4 h-4 text-slate-400" />
+                  {providerMetrics.distance.toFixed(1)} km de você
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-4 h-4 text-slate-400" />
+                  ~{providerMetrics.estimatedTime} min
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Mostrar valor calculado ou mensagem para informar destino */}
+          {hasDestination ? (
+            <div className="bg-green-100 text-green-800 rounded-lg px-3 py-2 text-sm font-medium">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <span className="flex items-center gap-1">
+                  <Route className="w-4 h-4" />
+                  Trajeto: {tripDistanceKm.toFixed(1)} km
+                </span>
+                <span className="flex items-center gap-1 text-lg font-bold">
+                  <DollarSign className="w-4 h-4" />
+                  R$ {totalPrice.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-purple-100 text-purple-700 rounded-lg px-3 py-2 flex items-center gap-2 text-sm font-medium">
+              <Truck className="w-4 h-4" />
+              Informe o destino para ver o valor
+            </div>
+          )}
+
+          {/* Valor de retorno - só exibe se ativado e prestador online */}
+          {provider.return_enabled && isProviderOnline && (provider.return_price || provider.return_price_per_km) && (
+            <div className="bg-orange-100 text-orange-700 rounded-lg px-3 py-2 flex items-center gap-2 text-sm font-medium mt-2">
+              <RotateCcw className="w-4 h-4" />
+              <span>
+                Retorno (ida e volta): 
+                {provider.return_price ? ` R$${provider.return_price.toFixed(2)}` : ''}
+                {provider.return_price && provider.return_price_per_km ? ' + ' : ''}
+                {provider.return_price_per_km ? `R$${provider.return_price_per_km.toFixed(2)}/km` : ''}
+              </span>
+            </div>
+          )}
+
+          {/* Tags de serviços */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            {provider.has_patins && (
+              <Badge variant="secondary" className="bg-cyan-100 text-cyan-700 border-cyan-200">
+                Patins
+              </Badge>
+            )}
+            {provider.service_types?.includes('guincho_completo') && (
+              <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
+                Completo
+              </Badge>
+            )}
+            {provider.service_types?.includes('guincho_basico') && (
+              <Badge variant="secondary" className="bg-gray-100 text-gray-700 border-gray-200">
+                Básico
+              </Badge>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ProviderExclusivePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { location } = useLocation();
+  const { location, routeInfo } = useLocation();
   const [provider, setProvider] = useState<ProviderData | null>(null);
   const [onlineStatus, setOnlineStatus] = useState<OnlineStatus | null>(null);
   const [customization, setCustomization] = useState<CustomizationData | null>(null);
@@ -296,94 +565,23 @@ const ProviderExclusivePage: React.FC = () => {
       <main className="container mx-auto px-4 py-4">
         
         {/* Card do Prestador - Estilo similar ao da imagem */}
-        <div className="mb-4 p-4 rounded-2xl bg-white border-2 border-yellow-400 shadow-lg">
-          <div className="flex items-start gap-3">
-            {/* Avatar/Icon do prestador */}
-            <div 
-              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shrink-0"
-              style={{ backgroundColor: primaryColor }}
-            >
-              <Truck className="w-6 h-6" />
-            </div>
+        <ProviderInfoCard 
+          provider={provider}
+          displayName={displayName}
+          primaryColor={primaryColor}
+          isProviderOnline={isProviderOnline}
+          providerMetrics={providerMetrics}
+          routeInfo={routeInfo}
+        />
 
-            {/* Info principal */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap mb-1">
-                <h2 className="text-base sm:text-lg font-bold text-slate-900">{displayName}</h2>
-                <Badge variant="outline" className="bg-pink-100 text-pink-700 border-pink-200 text-[10px] sm:text-xs">
-                  R${basePrice} + R${pricePerKm.toFixed(2)}/km
-                </Badge>
-                <Badge 
-                  variant="outline" 
-                  className={`text-[10px] sm:text-xs ${isProviderOnline 
-                    ? 'bg-green-100 text-green-700 border-green-200' 
-                    : 'bg-gray-100 text-gray-600 border-gray-200'}`}
-                >
-                  {isProviderOnline ? 'Disponível' : 'Indisponível'}
-                </Badge>
-              </div>
-
-              {/* Distância e tempo */}
-              <div className="flex items-center gap-4 text-sm text-slate-600 mb-2">
-                {providerMetrics.distance > 0 && (
-                  <>
-                    <span className="flex items-center gap-1">
-                      <Navigation className="w-4 h-4 text-slate-400" />
-                      {providerMetrics.distance.toFixed(1)} km de você
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4 text-slate-400" />
-                      ~{providerMetrics.estimatedTime} min
-                    </span>
-                  </>
-                )}
-              </div>
-
-              {/* Botão de calcular valor */}
-              <div className="bg-purple-100 text-purple-700 rounded-lg px-3 py-2 flex items-center gap-2 text-sm font-medium">
-                <Truck className="w-4 h-4" />
-                Informe o destino para ver o valor
-              </div>
-
-              {/* Valor de retorno - só exibe se ativado e prestador online */}
-              {provider.return_enabled && isProviderOnline && (provider.return_price || provider.return_price_per_km) && (
-                <div className="bg-orange-100 text-orange-700 rounded-lg px-3 py-2 flex items-center gap-2 text-sm font-medium mt-2">
-                  <RotateCcw className="w-4 h-4" />
-                  <span>
-                    Retorno (ida e volta): 
-                    {provider.return_price ? ` R$${provider.return_price.toFixed(2)}` : ''}
-                    {provider.return_price && provider.return_price_per_km ? ' + ' : ''}
-                    {provider.return_price_per_km ? `R$${provider.return_price_per_km.toFixed(2)}/km` : ''}
-                  </span>
-                </div>
-              )}
-
-              {/* Tags de serviços */}
-              <div className="flex flex-wrap gap-2 mt-3">
-                {provider.has_patins && (
-                  <Badge variant="secondary" className="bg-cyan-100 text-cyan-700 border-cyan-200">
-                    Patins
-                  </Badge>
-                )}
-                {provider.service_types?.includes('guincho_completo') && (
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
-                    Completo
-                  </Badge>
-                )}
-                {provider.service_types?.includes('guincho_basico') && (
-                  <Badge variant="secondary" className="bg-gray-100 text-gray-700 border-gray-200">
-                    Básico
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Mapa do prestador */}
+        {/* Mapa do prestador - APENAS este prestador */}
         <div className="mb-4 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
           <div className="relative w-full h-[200px] md:h-[280px] rounded-xl overflow-hidden">
-            <LiveTrackingMap className="w-full h-full" />
+            <ExclusiveProviderMap 
+              provider={provider}
+              onlineStatus={onlineStatus}
+              clientLocation={location}
+            />
           </div>
           
           {/* Legenda compacta */}
