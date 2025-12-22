@@ -19,7 +19,7 @@ const Index: React.FC = () => {
         <div className="container mx-auto px-2 md:px-4">
           <div className="flex items-center justify-between h-14 md:h-20 gap-1">
             {/* Logo - compacto no mobile */}
-            <div className="font-display text-sm md:text-2xl font-bold text-white rounded-lg flex-shrink-0 whitespace-nowrap"> Direto com o guincho. 24HS<span className="text-secondary">24HS</span>
+            <div className="font-display text-sm md:text-2xl font-bold text-white rounded-lg flex-shrink-0 whitespace-nowrap"> Direto com o guincho.24HS<span className="text-secondary">24HS</span>
             </div>
             
             {/* Mobile: Links em coluna */}
