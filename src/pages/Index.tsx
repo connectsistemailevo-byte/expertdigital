@@ -6,7 +6,7 @@ import ProviderRegistrationModal from '@/components/ProviderRegistrationModal';
 import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
 import RequestPanel from '@/components/RequestPanel';
-import { MapPin, Phone, ArrowRight, CheckCircle, Truck, Navigation, Settings } from 'lucide-react';
+import { MapPin, Phone, ArrowRight, CheckCircle, Truck, Navigation, Settings, MessageCircle } from 'lucide-react';
 const Index: React.FC = () => {
   const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
   const {
