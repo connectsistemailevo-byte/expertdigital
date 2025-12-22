@@ -179,7 +179,7 @@ export default function ProviderStats() {
           <Button 
             variant="outline" 
             size="icon"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/provider-dashboard')}
             className="border-slate-600"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -289,30 +289,19 @@ export default function ProviderStats() {
             {recentScans.length === 0 ? (
               <p className="text-sm text-slate-400">Nenhum escaneamento registrado ainda.</p>
             ) : (
-              <div className="space-y-2">
+              <div className="flex flex-wrap gap-2">
                 {recentScans.slice(0, 15).map((scan, idx) => {
-                  const when = new Date(scan.scanned_at).toLocaleString('pt-BR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
+                  const time = new Date(scan.scanned_at).toLocaleTimeString('pt-BR', {
                     hour: '2-digit',
                     minute: '2-digit',
                   });
                   return (
-                    <div
+                    <span
                       key={`${scan.scanned_at}-${idx}`}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-slate-700/60 bg-slate-900/30 px-3 py-2"
+                      className="inline-flex items-center gap-1 rounded-full bg-slate-700/50 px-3 py-1 text-sm text-white"
                     >
-                      <div className="min-w-0">
-                        <p className="text-sm text-white font-medium truncate">{when}</p>
-                        {scan.referrer ? (
-                          <p className="text-[11px] text-slate-400 truncate">Origem: {scan.referrer}</p>
-                        ) : (
-                          <p className="text-[11px] text-slate-500">Origem: direta</p>
-                        )}
-                      </div>
-                      <span className="text-[10px] text-slate-400 shrink-0">#{idx + 1}</span>
-                    </div>
+                      {time}
+                    </span>
                   );
                 })}
               </div>
@@ -335,8 +324,8 @@ export default function ProviderStats() {
                 <QrCode className="w-5 h-5 text-green-400" />
               </div>
               <div>
-                <h3 className="font-bold text-white mb-1">Dica para mais escaneamentos</h3>
-                <p className="text-sm text-slate-300">
+                <h3 className="font-bold text-green-300 mb-1">Dica para mais escaneamentos</h3>
+                <p className="text-sm text-green-100">
                   Cole seu QR Code no para-brisa do guincho, cartões de visita e materiais de divulgação. 
                   Quanto mais visível, mais clientes diretos você terá!
                 </p>
