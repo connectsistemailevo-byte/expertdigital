@@ -75,10 +75,10 @@ const Index: React.FC = () => {
                 variant="ghost" 
                 size="sm" 
                 onClick={() => setIsProviderModalOpen(true)} 
-                className="hidden sm:flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                className="flex items-center gap-1 whitespace-nowrap text-[11px] sm:text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 px-2 sm:px-3"
               >
                 <Settings className="w-3.5 h-3.5" />
-                Prestadores Ativos
+                <span className="inline">Prestadores Ativos</span>
               </Button>
               
               {/* Botão Sou Prestador */}
