@@ -25,7 +25,9 @@ import {
   Settings,
   Navigation,
   Download,
-  Smartphone
+  Smartphone,
+  QrCode,
+  ArrowLeft
 } from 'lucide-react';
 
 interface ProviderData {
@@ -77,6 +79,8 @@ export default function ProviderDashboard() {
   const [blockReason, setBlockReason] = useState<'trial_exhausted' | 'limit_reached' | 'no_plan'>('trial_exhausted');
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showFloatingTracker, setShowFloatingTracker] = useState(false);
+  const [locationGranted, setLocationGranted] = useState(false);
+  const [qrScanStats, setQrScanStats] = useState({ total: 0, today: 0, month: 0 });
 
   const success = searchParams.get('success');
   const providerId = searchParams.get('provider_id');
@@ -198,6 +202,8 @@ export default function ProviderDashboard() {
     const hasLocationGranted = localStorage.getItem(locationGrantedKey) === 'true';
     const trackingEnabled = localStorage.getItem(trackingEnabledKey) === 'true';
 
+    setLocationGranted(hasLocationGranted);
+
     if (trackingEnabled) {
       setShowFloatingTracker(true);
     }
@@ -206,7 +212,33 @@ export default function ProviderDashboard() {
     if (!hasLocationGranted) {
       setShowLocationModal(true);
     }
+
+    // Carregar stats de QR Code
+    loadQrScanStats(provider.id);
   }, [provider?.id]);
+
+  const loadQrScanStats = async (providerId: string) => {
+    try {
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const monthStart = new Date(todayStart);
+      monthStart.setDate(monthStart.getDate() - 30);
+
+      const [totalRes, todayRes, monthRes] = await Promise.all([
+        supabase.from('qr_code_scans').select('*', { count: 'exact', head: true }).eq('provider_id', providerId),
+        supabase.from('qr_code_scans').select('*', { count: 'exact', head: true }).eq('provider_id', providerId).gte('scanned_at', todayStart.toISOString()),
+        supabase.from('qr_code_scans').select('*', { count: 'exact', head: true }).eq('provider_id', providerId).gte('scanned_at', monthStart.toISOString())
+      ]);
+
+      setQrScanStats({
+        total: totalRes.count || 0,
+        today: todayRes.count || 0,
+        month: monthRes.count || 0
+      });
+    } catch (error) {
+      console.error('Erro ao carregar stats de QR:', error);
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -268,48 +300,58 @@ export default function ProviderDashboard() {
   if (!provider) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-slate-800/50 border-slate-700">
-          <CardHeader className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
-              <Truck className="w-8 h-8 text-white" />
-            </div>
-            <CardTitle className="text-2xl text-white">Área do Prestador</CardTitle>
-            <p className="text-slate-400">Digite seu WhatsApp para acessar</p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSearch} className="space-y-4">
-              <div>
-                <Label htmlFor="whatsapp" className="text-slate-300">WhatsApp</Label>
-                <Input
-                  id="whatsapp"
-                  type="tel"
-                  placeholder="11999999999"
-                  value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, ''))}
-                  className="bg-slate-700 border-slate-600 text-white"
-                  maxLength={11}
-                />
+        <div className="w-full max-w-md">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/')}
+            className="mb-4 text-slate-400 hover:text-white"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar ao início
+          </Button>
+          <Card className="bg-slate-800/50 border-slate-700">
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
+                <Truck className="w-8 h-8 text-white" />
               </div>
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isSearching || whatsapp.length < 10}
-              >
-                {isSearching ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Buscando...
-                  </>
-                ) : (
-                  <>
-                    <Phone className="w-4 h-4 mr-2" />
-                    Acessar
-                  </>
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+              <CardTitle className="text-2xl text-white">Área do Prestador</CardTitle>
+              <p className="text-slate-400">Digite seu WhatsApp para acessar</p>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSearch} className="space-y-4">
+                <div>
+                  <Label htmlFor="whatsapp" className="text-slate-300">WhatsApp</Label>
+                  <Input
+                    id="whatsapp"
+                    type="tel"
+                    placeholder="11999999999"
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, ''))}
+                    className="bg-slate-700 border-slate-600 text-white"
+                    maxLength={11}
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isSearching || whatsapp.length < 10}
+                >
+                  {isSearching ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Buscando...
+                    </>
+                  ) : (
+                    <>
+                      <Phone className="w-4 h-4 mr-2" />
+                      Acessar
+                    </>
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -400,39 +442,24 @@ export default function ProviderDashboard() {
 
         {/* Status Cards */}
         <div className="grid md:grid-cols-3 gap-4">
-          {/* Corridas */}
-          <Card className="bg-slate-800/50 border-slate-700">
+          {/* QR Code Scans */}
+          <Card className="bg-slate-800/50 border-slate-700 cursor-pointer hover:bg-slate-700/50 transition-colors" onClick={() => navigate('/provider-stats')}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-slate-400 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Corridas
+                <QrCode className="w-4 h-4" />
+                QR Code Escaneado
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-white">
-                {subscription?.corridas_usadas || 0}
-                {subscription?.limite_corridas && subscription.limite_corridas > 0 && (
-                  <span className="text-lg text-slate-500">
-                    /{subscription.limite_corridas}
-                  </span>
-                )}
-                {subscription?.limite_corridas === -1 && (
-                  <span className="text-sm text-green-400 ml-2">∞</span>
-                )}
+                {qrScanStats.total}
               </div>
-              {subscription?.limite_corridas && subscription.limite_corridas > 0 && (
-                <div className="mt-2 h-2 bg-slate-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-primary to-purple-500"
-                    style={{
-                      width: `${Math.min(
-                        ((subscription.corridas_usadas || 0) / subscription.limite_corridas) * 100,
-                        100
-                      )}%`,
-                    }}
-                  />
-                </div>
-              )}
+              <p className="text-xs text-slate-500 mt-1">cliques no seu link</p>
+              <div className="flex gap-2 mt-2 text-xs">
+                <span className="text-green-400">Hoje: {qrScanStats.today}</span>
+                <span className="text-slate-500">|</span>
+                <span className="text-blue-400">Mês: {qrScanStats.month}</span>
+              </div>
             </CardContent>
           </Card>
 
@@ -577,27 +604,38 @@ export default function ProviderDashboard() {
         {/* Card de Rastreamento GPS */}
         <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-green-500/50">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Navigation className="w-5 h-5 text-green-400" />
+            <CardTitle className="text-black flex items-center gap-2">
+              <Navigation className="w-5 h-5 text-green-600" />
               Rastreamento GPS - Fique Online!
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-slate-300 mb-4">
+            <p className="text-slate-700 mb-4">
               Ative sua localização para aparecer online no mapa e receber mais clientes!
             </p>
             <div className="flex flex-wrap gap-3">
               {/* Botão principal - Ativar localização agora */}
-              <Button
-                onClick={() => {
-                  setShowLocationModal(true);
-                }}
-                className="bg-green-600 hover:bg-green-700 animate-pulse"
-                size="lg"
-              >
-                <MapPin className="w-5 h-5 mr-2" />
-                Permitir Localização e Ficar Online
-              </Button>
+              {!locationGranted ? (
+                <Button
+                  onClick={() => {
+                    setShowLocationModal(true);
+                  }}
+                  className="bg-green-600 hover:bg-green-700 animate-pulse"
+                  size="lg"
+                >
+                  <MapPin className="w-5 h-5 mr-2" />
+                  Permitir Localização e Ficar Online
+                </Button>
+              ) : (
+                <Button
+                  className="bg-green-600 hover:bg-green-700"
+                  size="lg"
+                  disabled
+                >
+                  <MapPin className="w-5 h-5 mr-2" />
+                  Localização Ativa ✓
+                </Button>
+              )}
 
               {/* Botão para tracker flutuante */}
               <Button
@@ -607,7 +645,7 @@ export default function ProviderDashboard() {
                   setShowFloatingTracker(true);
                 }}
                 variant="outline"
-                className="border-green-500/50 text-green-400 hover:bg-green-500/10"
+                className="border-green-500/50 text-green-600 hover:bg-green-500/10"
               >
                 <Navigation className="w-4 h-4 mr-2" />
                 Ativar Rastreamento Contínuo
@@ -616,10 +654,10 @@ export default function ProviderDashboard() {
               <Button
                 onClick={() => navigate(`/instalar?id=${provider.id}&name=${encodeURIComponent(provider.name)}`)}
                 variant="outline"
-                className="border-slate-600 text-slate-300"
+                className="border-slate-600 text-slate-700"
               >
                 <Download className="w-4 h-4 mr-2" />
-                Instalar App (PWA)
+                Instalar App
               </Button>
             </div>
           </CardContent>
@@ -678,6 +716,7 @@ export default function ProviderDashboard() {
         onSuccess={() => {
           localStorage.setItem(`provider_location_granted:${provider.id}`, 'true');
           localStorage.setItem(`provider_tracking_enabled:${provider.id}`, 'true');
+          setLocationGranted(true);
           setShowFloatingTracker(true);
 
           toast({

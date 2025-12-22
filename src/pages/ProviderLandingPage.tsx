@@ -7,14 +7,12 @@ import {
   Check, 
   X, 
   Smartphone, 
-  Target,
   Shield,
-  Zap,
-  ArrowRight,
   Star,
-  Users,
   Clock,
-  ChevronRight
+  ChevronRight,
+  Users,
+  ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -72,22 +70,21 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-black">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-sm border-b border-slate-700/50">
+      <header className="sticky top-0 z-50 bg-black/95 backdrop-blur-sm border-b border-yellow-500/20">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <Button 
               variant="ghost" 
               onClick={onBack}
-              className="text-slate-400 hover:text-white hover:bg-slate-800"
+              className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10"
             >
               ← Voltar
             </Button>
             <Button 
-              variant="ghost" 
               onClick={onActivate}
-              className="text-emerald-400 hover:text-emerald-300 hover:bg-slate-800 font-medium"
+              className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold"
             >
               <Users className="w-4 h-4 mr-2" />
               Prestadores Ativos
@@ -100,70 +97,55 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
       <section className="relative py-16 md:py-24 overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 right-20 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 left-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+          <div className="absolute top-20 right-20 w-72 h-72 bg-yellow-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 left-20 w-96 h-96 bg-yellow-400/5 rounded-full blur-3xl" />
         </div>
         
         <div className="container mx-auto px-4 relative z-10">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-4xl mx-auto"
+            className="max-w-4xl mx-auto text-center"
           >
-            {/* Badge */}
+            {/* Icon */}
             <div className="flex justify-center mb-6">
-              <span className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/20 border border-emerald-500/30 rounded-full text-emerald-400 text-sm font-medium">
-                <Truck className="w-4 h-4" />
-                Seu Guincho Digital
-              </span>
+              <div className="w-20 h-20 bg-yellow-500 rounded-2xl flex items-center justify-center shadow-lg shadow-yellow-500/30">
+                <Truck className="w-10 h-10 text-black" />
+              </div>
             </div>
             
             {/* Main Headline */}
-            <h1 className="text-4xl md:text-6xl font-bold text-center text-white leading-tight mb-6">
-              App exclusivo para{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
-                seus clientes
-              </span>
+            <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight mb-4">
+              Seu guincho com{' '}
+              <span className="text-yellow-400">app exclusivo</span>
             </h1>
             
-            <p className="text-xl text-slate-400 text-center max-w-2xl mx-auto mb-10">
-              Acesso direto. Sem comissão. Sem disputa. 
-              <span className="text-white font-medium"> O cliente fala só com você.</span>
+            <p className="text-xl text-white/70 max-w-2xl mx-auto mb-8">
+              Acesso direto. Sem comissão. Sem disputa.
             </p>
 
             {/* CTA Principal */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button 
-                size="lg"
-                onClick={handleWhatsAppRedirect}
-                className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-lg px-8 py-7 rounded-2xl shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 transition-all w-full sm:w-auto"
-              >
-                <MessageCircle className="w-5 h-5 mr-2" />
-                Ativar por R$ 47,00
-              </Button>
-              <Button 
-                size="lg"
-                variant="outline"
-                onClick={() => setShowQuiz(true)}
-                className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white text-lg px-8 py-7 rounded-2xl w-full sm:w-auto"
-              >
-                Entender melhor
-                <ChevronRight className="w-5 h-5 ml-1" />
-              </Button>
-            </div>
+            <Button 
+              size="lg"
+              onClick={handleWhatsAppRedirect}
+              className="bg-yellow-500 hover:bg-yellow-400 text-black text-lg px-10 py-7 rounded-xl font-bold shadow-lg shadow-yellow-500/30 hover:shadow-xl hover:shadow-yellow-500/40 transition-all mb-6"
+            >
+              <MessageCircle className="w-5 h-5 mr-2" />
+              Ativar por R$ 47,00
+            </Button>
 
             {/* Trust indicators */}
-            <div className="flex flex-wrap items-center justify-center gap-6 mt-10 text-sm text-slate-500">
+            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-white/60">
               <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-emerald-500" />
+                <Shield className="w-4 h-4 text-yellow-500" />
                 <span>Sem mensalidade</span>
               </div>
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-emerald-500" />
+                <Clock className="w-4 h-4 text-yellow-500" />
                 <span>Funciona 24h</span>
               </div>
               <div className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-emerald-500" />
+                <Star className="w-4 h-4 text-yellow-500" />
                 <span>Pagamento único</span>
               </div>
             </div>
@@ -171,8 +153,8 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="py-16 border-t border-slate-800">
+      {/* O que você recebe */}
+      <section className="py-16 border-t border-yellow-500/10">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-12">
@@ -185,14 +167,14 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 hover:border-emerald-500/30 transition-colors"
+                className="bg-white/5 border border-yellow-500/20 rounded-2xl p-6 hover:border-yellow-500/40 transition-colors"
               >
-                <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-4">
-                  <QrCode className="w-6 h-6 text-emerald-400" />
+                <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mb-4">
+                  <QrCode className="w-6 h-6 text-black" />
                 </div>
                 <h3 className="text-lg font-semibold text-white mb-2">QR Code Exclusivo</h3>
-                <p className="text-slate-400 text-sm">
-                  Cole no caminhão, oficinas, postos. Cliente escaneia e cai direto no seu app.
+                <p className="text-white/60 text-sm">
+                  Cole no caminhão, oficinas, postos. Cliente escaneia e entra direto no seu app.
                 </p>
               </motion.div>
 
@@ -202,13 +184,13 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
-                className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 hover:border-emerald-500/30 transition-colors"
+                className="bg-white/5 border border-yellow-500/20 rounded-2xl p-6 hover:border-yellow-500/40 transition-colors"
               >
-                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4">
-                  <Smartphone className="w-6 h-6 text-blue-400" />
+                <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mb-4">
+                  <Smartphone className="w-6 h-6 text-black" />
                 </div>
                 <h3 className="text-lg font-semibold text-white mb-2">App no Celular</h3>
-                <p className="text-slate-400 text-sm">
+                <p className="text-white/60 text-sm">
                   Cliente instala com um toque. Seu guincho fica salvo e pronto para chamar.
                 </p>
               </motion.div>
@@ -219,13 +201,13 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 }}
-                className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 hover:border-emerald-500/30 transition-colors"
+                className="bg-white/5 border border-yellow-500/20 rounded-2xl p-6 hover:border-yellow-500/40 transition-colors"
               >
-                <div className="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center mb-4">
-                  <MessageCircle className="w-6 h-6 text-amber-400" />
+                <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mb-4">
+                  <MessageCircle className="w-6 h-6 text-black" />
                 </div>
                 <h3 className="text-lg font-semibold text-white mb-2">Direto no WhatsApp</h3>
-                <p className="text-slate-400 text-sm">
+                <p className="text-white/60 text-sm">
                   Chamado cai direto no seu WhatsApp. Sem intermediário, sem comissão.
                 </p>
               </motion.div>
@@ -234,8 +216,8 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
         </div>
       </section>
 
-      {/* Comparison Section */}
-      <section className="py-16 bg-slate-800/30">
+      {/* Comparação */}
+      <section className="py-16 bg-white/5">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-12">
@@ -244,12 +226,14 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
             
             <div className="grid md:grid-cols-2 gap-6">
               {/* Google */}
-              <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6">
+              <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <X className="w-5 h-5 text-red-400" />
+                  <div className="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
+                    <X className="w-4 h-4 text-red-400" />
+                  </div>
                   <h3 className="text-lg font-semibold text-red-400">No Google</h3>
                 </div>
-                <ul className="space-y-3 text-slate-400">
+                <ul className="space-y-3 text-white/70">
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 bg-red-400 rounded-full mt-2 shrink-0" />
                     Você vira mais um na lista
@@ -265,23 +249,25 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
                 </ul>
               </div>
               
-              {/* Aqui */}
-              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6">
+              {/* Com seu App */}
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <Check className="w-5 h-5 text-emerald-400" />
-                  <h3 className="text-lg font-semibold text-emerald-400">Com seu App</h3>
+                  <div className="w-8 h-8 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                    <Check className="w-4 h-4 text-yellow-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-yellow-400">Com seu App</h3>
                 </div>
-                <ul className="space-y-3 text-slate-300">
+                <ul className="space-y-3 text-white/90">
                   <li className="flex items-start gap-2">
-                    <Star className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                    <Star className="w-4 h-4 text-yellow-400 mt-0.5 shrink-0" />
                     Cliente acessa direto o seu guincho
                   </li>
                   <li className="flex items-start gap-2">
-                    <Star className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                    <Star className="w-4 h-4 text-yellow-400 mt-0.5 shrink-0" />
                     Sem comparação, sem intermediário
                   </li>
                   <li className="flex items-start gap-2">
-                    <Star className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                    <Star className="w-4 h-4 text-yellow-400 mt-0.5 shrink-0" />
                     Quem entra, chama você
                   </li>
                 </ul>
@@ -291,40 +277,48 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
         </div>
       </section>
 
-      {/* Price Section */}
+      {/* Preço */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-lg mx-auto">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 rounded-3xl p-8 text-center"
+              className="bg-gradient-to-br from-yellow-500/20 to-yellow-400/10 border-2 border-yellow-500/50 rounded-3xl p-8 text-center"
             >
-              <h2 className="text-2xl font-bold text-white mb-2">Investimento único</h2>
-              <div className="text-6xl font-bold text-white my-6">
-                R$ <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">47</span>
+              <h2 className="text-xl font-bold text-white mb-2">Ativação única</h2>
+              <div className="text-6xl font-bold text-yellow-400 my-6">
+                R$ 47
               </div>
               
-              <div className="flex flex-wrap justify-center gap-4 mb-8 text-sm">
-                <span className="flex items-center gap-2 text-slate-300">
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  Sem mensalidade
-                </span>
-                <span className="flex items-center gap-2 text-slate-300">
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  Sem comissão
-                </span>
-                <span className="flex items-center gap-2 text-slate-300">
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  Funciona 24h
-                </span>
+              <div className="space-y-3 mb-8 text-left">
+                <div className="flex items-center gap-3 text-white">
+                  <Check className="w-5 h-5 text-yellow-400 shrink-0" />
+                  <span>Sem mensalidade</span>
+                </div>
+                <div className="flex items-center gap-3 text-white">
+                  <Check className="w-5 h-5 text-yellow-400 shrink-0" />
+                  <span>Sem comissão por chamado</span>
+                </div>
+                <div className="flex items-center gap-3 text-white">
+                  <Check className="w-5 h-5 text-yellow-400 shrink-0" />
+                  <span>App exclusivo com seu nome</span>
+                </div>
+                <div className="flex items-center gap-3 text-white">
+                  <Check className="w-5 h-5 text-yellow-400 shrink-0" />
+                  <span>QR Code personalizado</span>
+                </div>
+                <div className="flex items-center gap-3 text-white">
+                  <Check className="w-5 h-5 text-yellow-400 shrink-0" />
+                  <span>Funciona 24 horas</span>
+                </div>
               </div>
               
               <Button 
                 size="lg"
                 onClick={handleWhatsAppRedirect}
-                className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-lg px-10 py-7 rounded-2xl shadow-lg shadow-emerald-500/25 w-full sm:w-auto"
+                className="bg-yellow-500 hover:bg-yellow-400 text-black text-lg px-10 py-7 rounded-xl font-bold shadow-lg w-full"
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
                 Ativar agora por R$ 47,00
@@ -341,7 +335,7 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-sm overflow-y-auto"
+            className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm overflow-y-auto"
           >
             <div className="container mx-auto px-4 py-8 min-h-screen flex items-center">
               <div className="max-w-2xl mx-auto w-full">
@@ -350,7 +344,7 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
                   <Button 
                     variant="ghost" 
                     onClick={() => setShowQuiz(false)}
-                    className="text-slate-400 hover:text-white"
+                    className="text-white/60 hover:text-white"
                   >
                     <X className="w-5 h-5" />
                   </Button>
@@ -364,12 +358,12 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
                       animate={{ opacity: quizStep >= index ? 1 : 0.3, x: 0 }}
                       transition={{ delay: index * 0.1 }}
                       className={cn(
-                        "bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6",
+                        "bg-white/5 border border-yellow-500/20 rounded-2xl p-6",
                         quizStep < index && "pointer-events-none"
                       )}
                     >
                       <p className="font-medium text-white mb-4 flex items-center gap-3">
-                        <span className="w-8 h-8 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center text-sm font-bold">
+                        <span className="w-8 h-8 bg-yellow-500 text-black rounded-full flex items-center justify-center text-sm font-bold">
                           {index + 1}
                         </span>
                         {q.question}
@@ -383,23 +377,23 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
                               "p-4 rounded-xl border-2 text-left transition-all",
                               quizAnswers[index] === opt.value
                                 ? opt.value 
-                                  ? "border-emerald-500 bg-emerald-500/10" 
+                                  ? "border-yellow-500 bg-yellow-500/10" 
                                   : "border-red-500 bg-red-500/10"
-                                : "border-slate-700 hover:border-slate-600"
+                                : "border-white/20 hover:border-white/40"
                             )}
                           >
                             <div className="flex items-center gap-3">
                               <div className={cn(
                                 "w-5 h-5 rounded-full border-2 flex items-center justify-center",
                                 quizAnswers[index] === opt.value
-                                  ? opt.value ? "border-emerald-500 bg-emerald-500" : "border-red-500 bg-red-500"
-                                  : "border-slate-600"
+                                  ? opt.value ? "border-yellow-500 bg-yellow-500" : "border-red-500 bg-red-500"
+                                  : "border-white/40"
                               )}>
                                 {quizAnswers[index] === opt.value && (
-                                  <Check className="w-3 h-3 text-white" />
+                                  <Check className="w-3 h-3 text-black" />
                                 )}
                               </div>
-                              <span className="text-slate-300">{opt.label}</span>
+                              <span className="text-white/80">{opt.label}</span>
                             </div>
                           </button>
                         ))}
@@ -407,7 +401,7 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
                     </motion.div>
                   ))}
                 </div>
-                
+
                 {allAnswered && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -415,28 +409,26 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
                     className="mt-8"
                   >
                     {canActivate ? (
-                      <div className="text-center bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-8">
-                        <Check className="w-16 h-16 text-emerald-400 mx-auto mb-4" />
-                        <p className="text-xl font-bold text-white mb-6">
-                          Perfeito! Você pode ativar seu app exclusivo
+                      <div className="text-center">
+                        <p className="text-yellow-400 mb-4 font-medium">
+                          ✓ Você entendeu a proposta. Pode ativar!
                         </p>
                         <Button 
                           size="lg"
                           onClick={handleWhatsAppRedirect}
-                          className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-lg px-8 py-6 rounded-2xl w-full sm:w-auto"
+                          className="bg-yellow-500 hover:bg-yellow-400 text-black text-lg px-10 py-7 rounded-xl font-bold"
                         >
                           <MessageCircle className="w-5 h-5 mr-2" />
                           Ativar por R$ 47,00
                         </Button>
                       </div>
                     ) : (
-                      <div className="text-center bg-red-500/10 border border-red-500/30 rounded-2xl p-8">
-                        <X className="w-16 h-16 text-red-400 mx-auto mb-4" />
-                        <p className="text-lg font-semibold text-white">
+                      <div className="text-center bg-red-500/10 border border-red-500/30 rounded-2xl p-6">
+                        <p className="text-red-400 mb-2">
                           Este app pode não ser ideal para você agora.
                         </p>
-                        <p className="text-slate-400 mt-2">
-                          Se mudar de ideia, estamos aqui!
+                        <p className="text-white/60 text-sm">
+                          Ele facilita quem já chega até você, não gera clientes automaticamente.
                         </p>
                       </div>
                     )}
@@ -449,9 +441,11 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
       </AnimatePresence>
 
       {/* Footer */}
-      <footer className="py-8 border-t border-slate-800">
-        <div className="container mx-auto px-4 text-center text-slate-500 text-sm">
-          <p>© 2024 Guincho24hs - Seu guincho digital exclusivo</p>
+      <footer className="py-8 border-t border-yellow-500/10">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-white/40 text-sm">
+            Dúvidas? Fale conosco pelo WhatsApp
+          </p>
         </div>
       </footer>
     </div>
