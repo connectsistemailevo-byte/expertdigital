@@ -23,7 +23,7 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <a href="https://wa.me/5562991429264" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm hover:text-secondary transition-colors">
                 <Phone className="w-4 h-4" />
-                (62) 99142-9264
+                (62) 99438-9675
               </a>
               <div className="flex items-center gap-3 text-sm">
                 <MapPin className="w-4 h-4" />
