@@ -424,7 +424,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
 
         <Button variant="hero" size="lg" className="w-full h-10 sm:h-12 text-sm sm:text-base" disabled={searchPhone.length < 14 || isSearching} onClick={handleSearch}>
           {isSearching ? <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" /> : <Search className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />}
-          {isSearching ? 'Buscando...' : 'Buscar Meu Cadastro'}
+          {isSearching ? 'Buscando...' : 'Seu WhatsApp'}
         </Button>
       </div>
 
