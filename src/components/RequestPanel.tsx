@@ -393,7 +393,7 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
             {!hideProviderSelection && <div>
                 <label className="flex items-center gap-1 text-xs mb-2 text-primary-foreground bg-sidebar-ring font-extrabold">
                   <Users className="w-3 h-3" />
-                               Selecionar  Prestadores disponíveis
+                               Enviar chamado para o prestador
                 </label>
                 {providersLoading ? <div className="flex items-center justify-center py-4">
                     <RefreshCw className="w-5 h-5 animate-spin text-muted-foreground" />
