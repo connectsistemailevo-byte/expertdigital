@@ -11,11 +11,12 @@ import {
   Shield,
   Zap,
   ArrowRight,
-  ChevronDown,
-  Star
+  Star,
+  Users,
+  Clock,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 interface ProviderLandingPageProps {
@@ -50,19 +51,19 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
     {
       question: "Você entende que este app:",
       options: [
-        { label: "Não gera clientes automaticamente, mas facilita quem já chega até você", value: true },
+        { label: "Facilita quem já chega até mim (não gera clientes automaticamente)", value: true },
         { label: "Vai gerar clientes automaticamente", value: false }
       ]
     },
     {
       question: "Você prefere:",
       options: [
-        { label: "Um acesso exclusivo só seu", value: true },
+        { label: "Um acesso exclusivo só meu", value: true },
         { label: "Uma vitrine disputando atenção com outros", value: false }
       ]
     },
     {
-      question: "Ter seu guincho salvo no celular do cliente faz sentido para você?",
+      question: "Ter seu guincho salvo no celular do cliente faz sentido?",
       options: [
         { label: "Sim, quero estar sempre à mão", value: true },
         { label: "Não, prefiro depender de buscas", value: false }
@@ -71,453 +72,386 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/95 to-primary text-primary-foreground">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
-      <div className="container mx-auto px-4 py-4">
-        <Button 
-          variant="ghost" 
-          onClick={onBack}
-          className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
-        >
-          ← Voltar
-        </Button>
-      </div>
+      <header className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-sm border-b border-slate-700/50">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <Button 
+              variant="ghost" 
+              onClick={onBack}
+              className="text-slate-400 hover:text-white hover:bg-slate-800"
+            >
+              ← Voltar
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={onActivate}
+              className="text-emerald-400 hover:text-emerald-300 hover:bg-slate-800 font-medium"
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Prestadores Ativos
+            </Button>
+          </div>
+        </div>
+      </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-8 md:py-16">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center max-w-4xl mx-auto"
-        >
-          <div className="flex justify-center mb-6">
-            <div className="bg-secondary/20 p-4 rounded-full">
-              <Truck className="w-12 h-12 md:w-16 md:h-16 text-secondary" />
-            </div>
-          </div>
-          
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-            Seu guincho com{' '}
-            <span className="text-secondary">app exclusivo</span>{' '}
-            para seus clientes
-          </h1>
-          
-          <p className="text-lg md:text-xl text-primary-foreground/80 mb-8 max-w-2xl mx-auto">
-            Um acesso direto, sem disputa, sem comissão e sem vitrine.
-          </p>
-
-          <Button 
-            size="lg"
-            onClick={() => setShowQuiz(true)}
-            className="bg-secondary text-secondary-foreground hover:bg-secondary/90 text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
+      <section className="relative py-16 md:py-24 overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 right-20 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 left-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-4xl mx-auto"
           >
-            Quero ativar meu app
-            <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
-        </motion.div>
+            {/* Badge */}
+            <div className="flex justify-center mb-6">
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/20 border border-emerald-500/30 rounded-full text-emerald-400 text-sm font-medium">
+                <Truck className="w-4 h-4" />
+                Seu Guincho Digital
+              </span>
+            </div>
+            
+            {/* Main Headline */}
+            <h1 className="text-4xl md:text-6xl font-bold text-center text-white leading-tight mb-6">
+              App exclusivo para{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+                seus clientes
+              </span>
+            </h1>
+            
+            <p className="text-xl text-slate-400 text-center max-w-2xl mx-auto mb-10">
+              Acesso direto. Sem comissão. Sem disputa. 
+              <span className="text-white font-medium"> O cliente fala só com você.</span>
+            </p>
+
+            {/* CTA Principal */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button 
+                size="lg"
+                onClick={handleWhatsAppRedirect}
+                className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-lg px-8 py-7 rounded-2xl shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 transition-all w-full sm:w-auto"
+              >
+                <MessageCircle className="w-5 h-5 mr-2" />
+                Ativar por R$ 47,00
+              </Button>
+              <Button 
+                size="lg"
+                variant="outline"
+                onClick={() => setShowQuiz(true)}
+                className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white text-lg px-8 py-7 rounded-2xl w-full sm:w-auto"
+              >
+                Entender melhor
+                <ChevronRight className="w-5 h-5 ml-1" />
+              </Button>
+            </div>
+
+            {/* Trust indicators */}
+            <div className="flex flex-wrap items-center justify-center gap-6 mt-10 text-sm text-slate-500">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-emerald-500" />
+                <span>Sem mensalidade</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-emerald-500" />
+                <span>Funciona 24h</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Star className="w-4 h-4 text-emerald-500" />
+                <span>Pagamento único</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </section>
 
-      {/* What You're Activating */}
-      <section className="container mx-auto px-4 py-12">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="max-w-4xl mx-auto"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-2 h-8 bg-secondary rounded-full" />
-            <h2 className="text-2xl md:text-3xl font-bold">O que você está ativando</h2>
+      {/* Features Grid */}
+      <section className="py-16 border-t border-slate-800">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-12">
+              O que você recebe
+            </h2>
+            
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Feature 1 */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 hover:border-emerald-500/30 transition-colors"
+              >
+                <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <QrCode className="w-6 h-6 text-emerald-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">QR Code Exclusivo</h3>
+                <p className="text-slate-400 text-sm">
+                  Cole no caminhão, oficinas, postos. Cliente escaneia e cai direto no seu app.
+                </p>
+              </motion.div>
+
+              {/* Feature 2 */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 hover:border-emerald-500/30 transition-colors"
+              >
+                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <Smartphone className="w-6 h-6 text-blue-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">App no Celular</h3>
+                <p className="text-slate-400 text-sm">
+                  Cliente instala com um toque. Seu guincho fica salvo e pronto para chamar.
+                </p>
+              </motion.div>
+
+              {/* Feature 3 */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+                className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 hover:border-emerald-500/30 transition-colors"
+              >
+                <div className="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <MessageCircle className="w-6 h-6 text-amber-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">Direto no WhatsApp</h3>
+                <p className="text-slate-400 text-sm">
+                  Chamado cai direto no seu WhatsApp. Sem intermediário, sem comissão.
+                </p>
+              </motion.div>
+            </div>
           </div>
-          
-          <Card className="bg-primary-foreground/10 border-primary-foreground/20 backdrop-blur">
-            <CardContent className="p-6 md:p-8">
-              <p className="text-lg md:text-xl mb-6">
-                Ao ativar, você recebe um <strong className="text-secondary">app exclusivo do seu guincho</strong>.
-              </p>
-              
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <X className="w-6 h-6 text-destructive shrink-0 mt-0.5" />
-                  <p className="text-primary-foreground/80">Não é um app genérico.</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Check className="w-6 h-6 text-secondary shrink-0 mt-0.5" />
-                  <p>É o <strong>seu atendimento digital</strong>, com seu nome, seu WhatsApp e seu acesso direto.</p>
-                </div>
-                <div className="flex items-start gap-3 bg-secondary/20 p-4 rounded-xl">
-                  <MessageCircle className="w-6 h-6 text-secondary shrink-0 mt-0.5" />
-                  <p className="font-semibold">O cliente entra e fala somente com você.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+        </div>
       </section>
 
       {/* Comparison Section */}
-      <section className="container mx-auto px-4 py-12">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="max-w-4xl mx-auto"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-2 h-8 bg-secondary rounded-full" />
-            <h2 className="text-2xl md:text-3xl font-bold">Por que isso é melhor que "estar no Google"?</h2>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card className="bg-destructive/20 border-destructive/30">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <X className="w-6 h-6 text-destructive" />
-                  No Google:
-                </h3>
-                <ul className="space-y-3 text-primary-foreground/80">
-                  <li className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-destructive rounded-full" />
-                    Você vira mais um
+      <section className="py-16 bg-slate-800/30">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-12">
+              Por que é melhor que o Google?
+            </h2>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Google */}
+              <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <X className="w-5 h-5 text-red-400" />
+                  <h3 className="text-lg font-semibold text-red-400">No Google</h3>
+                </div>
+                <ul className="space-y-3 text-slate-400">
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 bg-red-400 rounded-full mt-2 shrink-0" />
+                    Você vira mais um na lista
                   </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-destructive rounded-full" />
-                    Disputa atenção
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 bg-red-400 rounded-full mt-2 shrink-0" />
+                    Disputa atenção com concorrentes
                   </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-destructive rounded-full" />
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 bg-red-400 rounded-full mt-2 shrink-0" />
                     Perde tempo explicando tudo
                   </li>
                 </ul>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-secondary/20 border-secondary/30">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <Check className="w-6 h-6 text-secondary" />
-                  Aqui:
-                </h3>
-                <ul className="space-y-3">
-                  <li className="flex items-center gap-2">
-                    <Star className="w-4 h-4 text-secondary" />
-                    O cliente acessa <strong>direto o seu guincho</strong>
+              </div>
+              
+              {/* Aqui */}
+              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Check className="w-5 h-5 text-emerald-400" />
+                  <h3 className="text-lg font-semibold text-emerald-400">Com seu App</h3>
+                </div>
+                <ul className="space-y-3 text-slate-300">
+                  <li className="flex items-start gap-2">
+                    <Star className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                    Cliente acessa direto o seu guincho
                   </li>
-                  <li className="flex items-center gap-2">
-                    <Star className="w-4 h-4 text-secondary" />
-                    Sem lista
+                  <li className="flex items-start gap-2">
+                    <Star className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                    Sem comparação, sem intermediário
                   </li>
-                  <li className="flex items-center gap-2">
-                    <Star className="w-4 h-4 text-secondary" />
-                    Sem comparação
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Star className="w-4 h-4 text-secondary" />
-                    Sem intermediário
+                  <li className="flex items-start gap-2">
+                    <Star className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                    Quem entra, chama você
                   </li>
                 </ul>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
-          
-          <div className="mt-6 p-4 bg-secondary/10 rounded-xl text-center">
-            <p className="text-lg font-semibold">
-              <Target className="inline w-5 h-5 mr-2 text-secondary" />
-              Quem entra no seu acesso, <span className="text-secondary">chama você</span>.
-            </p>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* How Client Arrives */}
-      <section className="container mx-auto px-4 py-12">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="max-w-4xl mx-auto"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-2 h-8 bg-secondary rounded-full" />
-            <h2 className="text-2xl md:text-3xl font-bold">Como o cliente chega até você</h2>
-          </div>
-          
-          <Card className="bg-primary-foreground/10 border-primary-foreground/20">
-            <CardContent className="p-6 md:p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="bg-secondary/20 p-3 rounded-full">
-                  <QrCode className="w-8 h-8 text-secondary" />
-                </div>
-                <p className="text-lg">Você recebe um <strong>link e um QR Code exclusivos</strong></p>
-              </div>
-              
-              <p className="mb-4 text-primary-foreground/80">Pode espalhar esse acesso em:</p>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-                {['Caminhão', 'Oficinas', 'Postos', 'Clientes antigos'].map((item) => (
-                  <div key={item} className="bg-secondary/10 p-3 rounded-lg text-center">
-                    <span className="font-medium">{item}</span>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="bg-primary/50 p-6 rounded-xl space-y-3">
-                <p className="font-medium">Quando o cliente escaneia ou abre o link:</p>
-                <div className="flex items-center gap-2">
-                  <ArrowRight className="w-5 h-5 text-secondary" />
-                  <span>Ele entra no seu app</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ArrowRight className="w-5 h-5 text-secondary" />
-                  <span>Preenche a situação</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ArrowRight className="w-5 h-5 text-secondary" />
-                  <span>O chamado cai <strong className="text-secondary">direto no seu WhatsApp</strong></span>
-                </div>
-              </div>
-              
-              <p className="mt-6 text-center text-lg font-semibold text-secondary">
-                Simples. Direto. Rápido.
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </section>
-
-      {/* PWA Section */}
-      <section className="container mx-auto px-4 py-12">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="max-w-4xl mx-auto"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-2 h-8 bg-secondary rounded-full" />
-            <h2 className="text-2xl md:text-3xl font-bold">App que fica no celular do cliente</h2>
-          </div>
-          
-          <Card className="bg-secondary/20 border-secondary/30">
-            <CardContent className="p-6 md:p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <Smartphone className="w-12 h-12 text-secondary" />
-                <p className="text-lg">O cliente pode <strong>instalar o app no celular</strong> com um toque.</p>
-              </div>
-              
-              <p className="mb-4">Isso significa:</p>
-              
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 bg-primary/30 p-3 rounded-lg">
-                  <Check className="w-5 h-5 text-secondary" />
-                  <span>Seu guincho fica <strong>salvo</strong></span>
-                </div>
-                <div className="flex items-center gap-3 bg-primary/30 p-3 rounded-lg">
-                  <Check className="w-5 h-5 text-secondary" />
-                  <span>Não precisa pesquisar</span>
-                </div>
-                <div className="flex items-center gap-3 bg-primary/30 p-3 rounded-lg">
-                  <Check className="w-5 h-5 text-secondary" />
-                  <span>Não depende de Google</span>
-                </div>
-              </div>
-              
-              <div className="mt-6 p-4 bg-secondary text-secondary-foreground rounded-xl text-center">
-                <p className="font-bold text-lg">
-                  📌 Quando ele precisar, você já está lá.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+        </div>
       </section>
 
       {/* Price Section */}
-      <section className="container mx-auto px-4 py-12">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="max-w-4xl mx-auto"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-2 h-8 bg-secondary rounded-full" />
-            <h2 className="text-2xl md:text-3xl font-bold">Valor simbólico</h2>
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 rounded-3xl p-8 text-center"
+            >
+              <h2 className="text-2xl font-bold text-white mb-2">Investimento único</h2>
+              <div className="text-6xl font-bold text-white my-6">
+                R$ <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">47</span>
+              </div>
+              
+              <div className="flex flex-wrap justify-center gap-4 mb-8 text-sm">
+                <span className="flex items-center gap-2 text-slate-300">
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  Sem mensalidade
+                </span>
+                <span className="flex items-center gap-2 text-slate-300">
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  Sem comissão
+                </span>
+                <span className="flex items-center gap-2 text-slate-300">
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  Funciona 24h
+                </span>
+              </div>
+              
+              <Button 
+                size="lg"
+                onClick={handleWhatsAppRedirect}
+                className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-lg px-10 py-7 rounded-2xl shadow-lg shadow-emerald-500/25 w-full sm:w-auto"
+              >
+                <MessageCircle className="w-5 h-5 mr-2" />
+                Ativar agora por R$ 47,00
+              </Button>
+            </motion.div>
           </div>
-          
-          <Card className="bg-gradient-to-br from-secondary/30 to-secondary/10 border-secondary/40">
-            <CardContent className="p-6 md:p-8 text-center">
-              <p className="text-xl mb-4">O valor para ativar tudo isso é</p>
-              <div className="text-5xl md:text-6xl font-bold text-secondary mb-6">
-                R$ 47,00
-              </div>
-              
-              <div className="space-y-2 mb-6">
-                <div className="flex items-center justify-center gap-2 text-primary-foreground/80">
-                  <Shield className="w-5 h-5 text-secondary" />
-                  <span>Sem mensalidade escondida</span>
-                </div>
-                <div className="flex items-center justify-center gap-2 text-primary-foreground/80">
-                  <Shield className="w-5 h-5 text-secondary" />
-                  <span>Sem comissão por atendimento</span>
-                </div>
-                <div className="flex items-center justify-center gap-2 text-primary-foreground/80">
-                  <Shield className="w-5 h-5 text-secondary" />
-                  <span>Sem taxa por chamado</span>
-                </div>
-              </div>
-              
-              <p className="text-lg text-primary-foreground/80">
-                É um valor simbólico para ter um <strong>acesso digital que funciona 24h</strong>.
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
+        </div>
       </section>
 
       {/* Quiz Section */}
       <AnimatePresence>
         {showQuiz && (
           <motion.section 
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="container mx-auto px-4 py-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-sm overflow-y-auto"
           >
-            <div className="max-w-4xl mx-auto">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-2 h-8 bg-secondary rounded-full" />
-                <h2 className="text-2xl md:text-3xl font-bold">🧠 Antes de continuar, confirme</h2>
-              </div>
-              
-              <Card className="bg-primary-foreground/10 border-primary-foreground/20">
-                <CardContent className="p-6 md:p-8">
-                  <div className="space-y-8">
-                    {quizQuestions.map((q, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: quizStep >= index ? 1 : 0.5, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className={cn(
-                          "transition-all",
-                          quizStep < index && "pointer-events-none"
-                        )}
-                      >
-                        <p className="font-semibold mb-3 flex items-center gap-2">
-                          <span className="bg-secondary text-secondary-foreground w-6 h-6 rounded-full flex items-center justify-center text-sm">
-                            {index + 1}
-                          </span>
-                          {q.question}
-                        </p>
-                        <div className="grid gap-3 md:grid-cols-2">
-                          {q.options.map((opt, optIndex) => (
-                            <button
-                              key={optIndex}
-                              onClick={() => handleQuizAnswer(index, opt.value)}
-                              className={cn(
-                                "p-4 rounded-xl border-2 text-left transition-all",
-                                quizAnswers[index] === opt.value
-                                  ? opt.value 
-                                    ? "border-secondary bg-secondary/20" 
-                                    : "border-destructive bg-destructive/20"
-                                  : "border-primary-foreground/20 hover:border-primary-foreground/40"
-                              )}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className={cn(
-                                  "w-5 h-5 rounded-full border-2 flex items-center justify-center",
-                                  quizAnswers[index] === opt.value
-                                    ? opt.value ? "border-secondary bg-secondary" : "border-destructive bg-destructive"
-                                    : "border-primary-foreground/40"
-                                )}>
-                                  {quizAnswers[index] === opt.value && (
-                                    <Check className="w-3 h-3 text-primary-foreground" />
-                                  )}
-                                </div>
-                                <span className="text-sm md:text-base">{opt.label}</span>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                  
-                  {allAnswered && (
+            <div className="container mx-auto px-4 py-8 min-h-screen flex items-center">
+              <div className="max-w-2xl mx-auto w-full">
+                <div className="flex justify-between items-center mb-8">
+                  <h2 className="text-2xl font-bold text-white">Confirme antes de ativar</h2>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setShowQuiz(false)}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+                
+                <div className="space-y-6">
+                  {quizQuestions.map((q, index) => (
                     <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mt-8"
-                    >
-                      {canActivate ? (
-                        <div className="text-center">
-                          <div className="bg-secondary/20 p-6 rounded-xl mb-6">
-                            <Check className="w-12 h-12 text-secondary mx-auto mb-3" />
-                            <p className="text-xl font-bold text-secondary">
-                              🟢 Perfeito! Você pode ativar seu app exclusivo
-                            </p>
-                          </div>
-                          
-                          <Button 
-                            size="lg"
-                            onClick={handleWhatsAppRedirect}
-                            className="bg-secondary text-secondary-foreground hover:bg-secondary/90 text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all w-full md:w-auto"
-                          >
-                            <MessageCircle className="mr-2 w-6 h-6" />
-                            Ativar meu app exclusivo por R$ 47,00
-                          </Button>
-                          
-                          <p className="mt-4 text-sm text-primary-foreground/60">
-                            Você será redirecionado para o WhatsApp para finalizar
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="text-center bg-destructive/20 p-6 rounded-xl">
-                          <X className="w-12 h-12 text-destructive mx-auto mb-3" />
-                          <p className="text-lg font-semibold">
-                            Este app pode não ser ideal para você neste momento.
-                          </p>
-                          <p className="text-primary-foreground/80 mt-2">
-                            Se mudar de ideia, estamos aqui!
-                          </p>
-                        </div>
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: quizStep >= index ? 1 : 0.3, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className={cn(
+                        "bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6",
+                        quizStep < index && "pointer-events-none"
                       )}
+                    >
+                      <p className="font-medium text-white mb-4 flex items-center gap-3">
+                        <span className="w-8 h-8 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center text-sm font-bold">
+                          {index + 1}
+                        </span>
+                        {q.question}
+                      </p>
+                      <div className="grid gap-3">
+                        {q.options.map((opt, optIndex) => (
+                          <button
+                            key={optIndex}
+                            onClick={() => handleQuizAnswer(index, opt.value)}
+                            className={cn(
+                              "p-4 rounded-xl border-2 text-left transition-all",
+                              quizAnswers[index] === opt.value
+                                ? opt.value 
+                                  ? "border-emerald-500 bg-emerald-500/10" 
+                                  : "border-red-500 bg-red-500/10"
+                                : "border-slate-700 hover:border-slate-600"
+                            )}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={cn(
+                                "w-5 h-5 rounded-full border-2 flex items-center justify-center",
+                                quizAnswers[index] === opt.value
+                                  ? opt.value ? "border-emerald-500 bg-emerald-500" : "border-red-500 bg-red-500"
+                                  : "border-slate-600"
+                              )}>
+                                {quizAnswers[index] === opt.value && (
+                                  <Check className="w-3 h-3 text-white" />
+                                )}
+                              </div>
+                              <span className="text-slate-300">{opt.label}</span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
                     </motion.div>
-                  )}
-                </CardContent>
-              </Card>
+                  ))}
+                </div>
+                
+                {allAnswered && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-8"
+                  >
+                    {canActivate ? (
+                      <div className="text-center bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-8">
+                        <Check className="w-16 h-16 text-emerald-400 mx-auto mb-4" />
+                        <p className="text-xl font-bold text-white mb-6">
+                          Perfeito! Você pode ativar seu app exclusivo
+                        </p>
+                        <Button 
+                          size="lg"
+                          onClick={handleWhatsAppRedirect}
+                          className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-lg px-8 py-6 rounded-2xl w-full sm:w-auto"
+                        >
+                          <MessageCircle className="w-5 h-5 mr-2" />
+                          Ativar por R$ 47,00
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-center bg-red-500/10 border border-red-500/30 rounded-2xl p-8">
+                        <X className="w-16 h-16 text-red-400 mx-auto mb-4" />
+                        <p className="text-lg font-semibold text-white">
+                          Este app pode não ser ideal para você agora.
+                        </p>
+                        <p className="text-slate-400 mt-2">
+                          Se mudar de ideia, estamos aqui!
+                        </p>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </div>
             </div>
           </motion.section>
         )}
       </AnimatePresence>
 
-      {/* CTA Button for non-quiz users */}
-      {!showQuiz && (
-        <section className="container mx-auto px-4 py-12">
-          <div className="max-w-4xl mx-auto text-center">
-            <Button 
-              size="lg"
-              onClick={() => {
-                setShowQuiz(true);
-                setTimeout(() => {
-                  document.querySelector('[data-quiz]')?.scrollIntoView({ behavior: 'smooth' });
-                }, 100);
-              }}
-              className="bg-secondary text-secondary-foreground hover:bg-secondary/90 text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
-            >
-              <Zap className="mr-2 w-5 h-5" />
-              Quero ativar meu app agora
-              <ChevronDown className="ml-2 w-5 h-5 animate-bounce" />
-            </Button>
-          </div>
-        </section>
-      )}
-
       {/* Footer */}
-      <footer className="container mx-auto px-4 py-8 border-t border-primary-foreground/10">
-        <div className="text-center text-primary-foreground/60 text-sm">
-          <p>© 2024 AkiGuincho24hs - Seu guincho digital exclusivo</p>
+      <footer className="py-8 border-t border-slate-800">
+        <div className="container mx-auto px-4 text-center text-slate-500 text-sm">
+          <p>© 2024 Guincho24hs - Seu guincho digital exclusivo</p>
         </div>
       </footer>
     </div>

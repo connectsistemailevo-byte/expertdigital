@@ -52,18 +52,10 @@ const Index: React.FC = () => {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0f1a]/90 backdrop-blur-lg border-b border-white/10">
         <div className="container mx-auto px-2 md:px-4">
-          <div className="flex items-center justify-between h-14 md:h-20 gap-1">
+          <div className="flex items-center justify-between h-14 md:h-20 gap-2">
             {/* Logo - compacto no mobile */}
-            <div className="font-display text-sm md:text-2xl font-bold text-white rounded-lg flex-shrink-0 whitespace-nowrap">Direto com o guincho<span className="text-secondary">24HS</span>
-            </div>
-            
-            {/* Mobile: Links em coluna */}
-            <div className="flex md:hidden flex-col items-center flex-1 min-w-0 px-1">
-              <a href="https://wa.me/5562994389675?text=Olá! Sou prestador e quero contratar o site Aki Guincho 24HS" target="_blank" rel="noopener noreferrer" className="text-[9px] text-secondary hover:text-secondary/80 transition-colors flex items-center gap-0.5 font-medium">
-                
-                
-              </a>
-              
+            <div className="font-display text-sm md:text-2xl font-bold text-white rounded-lg flex-shrink-0 whitespace-nowrap">
+              Guincho<span className="text-secondary">24HS</span>
             </div>
             
             {/* Desktop Nav */}
@@ -74,24 +66,32 @@ const Index: React.FC = () => {
               <a href="#como-funciona" className="text-sm text-white/70 hover:text-white transition-colors">
                 Como Funciona
               </a>
-              <button onClick={() => setShowProviderLanding(true)} className="text-sm text-white/70 hover:text-white transition-colors flex items-center gap-2">
-                <Truck className="w-4 h-4" />
-                Área do Prestador
-              </button>
-              
             </nav>
             
-            {/* Botão Área do Prestador */}
-            <Button 
-              variant="hero" 
-              size="sm" 
-              onClick={() => setShowProviderLanding(true)} 
-              className="flex items-center gap-1 text-[11px] sm:text-xs md:text-sm px-2 sm:px-3 md:px-4 py-1.5 md:py-2 h-auto whitespace-nowrap"
-            >
-              <Truck className="w-3 h-3 md:w-4 md:h-4 shrink-0" />
-              <span className="hidden sm:inline">Área do Prestador</span>
-              <span className="sm:hidden">Prestador</span>
-            </Button>
+            {/* Botões de ação */}
+            <div className="flex items-center gap-2">
+              {/* Prestadores Ativos - acesso direto ao cadastro */}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setIsProviderModalOpen(true)} 
+                className="hidden sm:flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+              >
+                <Settings className="w-3.5 h-3.5" />
+                Prestadores Ativos
+              </Button>
+              
+              {/* Botão Sou Prestador */}
+              <Button 
+                variant="hero" 
+                size="sm" 
+                onClick={() => setShowProviderLanding(true)} 
+                className="flex items-center gap-1.5 text-[11px] sm:text-xs md:text-sm px-3 sm:px-4 py-1.5 md:py-2 h-auto whitespace-nowrap"
+              >
+                <Truck className="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0" />
+                <span>Sou Prestador</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
