@@ -743,7 +743,16 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
 
               {/* Estatísticas Section */}
               <button
-                onClick={() => navigate('/provider-stats')}
+                onClick={() => {
+                  // Se o prestador já está no modo editar, não pedir WhatsApp novamente
+                  if (existingProvider?.whatsapp) {
+                    localStorage.setItem(
+                      'provider_whatsapp',
+                      existingProvider.whatsapp.replace(/\D/g, '')
+                    );
+                  }
+                  navigate('/provider-stats');
+                }}
                 className="w-full p-3 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 flex items-center gap-3 hover:bg-green-500/20 transition-colors"
               >
                 <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
