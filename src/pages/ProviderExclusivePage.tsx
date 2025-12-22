@@ -218,8 +218,14 @@ const ProviderInfoCard: React.FC<ProviderInfoCardProps> = ({
   const tripDistanceKm = routeInfo?.distanceKm || 0;
   const hasDestination = tripDistanceKm > 0;
 
-  // Calcular preço total
+  // Calcular preço total (ida)
   const totalPrice = basePrice + (tripDistanceKm * pricePerKm);
+  
+  // Calcular preço de retorno (se habilitado)
+  const hasReturn = provider.return_enabled && (provider.return_price || provider.return_price_per_km);
+  const returnTotalPrice = hasDestination && hasReturn
+    ? (provider.return_price ?? 0) + (tripDistanceKm * (provider.return_price_per_km ?? 0))
+    : 0;
 
   return (
     <div className="mb-4 p-4 rounded-2xl bg-white border-2 border-yellow-400 shadow-lg">
@@ -286,16 +292,22 @@ const ProviderInfoCard: React.FC<ProviderInfoCardProps> = ({
             </div>
           )}
 
-          {/* Valor de retorno - só exibe se ativado e prestador online */}
-          {provider.return_enabled && isProviderOnline && (provider.return_price || provider.return_price_per_km) && (
-            <div className="bg-orange-100 text-orange-700 rounded-lg px-3 py-2 flex items-center gap-2 text-sm font-medium mt-2">
-              <RotateCcw className="w-4 h-4" />
-              <span>
-                Retorno (ida e volta): 
-                {provider.return_price ? ` R$${provider.return_price.toFixed(2)}` : ''}
-                {provider.return_price && provider.return_price_per_km ? ' + ' : ''}
-                {provider.return_price_per_km ? `R$${provider.return_price_per_km.toFixed(2)}/km` : ''}
+          {/* Valor de retorno - só exibe se ativado, prestador online E já tiver destino */}
+          {hasReturn && hasDestination && (
+            <div className="bg-orange-100 text-orange-700 rounded-lg px-3 py-2 flex items-center justify-between text-sm font-medium mt-2">
+              <span className="flex items-center gap-2">
+                <RotateCcw className="w-4 h-4" />
+                Retorno (ida e volta)
               </span>
+              <span className="font-bold">+ R$ {returnTotalPrice.toFixed(2)}</span>
+            </div>
+          )}
+
+          {/* Info de retorno disponível (sem valor até informar destino) */}
+          {hasReturn && !hasDestination && (
+            <div className="bg-orange-50 text-orange-600 rounded-lg px-3 py-2 flex items-center gap-2 text-xs mt-2">
+              <RotateCcw className="w-3 h-3" />
+              <span>Serviço de retorno disponível</span>
             </div>
           )}
 

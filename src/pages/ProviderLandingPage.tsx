@@ -217,23 +217,23 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
       </section>
 
       {/* Comparação */}
-      <section className="py-16 bg-white/5">
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-black text-center mb-12">
               Por que é melhor que o Google?
             </h2>
             
             <div className="grid md:grid-cols-2 gap-6">
               {/* Google */}
-              <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6">
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
-                    <X className="w-4 h-4 text-red-400" />
+                  <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                    <X className="w-4 h-4 text-red-500" />
                   </div>
-                  <h3 className="text-lg font-semibold text-red-400">No Google</h3>
+                  <h3 className="text-lg font-semibold text-red-600">No Google</h3>
                 </div>
-                <ul className="space-y-3 text-white/70">
+                <ul className="space-y-3 text-gray-700">
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 bg-red-400 rounded-full mt-2 shrink-0" />
                     Você vira mais um na lista
@@ -250,24 +250,24 @@ const ProviderLandingPage: React.FC<ProviderLandingPageProps> = ({ onActivate, o
               </div>
               
               {/* Com seu App */}
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-6">
+              <div className="bg-yellow-50 border border-yellow-300 rounded-2xl p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 bg-yellow-500/20 rounded-full flex items-center justify-center">
-                    <Check className="w-4 h-4 text-yellow-400" />
+                  <div className="w-8 h-8 bg-yellow-200 rounded-full flex items-center justify-center">
+                    <Check className="w-4 h-4 text-yellow-700" />
                   </div>
-                  <h3 className="text-lg font-semibold text-yellow-400">Com seu App</h3>
+                  <h3 className="text-lg font-semibold text-yellow-700">Com seu App</h3>
                 </div>
-                <ul className="space-y-3 text-white/90">
+                <ul className="space-y-3 text-gray-800">
                   <li className="flex items-start gap-2">
-                    <Star className="w-4 h-4 text-yellow-400 mt-0.5 shrink-0" />
+                    <Star className="w-4 h-4 text-yellow-500 mt-0.5 shrink-0" />
                     Cliente acessa direto o seu guincho
                   </li>
                   <li className="flex items-start gap-2">
-                    <Star className="w-4 h-4 text-yellow-400 mt-0.5 shrink-0" />
+                    <Star className="w-4 h-4 text-yellow-500 mt-0.5 shrink-0" />
                     Sem comparação, sem intermediário
                   </li>
                   <li className="flex items-start gap-2">
-                    <Star className="w-4 h-4 text-yellow-400 mt-0.5 shrink-0" />
+                    <Star className="w-4 h-4 text-yellow-500 mt-0.5 shrink-0" />
                     Quem entra, chama você
                   </li>
                 </ul>

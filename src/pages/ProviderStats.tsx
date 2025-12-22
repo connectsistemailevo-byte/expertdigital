@@ -164,7 +164,7 @@ export default function ProviderStats() {
           <Button 
             variant="outline" 
             size="icon"
-            onClick={() => navigate('/provider-dashboard')}
+            onClick={() => navigate(-1)}
             className="border-slate-600"
           >
             <ArrowLeft className="w-4 h-4" />

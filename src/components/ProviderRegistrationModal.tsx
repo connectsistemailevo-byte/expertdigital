@@ -639,7 +639,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
                 <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold text-orange-400">R$</span>
                 <Input 
                   type="number" 
-                  placeholder="100" 
+                  placeholder="" 
                   value={returnPrice} 
                   onChange={e => setReturnPrice(e.target.value)} 
                   className="h-9 text-sm font-bold pl-8" 

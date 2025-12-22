@@ -663,30 +663,9 @@ export default function ProviderDashboard() {
           </CardContent>
         </Card>
 
-        {/* Ações */}
-        <div className="flex flex-wrap gap-4">
-          {!subscription?.adesao_paga && (
-            <Button
-              onClick={() => setShowPlanModal(true)}
-              className="bg-gradient-to-r from-primary to-purple-600"
-            >
-              <CreditCard className="w-4 h-4 mr-2" />
-              Escolher Plano
-            </Button>
-          )}
-          {subscription?.adesao_paga && subscription.plano !== 'pro' && (
-            <Button
-              onClick={() => setShowPlanModal(true)}
-              variant="outline"
-              className="border-slate-600 text-slate-300"
-            >
-              Fazer Upgrade
-            </Button>
-          )}
-        </div>
       </div>
 
-      {/* Modal de Trial Esgotado */}
+      {/* Modal de Trial Esgotado - ÚNICO MODAL */}
       <TrialExhaustedModal
         open={showTrialExhaustedModal}
         onOpenChange={setShowTrialExhaustedModal}
@@ -694,17 +673,8 @@ export default function ProviderDashboard() {
         whatsapp={provider.whatsapp}
         reason={blockReason}
         message={blockReason === 'limit_reached' 
-          ? `Você atingiu o limite de ${subscription?.limite_corridas} corridas do seu plano.` 
+          ? `Você atingiu o limite de corridas do seu plano.` 
           : undefined}
-      />
-
-      {/* Modal de Seleção de Plano */}
-      <PlanSelectionModal
-        open={showPlanModal}
-        onOpenChange={setShowPlanModal}
-        providerId={provider.id}
-        whatsapp={provider.whatsapp}
-        trialCorridasRestantes={subscription?.trial_corridas_restantes}
       />
 
       {/* Modal de Permissão de Localização */}
@@ -737,17 +707,6 @@ export default function ProviderDashboard() {
           }}
         />
       )}
-
-      <TrialExhaustedModal
-        open={showTrialExhaustedModal}
-        onOpenChange={setShowTrialExhaustedModal}
-        providerId={provider.id}
-        whatsapp={provider.whatsapp}
-        reason={blockReason}
-        message={blockReason === 'limit_reached' 
-          ? `Você atingiu o limite de ${subscription?.limite_corridas} corridas do seu plano.` 
-          : undefined}
-      />
     </div>
   );
 }
