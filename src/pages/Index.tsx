@@ -6,7 +6,7 @@ import ProviderRegistrationModal from '@/components/ProviderRegistrationModal';
 import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
 import RequestPanel from '@/components/RequestPanel';
-import { MapPin, Phone, ArrowRight, CheckCircle, Truck, Navigation, Settings, MessageCircle } from 'lucide-react';
+import { MapPin, Phone, ArrowRight, CheckCircle, Truck, Navigation, Settings } from 'lucide-react';
 const Index: React.FC = () => {
   const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
   const {
@@ -25,12 +25,10 @@ const Index: React.FC = () => {
             {/* Mobile: Links em coluna */}
             <div className="flex md:hidden flex-col items-center flex-1 min-w-0 px-1">
               <a href="https://wa.me/5562994389675?text=Olá! Sou prestador e quero contratar o site Aki Guincho 24HS" target="_blank" rel="noopener noreferrer" className="text-[9px] text-secondary hover:text-secondary/80 transition-colors flex items-center gap-0.5 font-medium">
-                <MessageCircle className="w-3 h-3 flex-shrink-0" />
-                <span>Quero Contratar</span>
+                
+                
               </a>
-              <a href="tel:+5562994389675" className="text-[9px] text-white/70 hover:text-white transition-colors">
-                (62) 99438-9675
-              </a>
+              
             </div>
             
             {/* Desktop Nav */}
@@ -49,10 +47,10 @@ const Index: React.FC = () => {
             </nav>
             
             {/* Botão Sou Prestador */}
-            <Button variant="hero" size="sm" onClick={() => setIsProviderModalOpen(true)} className="flex-shrink-0 text-[10px] md:text-sm px-2 md:px-4 py-1 md:py-2 h-auto">
-              <Truck className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+            <Button variant="hero" size="sm" onClick={() => setIsProviderModalOpen(true)} className="flex-shrink-0 text-[10px] md:text-sm md:px-4 py-1 md:py-2 h-auto px-[34px] text-center">
+              <Truck className="w-3 h-3 md:w-4 md:h-4 mr-1 px-0 my-[7px] py-0" />
               <span className="hidden sm:inline">Área do  Prestador</span>
-              <span className="sm:hidden">Prestador</span>
+              <span className="sm:hidden mt-[3px] ml-0 py-0 mb-[2px] pr-0 pb-0 px-[2px] my-[6px] mx-px">Área do Prestador</span>
             </Button>
           </div>
         </div>
