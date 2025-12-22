@@ -19,8 +19,7 @@ const Index: React.FC = () => {
         <div className="container mx-auto px-2 md:px-4">
           <div className="flex items-center justify-between h-14 md:h-20 gap-1">
             {/* Logo - compacto no mobile */}
-            <div className="font-display text-sm md:text-2xl font-bold text-white rounded-lg flex-shrink-0 whitespace-nowrap">
-              Aki Guincho <span className="text-secondary">24HS</span>
+            <div className="font-display text-sm md:text-2xl font-bold text-white rounded-lg flex-shrink-0 whitespace-nowrap"> Direto com o guincho. 24HS<span className="text-secondary">24HS</span>
             </div>
             
             {/* Mobile: Links em coluna */}
@@ -46,8 +45,7 @@ const Index: React.FC = () => {
                 <Truck className="w-4 h-4" />
                 Sou Prestador
               </button>
-              <a href="https://wa.me/5562994389675?text=Olá! Sou prestador e quero contratar o site Aki Guincho 24HS" target="_blank" rel="noopener noreferrer" className="text-sm text-secondary hover:text-secondary/80 transition-colors flex items-center gap-1.5 font-medium">
-                <MessageCircle className="w-4 h-4" />
+              <a href="https://wa.me/5562994389675?text=Olá! Sou prestador e quero contratar o site Aki Guincho 24HS" target="_blank" rel="noopener noreferrer" className="text-sm text-secondary hover:text-secondary/80 transition-colors flex items-center gap-1.5 font-medium">Central Digital (62) 99438-9675<MessageCircle className="w-4 h-4" />
                 Quero Contratar o Site (62) 99438-9675
               </a>
             </nav>
@@ -86,9 +84,7 @@ const Index: React.FC = () => {
                 
                 {/* Badge - no topo */}
                 <div className="text-center mb-3">
-                  <span className="inline-block py-2 px-4 text-secondary rounded-full text-xs md:text-sm font-semibold bg-primary-foreground">
-                    Atendimento 24h em todo o Brasil
-                  </span>
+                  <span className="inline-block py-2 px-4 rounded-full text-xs md:text-sm font-semibold bg-primary-foreground text-secondary-foreground">Atendimento direto com o guincho 24hs</span>
                 </div>
 
                 {/* Location Display - acima do mapa */}
