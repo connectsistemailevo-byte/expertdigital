@@ -24,6 +24,7 @@ interface ProviderData {
   service_types: string[];
   state_uf: string | null;
   return_price: number | null;
+  return_price_per_km: number | null;
   return_enabled: boolean;
 }
 
@@ -115,6 +116,23 @@ const ProviderExclusivePage: React.FC = () => {
 
         setProvider(providerData);
 
+        // Salvar dados do prestador no localStorage para o PWA
+        localStorage.setItem('exclusive_provider_data', JSON.stringify({
+          id: providerData.id,
+          name: providerData.name,
+          slug: providerData.slug
+        }));
+
+        // Registrar escaneamento do QR Code
+        try {
+          await supabase.from('qr_code_scans').insert({
+            provider_id: providerData.id,
+            user_agent: navigator.userAgent,
+            referrer: document.referrer || null
+          });
+        } catch (scanError) {
+          console.log('Erro ao registrar scan:', scanError);
+        }
         // Buscar status online
         const { data: statusData } = await supabase
           .from('provider_online_status')
@@ -328,10 +346,15 @@ const ProviderExclusivePage: React.FC = () => {
               </div>
 
               {/* Valor de retorno - só exibe se ativado e prestador online */}
-              {provider.return_enabled && provider.return_price && isProviderOnline && (
+              {provider.return_enabled && isProviderOnline && (provider.return_price || provider.return_price_per_km) && (
                 <div className="bg-orange-100 text-orange-700 rounded-lg px-3 py-2 flex items-center gap-2 text-sm font-medium mt-2">
                   <RotateCcw className="w-4 h-4" />
-                  Retorno (ida e volta): R${provider.return_price.toFixed(2)}
+                  <span>
+                    Retorno (ida e volta): 
+                    {provider.return_price ? ` R$${provider.return_price.toFixed(2)}` : ''}
+                    {provider.return_price && provider.return_price_per_km ? ' + ' : ''}
+                    {provider.return_price_per_km ? `R$${provider.return_price_per_km.toFixed(2)}/km` : ''}
+                  </span>
                 </div>
               )}
 

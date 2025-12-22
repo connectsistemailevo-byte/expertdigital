@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import ProviderDashboard from "./pages/ProviderDashboard";
 import ProviderPage from "./pages/ProviderPage";
 import ProviderExclusivePage from "./pages/ProviderExclusivePage";
+import ProviderStats from "./pages/ProviderStats";
 import AdminPanel from "./pages/AdminPanel";
 import ProviderTracking from "./pages/ProviderTracking";
 import InstalarPWA from "./pages/InstalarPWA";
@@ -52,6 +53,7 @@ const TenantRouter = () => {
           <Route path="/" element={<Index />} />
           <Route path="/p/:slug" element={<ProviderExclusivePage />} />
           <Route path="/provider-dashboard" element={<ProviderDashboard />} />
+          <Route path="/provider-stats" element={<ProviderStats />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="*" element={<NotFound />} />
         </>
