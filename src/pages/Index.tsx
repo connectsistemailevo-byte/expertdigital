@@ -19,7 +19,7 @@ const Index: React.FC = () => {
         <div className="container mx-auto px-2 md:px-4">
           <div className="flex items-center justify-between h-14 md:h-20 gap-1">
             {/* Logo - compacto no mobile */}
-            <div className="font-display text-sm md:text-2xl font-bold text-white rounded-lg flex-shrink-0 whitespace-nowrap"> Direto com o guincho.24HS<span className="text-secondary">24HS</span>
+            <div className="font-display text-sm md:text-2xl font-bold text-white rounded-lg flex-shrink-0 whitespace-nowrap">Direto com o guincho.<span className="text-secondary">24HS</span>
             </div>
             
             {/* Mobile: Links em coluna */}
@@ -51,7 +51,7 @@ const Index: React.FC = () => {
             {/* Botão Sou Prestador */}
             <Button variant="hero" size="sm" onClick={() => setIsProviderModalOpen(true)} className="flex-shrink-0 text-[10px] md:text-sm px-2 md:px-4 py-1 md:py-2 h-auto">
               <Truck className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-              <span className="hidden sm:inline">Área do  Prestador</span>
+              <span className="hidden sm:inline">Área do  Prestador</span>
               <span className="sm:hidden">Prestador</span>
             </Button>
           </div>
