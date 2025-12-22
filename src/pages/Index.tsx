@@ -7,11 +7,13 @@ import ProviderRegistrationModal from '@/components/ProviderRegistrationModal';
 import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
 import RequestPanel from '@/components/RequestPanel';
+import ProviderLandingPage from '@/pages/ProviderLandingPage';
 import { MapPin, Phone, ArrowRight, CheckCircle, Truck, Navigation, Settings, MessageCircle } from 'lucide-react';
 
 const Index: React.FC = () => {
   const navigate = useNavigate();
   const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
+  const [showProviderLanding, setShowProviderLanding] = useState(false);
   const {
     location,
     mapboxToken
@@ -32,6 +34,19 @@ const Index: React.FC = () => {
       }
     }
   }, [navigate]);
+
+  // Mostrar landing page do prestador
+  if (showProviderLanding) {
+    return (
+      <ProviderLandingPage 
+        onActivate={() => {
+          setShowProviderLanding(false);
+          setIsProviderModalOpen(true);
+        }}
+        onBack={() => setShowProviderLanding(false)}
+      />
+    );
+  }
 
   return <div className="min-h-screen bg-[#0a0f1a]">
       {/* Header */}
@@ -59,22 +74,23 @@ const Index: React.FC = () => {
               <a href="#como-funciona" className="text-sm text-white/70 hover:text-white transition-colors">
                 Como Funciona
               </a>
-              <button onClick={() => setIsProviderModalOpen(true)} className="text-sm text-white/70 hover:text-white transition-colors flex items-center gap-2">
+              <button onClick={() => setShowProviderLanding(true)} className="text-sm text-white/70 hover:text-white transition-colors flex items-center gap-2">
                 <Truck className="w-4 h-4" />
-                Sou Prestador
+                Área do Prestador
               </button>
               
             </nav>
             
-            {/* Botão Sou Prestador */}
+            {/* Botão Área do Prestador */}
             <Button 
               variant="hero" 
               size="sm" 
-              onClick={() => setIsProviderModalOpen(true)} 
+              onClick={() => setShowProviderLanding(true)} 
               className="flex items-center gap-1 text-[11px] sm:text-xs md:text-sm px-2 sm:px-3 md:px-4 py-1.5 md:py-2 h-auto whitespace-nowrap"
             >
               <Truck className="w-3 h-3 md:w-4 md:h-4 shrink-0" />
-              <span>Sou Prestador</span>
+              <span className="hidden sm:inline">Área do Prestador</span>
+              <span className="sm:hidden">Prestador</span>
             </Button>
           </div>
         </div>
