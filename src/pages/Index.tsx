@@ -45,9 +45,7 @@ const Index: React.FC = () => {
                 <Truck className="w-4 h-4" />
                 Sou Prestador
               </button>
-              <a href="https://wa.me/5562994389675?text=Olá! Sou prestador e quero contratar o site Aki Guincho 24HS" target="_blank" rel="noopener noreferrer" className="text-sm text-secondary hover:text-secondary/80 transition-colors flex items-center gap-1.5 font-medium">Central Digital (62) 99438-9675<MessageCircle className="w-4 h-4" />
-                Quero Contratar o Site (62) 99438-9675
-              </a>
+              
             </nav>
             
             {/* Botão Sou Prestador */}
