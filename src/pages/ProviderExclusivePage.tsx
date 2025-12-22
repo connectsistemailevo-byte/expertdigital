@@ -575,37 +575,14 @@ const ProviderExclusivePage: React.FC = () => {
 
       {/* Conteúdo principal */}
       <main className="container mx-auto px-4 py-4">
-        
-        {/* Card do Prestador - Estilo similar ao da imagem */}
-        <ProviderInfoCard 
-          provider={provider}
-          displayName={displayName}
-          primaryColor={primaryColor}
-          isProviderOnline={isProviderOnline}
-          providerMetrics={providerMetrics}
-          routeInfo={routeInfo}
-        />
-
         {/* Mapa do prestador - APENAS este prestador */}
-        <div className="mb-4 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
-          <div className="relative w-full h-[200px] md:h-[280px] rounded-xl overflow-hidden">
+        <div className="mb-4">
+          <div className="relative w-full h-[360px] md:h-[420px] rounded-xl overflow-hidden">
             <ExclusiveProviderMap 
               provider={provider}
               onlineStatus={onlineStatus}
               clientLocation={location}
             />
-          </div>
-          
-          {/* Legenda compacta */}
-          <div className="flex flex-wrap justify-center items-center gap-4 mt-3 text-xs text-slate-400">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-              <span>Você</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              <span>{displayName}</span>
-            </div>
           </div>
         </div>
 

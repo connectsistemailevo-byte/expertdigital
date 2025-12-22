@@ -377,71 +377,14 @@ export default function ProviderDashboard() {
             <h1 className="text-2xl md:text-3xl font-bold text-white">
               Olá, {customization?.company_name || provider.name}!
             </h1>
-            <div className="flex items-center gap-2 mt-1">
-              {getPlanBadge()}
-            </div>
           </div>
-          <Button variant="outline" onClick={handleLogout} className="border-slate-600 text-slate-300">
-            <LogOut className="w-4 h-4 mr-2" />
-            Sair
+          <Button variant="outline" onClick={() => navigate('/?open_provider_modal=1')} className="border-slate-600 text-slate-300">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar
           </Button>
         </div>
-
-        {/* Alerta de Trial Esgotado */}
-        {subscription && !subscription.adesao_paga && subscription.trial_corridas_restantes <= 0 && (
-          <Card className="bg-red-500/20 border-red-500/50">
-            <CardContent className="py-4">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-red-500/30 flex items-center justify-center">
-                    <AlertTriangle className="w-6 h-6 text-red-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-red-400">Período de Teste Encerrado</h3>
-                    <p className="text-slate-400">Suas 10 corridas gratuitas acabaram. Contrate um plano para continuar.</p>
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => setShowTrialExhaustedModal(true)}
-                  className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-bold"
-                >
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Contratar Plano
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Alerta de Limite Atingido (planos pagos) */}
-        {subscription && subscription.adesao_paga && subscription.plano !== 'pro' && 
-         subscription.limite_corridas > 0 && subscription.corridas_usadas >= subscription.limite_corridas && (
-          <Card className="bg-yellow-500/20 border-yellow-500/50">
-            <CardContent className="py-4">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-yellow-500/30 flex items-center justify-center">
-                    <AlertTriangle className="w-6 h-6 text-yellow-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-yellow-400">Limite de Corridas Atingido</h3>
-                    <p className="text-slate-400">Você atingiu o limite de {subscription.limite_corridas} corridas do seu plano.</p>
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => setShowPlanModal(true)}
-                  className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold"
-                >
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Fazer Upgrade
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Status Cards */}
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {/* QR Code Scans */}
           <Card className="bg-slate-800/50 border-slate-700 cursor-pointer hover:bg-slate-700/50 transition-colors" onClick={() => navigate('/provider-stats')}>
             <CardHeader className="pb-2">
@@ -460,52 +403,6 @@ export default function ProviderDashboard() {
                 <span className="text-slate-500">|</span>
                 <span className="text-blue-400">Mês: {qrScanStats.month}</span>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Plano */}
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-slate-400 flex items-center gap-2">
-                <CreditCard className="w-4 h-4" />
-                Plano Atual
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {subscription?.adesao_paga ? (
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-xl font-bold text-white capitalize">
-                    {subscription.plano}
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                  <span className="text-yellow-400">Trial Ativo</span>
-                </div>
-              )}
-              {subscription?.proxima_cobranca && (
-                <p className="text-xs text-slate-500 mt-1">
-                  Próxima cobrança: {new Date(subscription.proxima_cobranca).toLocaleDateString('pt-BR')}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Mensalidade */}
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-slate-400 flex items-center gap-2">
-                <CreditCard className="w-4 h-4" />
-                Mensalidade
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-white">
-                R$ {(subscription?.mensalidade_atual || 0).toFixed(2)}
-              </div>
-              <p className="text-xs text-slate-500 mt-1">por mês</p>
             </CardContent>
           </Card>
         </div>

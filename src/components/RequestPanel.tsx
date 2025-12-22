@@ -411,7 +411,17 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
             const pricePerKm = selectedProvider.price_per_km ?? 0;
             const kmCost = tripDistanceKm * pricePerKm;
             const patinsCost = needsPatins && selectedProvider.has_patins ? selectedProvider.patins_extra_price ?? 0 : 0;
-            const total = basePrice + kmCost + patinsCost;
+
+            const hasReturn = !!selectedProvider.return_enabled && (
+              (selectedProvider.return_price ?? 0) > 0 || (selectedProvider.return_price_per_km ?? 0) > 0
+            );
+            const returnCost = hasReturn
+              ? (selectedProvider.return_price ?? 0) + (tripDistanceKm * (selectedProvider.return_price_per_km ?? 0))
+              : 0;
+
+            const totalIda = basePrice + kmCost + patinsCost;
+            const totalGeral = totalIda + returnCost;
+
             return <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800 space-y-1">
                   <div className="text-[10px] text-muted-foreground space-y-0.5">
                     <div className="flex justify-between">
@@ -426,16 +436,30 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
                         <span>+ Patins:</span>
                         <span>R$ {patinsCost.toFixed(2)}</span>
                       </div>}
+                    {returnCost > 0 && <div className="flex justify-between text-orange-600">
+                        <span>+ Retorno:</span>
+                        <span>R$ {returnCost.toFixed(2)}</span>
+                      </div>}
                   </div>
+
                   <div className="flex items-center justify-between pt-1 border-t border-green-200 dark:border-green-700">
                     <div className="flex items-center gap-1">
                       <DollarSign className="w-4 h-4 text-green-600" />
-                      <span className="text-xs font-bold text-green-700 dark:text-green-400">TOTAL:</span>
+                      <span className="text-xs font-bold text-green-700 dark:text-green-400">
+                        {returnCost > 0 ? 'TOTAL GERAL:' : 'TOTAL:'}
+                      </span>
                     </div>
                     <span className="text-lg font-bold text-green-700 dark:text-green-400">
-                      R$ {total.toFixed(2)}
+                      R$ {(returnCost > 0 ? totalGeral : totalIda).toFixed(2)}
                     </span>
                   </div>
+
+                  {returnCost > 0 && (
+                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                      <span>Total (ida):</span>
+                      <span>R$ {totalIda.toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>;
           })()}
 
