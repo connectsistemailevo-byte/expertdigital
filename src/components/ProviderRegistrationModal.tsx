@@ -397,7 +397,7 @@ const ProviderRegistrationModal: React.FC<ProviderRegistrationModalProps> = ({
         </div>
         <h3 className="font-display font-bold text-base sm:text-lg">Área do Prestador</h3>
         <p className="text-xs sm:text-sm text-muted-foreground">
-          Digite seu WhatsApp para acessar ou criar seu cadastro
+          Digite seu WhatsApp para acessar e ativar o seu cadastro
         </p>
       </div>
 
