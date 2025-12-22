@@ -145,13 +145,13 @@ export default function ProviderStats() {
         Object.entries(scansByDay).map(([date, count]) => ({ date, count }))
       );
 
-      // Últimos escaneamentos (data e hora)
+      // Último escaneamento (apenas o horário mais recente)
       const { data: recent } = await supabase
         .from('qr_code_scans')
-        .select('scanned_at, referrer, user_agent')
+        .select('scanned_at')
         .eq('provider_id', provider.id)
         .order('scanned_at', { ascending: false })
-        .limit(30);
+        .limit(1);
 
       setRecentScans((recent || []) as RecentScan[]);
     } catch (error) {
@@ -170,8 +170,9 @@ export default function ProviderStats() {
   }
 
   const maxScanCount = Math.max(...dailyScans.map(d => d.count), 1);
-
-  return (
+  const lastScanTime = recentScans[0]?.scanned_at
+    ? new Date(recentScans[0].scanned_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    : null;
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
@@ -179,7 +180,7 @@ export default function ProviderStats() {
           <Button 
             variant="outline" 
             size="icon"
-            onClick={() => navigate('/provider-dashboard')}
+            onClick={() => navigate('/?open_provider_modal=1')}
             className="border-slate-600"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -277,34 +278,15 @@ export default function ProviderStats() {
           </CardContent>
         </Card>
 
-        {/* Últimos escaneamentos (data e hora) */}
+        {/* Último escaneamento (só horário) */}
         <Card className="bg-slate-800/50 border-slate-700">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Eye className="w-5 h-5" />
-              Últimos escaneamentos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {recentScans.length === 0 ? (
-              <p className="text-sm text-slate-400">Nenhum escaneamento registrado ainda.</p>
+          <CardContent className="py-4">
+            {lastScanTime ? (
+              <p className="text-sm text-slate-300">
+                Último escaneamento: <span className="font-semibold text-white">{lastScanTime}</span>
+              </p>
             ) : (
-              <div className="flex flex-wrap gap-2">
-                {recentScans.slice(0, 15).map((scan, idx) => {
-                  const time = new Date(scan.scanned_at).toLocaleTimeString('pt-BR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  });
-                  return (
-                    <span
-                      key={`${scan.scanned_at}-${idx}`}
-                      className="inline-flex items-center gap-1 rounded-full bg-slate-700/50 px-3 py-1 text-sm text-white"
-                    >
-                      {time}
-                    </span>
-                  );
-                })}
-              </div>
+              <p className="text-sm text-slate-400">Nenhum escaneamento registrado ainda.</p>
             )}
           </CardContent>
         </Card>
@@ -324,8 +306,8 @@ export default function ProviderStats() {
                 <QrCode className="w-5 h-5 text-green-400" />
               </div>
               <div>
-                <h3 className="font-bold text-green-300 mb-1">Dica para mais escaneamentos</h3>
-                <p className="text-sm text-green-100">
+                <h3 className="font-bold text-white mb-1">Dica para mais escaneamentos</h3>
+                <p className="text-sm text-white/80">
                   Cole seu QR Code no para-brisa do guincho, cartões de visita e materiais de divulgação. 
                   Quanto mais visível, mais clientes diretos você terá!
                 </p>

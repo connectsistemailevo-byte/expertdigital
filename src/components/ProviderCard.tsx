@@ -40,18 +40,17 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
   return <button type="button" onClick={onSelect} className={`relative w-full p-3 rounded-xl border-2 transition-all duration-200 text-left ${isSelected ? 'border-secondary bg-secondary/10' : 'border-border hover:border-secondary/50 hover:bg-muted'} ${className || ''}`}>
       {isSelected && <CheckCircle className="w-4 h-4 text-secondary absolute top-2 right-2" />}
       
-      <div className="flex items-start gap-2 text-secondary-foreground bg-green-200">
+      <div className="flex items-start gap-2">
         <div className={`relative w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-secondary text-secondary-foreground' : 'bg-muted'}`}>
-          <Truck className="w-5 h-5 bg-transparent text-secondary-foreground" />
+          <Truck className="w-5 h-5" />
           {/* Indicador ONLINE pulsante */}
-          <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white animate-pulse"></span>
+          <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background animate-pulse"></span>
         </div>
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5">
-              <h4 className="font-semibold text-sm truncate text-secondary-foreground">{provider.name}</h4>
-              {/* Badge ONLINE visível */}
+            <div className="flex items-center gap-1.5 min-w-0">
+              <h4 className="font-semibold text-sm truncate text-foreground">{provider.name}</h4>
               <span className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-green-500 text-white">
                 <Wifi className="w-2.5 h-2.5" />
                 ONLINE
@@ -60,20 +59,19 @@ const ProviderCard: React.FC<ProviderCardProps> = ({
           </div>
           
           <div className="flex items-center gap-1.5 mt-1">
-            <span className="text-[9px] px-1 py-0.5 rounded bg-green-300 text-secondary-foreground">
+            <span className="text-[9px] px-1 py-0.5 rounded bg-muted text-foreground">
               R${provider.base_price ?? 0} + R${(provider.price_per_km ?? 0).toFixed(2)}/km
             </span>
           </div>
           
-          {/* Provider distance (how far provider is from client) */}
           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-foreground" />
-              <span className="text-black">{provider.distance?.toFixed(1)} km de você</span>
+            <div className="flex items-center gap-1 min-w-0">
+              <MapPin className="w-3 h-3" />
+              <span className="truncate">{provider.distance?.toFixed(1)} km</span>
             </div>
             <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3 text-primary" />
-              <span className="text-black">~{provider.estimatedTime} min</span>
+              <Clock className="w-3 h-3" />
+              <span>~{provider.estimatedTime} min</span>
             </div>
           </div>
           

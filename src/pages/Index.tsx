@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useLocation } from '@/contexts/LocationContext';
 import LiveTrackingMap from '@/components/LiveTrackingMap';
@@ -8,10 +8,11 @@ import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
 import RequestPanel from '@/components/RequestPanel';
 import ProviderLandingPage from '@/pages/ProviderLandingPage';
-import { MapPin, Phone, ArrowRight, CheckCircle, Truck, Navigation, Settings, MessageCircle } from 'lucide-react';
+import { MapPin, ArrowRight, CheckCircle, Truck, Navigation, Settings, MessageCircle } from 'lucide-react';
 
 const Index: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isProviderModalOpen, setIsProviderModalOpen] = useState(false);
   const [showProviderLanding, setShowProviderLanding] = useState(false);
   const {
@@ -21,6 +22,9 @@ const Index: React.FC = () => {
 
   // Verificar se cliente instalou PWA via prestador exclusivo
   useEffect(() => {
+    // Se estamos voltando das estatísticas (abrir modal do prestador), não redirecionar
+    if (searchParams.get('open_provider_modal') === '1') return;
+
     const exclusiveProvider = localStorage.getItem('exclusive_provider_data');
     if (exclusiveProvider) {
       try {
@@ -33,7 +37,14 @@ const Index: React.FC = () => {
         console.log('Erro ao parsear dados do prestador exclusivo');
       }
     }
-  }, [navigate]);
+  }, [navigate, searchParams]);
+
+  // Abrir cadastro do prestador automaticamente (volta das estatísticas)
+  useEffect(() => {
+    if (searchParams.get('open_provider_modal') === '1') {
+      setIsProviderModalOpen(true);
+    }
+  }, [searchParams]);
 
   // Mostrar landing page do prestador
   if (showProviderLanding) {
@@ -117,12 +128,6 @@ const Index: React.FC = () => {
               
               {/* Card Principal */}
               <div className="relative backdrop-blur-xl rounded-2xl md:rounded-[2rem] p-4 md:p-6 border shadow-2xl bg-secondary-foreground border-secondary border-solid">
-                
-                {/* Badge - no topo */}
-                <div className="text-center mb-3">
-                  <span className="inline-block py-2 px-4 rounded-full text-xs md:text-sm font-semibold bg-primary-foreground text-secondary-foreground">Atendimento direto com o guincho 24hs</span>
-                </div>
-
                 {/* Location Display - acima do mapa */}
                 <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl mb-3 bg-green-600 text-primary-foreground border border-primary-foreground shadow-md">
                   <MapPin className="w-4 h-4 text-secondary flex-shrink-0" />
@@ -130,17 +135,8 @@ const Index: React.FC = () => {
                     {location.loading ? 'Buscando sua localização...' : location.address || location.region || 'Localização não disponível'}
                   </span>
                 </div>
-
-                {/* Trust badges - acima do mapa */}
-                <div className="flex flex-wrap justify-center items-center gap-3 mb-3">
-                  {['Resposta rápida', 'Preço justo', 'Profissionais verificados'].map(badge => <div key={badge} className="flex items-center gap-1.5">
-                      <CheckCircle className="w-3.5 h-3.5 text-green-400" />
-                      <span className="text-xs text-primary-foreground">{badge}</span>
-                    </div>)}
-                </div>
-                
                 {/* Map Container Inside Card */}
-                <div className="relative w-full h-[200px] md:h-[280px] rounded-xl overflow-hidden mb-4">
+                <div className="relative w-full h-[320px] md:h-[420px] rounded-xl overflow-hidden mb-4">
                   {mapboxToken ? <LiveTrackingMap className="w-full h-full" /> : <div className="w-full h-full bg-[#1a1f2e] flex items-center justify-center">
                       <span className="text-white/50 text-sm">Carregando mapa...</span>
                     </div>}

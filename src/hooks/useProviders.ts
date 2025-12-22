@@ -15,6 +15,9 @@ export interface Provider {
   base_price: number;
   price_per_km: number;
   patins_extra_price: number;
+  return_enabled?: boolean;
+  return_price?: number | null;
+  return_price_per_km?: number | null;
   distance?: number;
   estimatedTime?: number;
   estimatedPrice?: number;
