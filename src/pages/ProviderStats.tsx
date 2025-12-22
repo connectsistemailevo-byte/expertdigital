@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import QRCodeCustomizer from '@/components/QRCodeCustomizer';
 import { 
   BarChart3, 
   QrCode, 
@@ -32,6 +33,7 @@ export default function ProviderStats() {
   const [dailyScans, setDailyScans] = useState<DailyScan[]>([]);
   const [providerId, setProviderId] = useState<string | null>(null);
   const [providerName, setProviderName] = useState<string>('');
+  const [providerSlug, setProviderSlug] = useState<string>('');
 
   useEffect(() => {
     const savedWhatsapp = localStorage.getItem('provider_whatsapp');
@@ -53,7 +55,7 @@ export default function ProviderStats() {
 
       const { data: providers } = await supabase
         .from('providers')
-        .select('id, name')
+        .select('id, name, slug')
         .ilike('whatsapp', searchPattern)
         .limit(1);
 
@@ -65,6 +67,7 @@ export default function ProviderStats() {
       const provider = providers[0];
       setProviderId(provider.id);
       setProviderName(provider.name);
+      setProviderSlug(provider.slug || '');
 
       // Buscar estatísticas
       const now = new Date();
@@ -258,6 +261,14 @@ export default function ProviderStats() {
             </div>
           </CardContent>
         </Card>
+
+        {/* QR Code Customizer */}
+        {providerSlug && (
+          <QRCodeCustomizer 
+            providerSlug={providerSlug}
+            providerName={providerName}
+          />
+        )}
 
         {/* Tips */}
         <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-green-500/30">
