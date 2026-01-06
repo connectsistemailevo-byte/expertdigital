@@ -173,6 +173,7 @@ export default function ProviderStats() {
   const lastScanTime = recentScans[0]?.scanned_at
     ? new Date(recentScans[0].scanned_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     : null;
+  return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
