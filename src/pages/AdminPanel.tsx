@@ -98,6 +98,7 @@ interface ProviderWithSubscription {
   service_types?: string[];
   latitude?: number;
   longitude?: number;
+  hide_prices?: boolean;
   provider_subscriptions: {
     id: string;
     plano: 'basico' | 'profissional' | 'pro' | null;
@@ -168,6 +169,7 @@ export default function AdminPanel() {
   const [editProviderPricePerKm, setEditProviderPricePerKm] = useState('5');
   const [editProviderPatinsPrice, setEditProviderPatinsPrice] = useState('30');
   const [editProviderServices, setEditProviderServices] = useState<string[]>([]);
+  const [editProviderHidePrices, setEditProviderHidePrices] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   
   // Delete provider state
@@ -388,6 +390,7 @@ export default function AdminPanel() {
             base_price: parseFloat(editProviderBasePrice) || 50,
             price_per_km: parseFloat(editProviderPricePerKm) || 5,
             patins_extra_price: parseFloat(editProviderPatinsPrice) || 30,
+            hide_prices: editProviderHidePrices,
           },
         },
       });
@@ -498,6 +501,7 @@ export default function AdminPanel() {
     setEditProviderPricePerKm(String(provider.price_per_km || 5));
     setEditProviderPatinsPrice(String(provider.patins_extra_price || 30));
     setEditProviderServices(provider.service_types || []);
+    setEditProviderHidePrices(provider.hide_prices || false);
     setShowEditProviderModal(true);
   };
 
@@ -1404,6 +1408,18 @@ export default function AdminPanel() {
               />
               <Label htmlFor="editHasPatins" className="text-slate-300 cursor-pointer">
                 Possui patins para remoção de veículos travados
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="editHidePrices"
+                checked={editProviderHidePrices}
+                onCheckedChange={(checked) => setEditProviderHidePrices(checked === true)}
+                className="border-slate-600"
+              />
+              <Label htmlFor="editHidePrices" className="text-slate-300 cursor-pointer">
+                Ocultar preços para clientes (não exibir valores)
               </Label>
             </div>
 

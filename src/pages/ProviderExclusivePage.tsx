@@ -27,6 +27,7 @@ interface ProviderData {
   return_price: number | null;
   return_price_per_km: number | null;
   return_enabled: boolean;
+  hide_prices: boolean;
 }
 
 interface OnlineStatus {
@@ -203,6 +204,7 @@ interface ProviderInfoCardProps {
   isProviderOnline: boolean;
   providerMetrics: { distance: number; estimatedTime: number };
   routeInfo: { distanceKm: number; loading: boolean } | null;
+  hidePrices: boolean;
 }
 
 const ProviderInfoCard: React.FC<ProviderInfoCardProps> = ({
@@ -211,7 +213,8 @@ const ProviderInfoCard: React.FC<ProviderInfoCardProps> = ({
   primaryColor,
   isProviderOnline,
   providerMetrics,
-  routeInfo
+  routeInfo,
+  hidePrices
 }) => {
   const basePrice = provider.base_price ?? 50;
   const pricePerKm = provider.price_per_km ?? 5;
@@ -242,9 +245,11 @@ const ProviderInfoCard: React.FC<ProviderInfoCardProps> = ({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
             <h2 className="text-base sm:text-lg font-bold text-slate-900">{displayName}</h2>
-            <Badge variant="outline" className="bg-pink-100 text-pink-700 border-pink-200 text-[10px] sm:text-xs">
-              R${basePrice} + R${pricePerKm.toFixed(2)}/km
-            </Badge>
+            {!hidePrices && (
+              <Badge variant="outline" className="bg-pink-100 text-pink-700 border-pink-200 text-[10px] sm:text-xs">
+                R${basePrice} + R${pricePerKm.toFixed(2)}/km
+              </Badge>
+            )}
             <Badge 
               variant="outline" 
               className={`text-[10px] sm:text-xs ${isProviderOnline 
@@ -271,29 +276,33 @@ const ProviderInfoCard: React.FC<ProviderInfoCardProps> = ({
             )}
           </div>
 
-          {/* Mostrar valor calculado ou mensagem para informar destino */}
-          {hasDestination ? (
-            <div className="bg-green-100 text-green-800 rounded-lg px-3 py-2 text-sm font-medium">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className="flex items-center gap-1">
-                  <Route className="w-4 h-4" />
-                  Trajeto: {tripDistanceKm.toFixed(1)} km
-                </span>
-                <span className="flex items-center gap-1 text-lg font-bold">
-                  <DollarSign className="w-4 h-4" />
-                  R$ {totalPrice.toFixed(2)}
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-purple-100 text-purple-700 rounded-lg px-3 py-2 flex items-center gap-2 text-sm font-medium">
-              <Truck className="w-4 h-4" />
-              Informe o destino para ver o valor
-            </div>
+          {/* Mostrar valor calculado ou mensagem para informar destino - só se não ocultar preços */}
+          {!hidePrices && (
+            <>
+              {hasDestination ? (
+                <div className="bg-green-100 text-green-800 rounded-lg px-3 py-2 text-sm font-medium">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="flex items-center gap-1">
+                      <Route className="w-4 h-4" />
+                      Trajeto: {tripDistanceKm.toFixed(1)} km
+                    </span>
+                    <span className="flex items-center gap-1 text-lg font-bold">
+                      <DollarSign className="w-4 h-4" />
+                      R$ {totalPrice.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-purple-100 text-purple-700 rounded-lg px-3 py-2 flex items-center gap-2 text-sm font-medium">
+                  <Truck className="w-4 h-4" />
+                  Informe o destino para ver o valor
+                </div>
+              )}
+            </>
           )}
 
-          {/* Valor de retorno - só exibe se ativado, prestador online E já tiver destino */}
-          {hasReturn && hasDestination && (
+          {/* Valor de retorno - só exibe se ativado, prestador online, já tiver destino E não ocultar preços */}
+          {!hidePrices && hasReturn && hasDestination && (
             <div className="bg-orange-100 text-orange-700 rounded-lg px-3 py-2 flex items-center justify-between text-sm font-medium mt-2">
               <span className="flex items-center gap-2">
                 <RotateCcw className="w-4 h-4" />
@@ -304,7 +313,7 @@ const ProviderInfoCard: React.FC<ProviderInfoCardProps> = ({
           )}
 
           {/* Info de retorno disponível (sem valor até informar destino) */}
-          {hasReturn && !hasDestination && (
+          {!hidePrices && hasReturn && !hasDestination && (
             <div className="bg-orange-50 text-orange-600 rounded-lg px-3 py-2 flex items-center gap-2 text-xs mt-2">
               <RotateCcw className="w-3 h-3" />
               <span>Serviço de retorno disponível</span>
@@ -590,6 +599,7 @@ const ProviderExclusivePage: React.FC = () => {
         <RequestPanel 
           filterProviderId={provider.id}
           hideProviderSelection={true}
+          hidePrices={provider.hide_prices}
         />
 
         {/* PWA Install Prompt */}

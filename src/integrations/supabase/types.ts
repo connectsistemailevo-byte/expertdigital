@@ -241,6 +241,7 @@ export type Database = {
           base_price: number | null
           created_at: string
           has_patins: boolean
+          hide_prices: boolean
           id: string
           latitude: number
           longitude: number
@@ -262,6 +263,7 @@ export type Database = {
           base_price?: number | null
           created_at?: string
           has_patins?: boolean
+          hide_prices?: boolean
           id?: string
           latitude: number
           longitude: number
@@ -283,6 +285,7 @@ export type Database = {
           base_price?: number | null
           created_at?: string
           has_patins?: boolean
+          hide_prices?: boolean
           id?: string
           latitude?: number
           longitude?: number

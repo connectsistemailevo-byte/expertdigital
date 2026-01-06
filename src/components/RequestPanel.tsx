@@ -109,10 +109,12 @@ const paymentMethods = [{
 interface RequestPanelProps {
   filterProviderId?: string; // Para modo white-label: mostrar apenas este prestador
   hideProviderSelection?: boolean; // Ocultar seleção de prestadores
+  hidePrices?: boolean; // Ocultar preços para o cliente
 }
 const RequestPanel: React.FC<RequestPanelProps> = ({
   filterProviderId,
-  hideProviderSelection = false
+  hideProviderSelection = false,
+  hidePrices = false
 }) => {
   const {
     location,
@@ -405,8 +407,8 @@ const RequestPanel: React.FC<RequestPanelProps> = ({
                   </div>}
               </div>}
 
-            {/* Price Summary with Breakdown */}
-            {selectedProvider && tripDistanceKm > 0 && (() => {
+            {/* Price Summary with Breakdown - só mostrar se não ocultar preços */}
+            {!hidePrices && selectedProvider && tripDistanceKm > 0 && (() => {
             const basePrice = selectedProvider.base_price ?? 0;
             const pricePerKm = selectedProvider.price_per_km ?? 0;
             const kmCost = tripDistanceKm * pricePerKm;

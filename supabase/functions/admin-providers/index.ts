@@ -358,6 +358,7 @@ serve(async (req) => {
         if (data?.region !== undefined) updateData.region = data.region;
         if (data?.latitude !== undefined) updateData.latitude = data.latitude;
         if (data?.longitude !== undefined) updateData.longitude = data.longitude;
+        if (data?.hide_prices !== undefined) updateData.hide_prices = data.hide_prices;
 
         if (Object.keys(updateData).length === 0) {
           throw new Error("Nenhum dado para atualizar");
