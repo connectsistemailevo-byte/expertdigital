@@ -18,6 +18,7 @@ export interface Provider {
   return_enabled?: boolean;
   return_price?: number | null;
   return_price_per_km?: number | null;
+  hide_prices?: boolean;
   distance?: number;
   estimatedTime?: number;
   estimatedPrice?: number;
