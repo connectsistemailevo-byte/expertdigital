@@ -24,7 +24,7 @@ export const ProviderFloatingTracker: React.FC<ProviderFloatingTrackerProps> = (
   const [minimized, setMinimized] = useState(false);
 
   const watchIdRef = useRef<number | null>(null);
-  const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentPositionRef = useRef<{ lat: number; lng: number } | null>(null);
 
   // Enviar localização para o backend

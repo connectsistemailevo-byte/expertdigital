@@ -16,7 +16,7 @@ const ProviderTrackingButton: React.FC<ProviderTrackingButtonProps> = ({
   const [isTracking, setIsTracking] = useState(false);
   const [status, setStatus] = useState<'idle' | 'requesting' | 'active' | 'denied' | 'error'>('idle');
   const watchIdRef = useRef<number | null>(null);
-  const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentPositionRef = useRef<{ lat: number; lng: number } | null>(null);
 
   // Função para enviar localização ao backend
