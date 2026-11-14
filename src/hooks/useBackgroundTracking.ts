@@ -28,7 +28,7 @@ export function useBackgroundTracking({ providerId }: UseBackgroundTrackingProps
 
   const serviceWorkerRef = useRef<ServiceWorker | null>(null);
   const watchIdRef = useRef<number | null>(null);
-  const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const currentPositionRef = useRef<{ lat: number; lng: number } | null>(null);
 
